@@ -69,7 +69,7 @@ def localize(colors,measurements,motions,sensor_right,p_move):
 
         for i in range(len(p)):
             for j in range(len(p[i])):
-                aux[i][j] = (p_move * p[(i - motion[0]) % len(p)][j - motion[1] % len(p[i])]) + (p_stay * p[i][j])
+                aux[i][j] = (p_move * p[(i - motion[0]) % len(p)][j - motion[1] % len(p[i])])   +    (p_stay * p[i][j])
 
 
         return aux

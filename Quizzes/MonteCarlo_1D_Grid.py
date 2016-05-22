@@ -1,18 +1,14 @@
 
 # initial uniform probability distribution or all particles
-#p = [0.2, 0.2, 0.2, 0.2, 0.2]
-p = [1, 0, 0, 0, 0]
-
+p = [0.2, 0.2, 0.2, 0.2, 0.2]
+#p = [1, 0, 0, 0, 0]
 # actual values in the world
 world = ['green', 'red', 'red', 'green', 'green']
-
 # what we are sensing for
-measurements = ['red']
-motions = [1]
-
-
+measurements = ['green', 'red', 'red', 'green']
+motions = [1,1,1,1]
 pHit = 0.6 # probability that it was sensed correctly
-pMiss = 0.2 # probability that it was sensed incorrectly
+pMiss = 0.4 # probability that it was sensed incorrectly
 
 pExact = 0.8
 pOvershoot = 0.1
@@ -28,15 +24,15 @@ def move(p, numberOfCells):
         #print cellIndex
         arraySize = len(p)
         s = pExact * p[( cellIndex ) % arraySize]
-        print p[( cellIndex ) % arraySize]
-        print s
+        #print p[( cellIndex ) % arraySize]
+        #print s
         s = s + pOvershoot * p[(cellIndex - 1) % arraySize]
-        print p[( cellIndex - 1 ) % arraySize]
-        print s
+        #print p[( cellIndex - 1 ) % arraySize]
+        #print s
         s = s + pUndershoot * p[(cellIndex + 1) % arraySize]
-        print p[( cellIndex + 1 ) % arraySize]
-        print s
-        print "--------"
+        #print p[( cellIndex + 1 ) % arraySize]
+        #print s
+        #print "--------"
         q.append( s )
     #print q
     return q

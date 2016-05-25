@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# from ev3 import *
+#from ev3 import
 import time
 #
 # m = Motor(OUTPUT_A)

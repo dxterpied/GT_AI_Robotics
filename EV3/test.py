@@ -4,13 +4,18 @@ import ev3dev.ev3 as ev3
 from ev3dev.auto import OUTPUT_A, Motor
 import time
 
-m = Motor(OUTPUT_A)
-m.run_forever(duty_cycle_sp = 100)
-time.sleep(1)
-m.stop()
+# m = Motor(OUTPUT_A)
+# m.run_forever(duty_cycle_sp = 100)
+# time.sleep(1)
+# m.stop()
+#
+# time.sleep(1)
 
-time.sleep(1)
-ev3.Sound.speak('I am done running, thank you!').wait()
+
+#ev3.Sound.speak('I am done running, thank you!').wait()
+
+
+ev3.Sound.speak('Jackie, you need to stop playing with ipad!').wait()
 
 
 #m = ev3.LargeMotor('outA')

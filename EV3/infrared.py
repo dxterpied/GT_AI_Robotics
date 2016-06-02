@@ -4,11 +4,19 @@ import ev3dev.ev3 as ev3
 from time   import sleep
 from random import choice, randint
 
+
+
+# Connect infrared and touch sensors.
+ir = ev3.InfraredSensor(); assert ir.connected
+#ts = TouchSensor();    assert ts.connected
+# Put the infrared sensor into proximity mode.
+ir.mode = 'IR-PROX'
+
 m1 = ev3.LargeMotor('outA')
-m1.run_timed(time_sp=3000, duty_cycle_sp=75)
+#m1.run_timed(time_sp=3000, duty_cycle_sp=75)
 
 m2 = ev3.LargeMotor('outB')
-m2.run_timed(time_sp=3000, duty_cycle_sp=75)
+#m2.run_timed(time_sp=3000, duty_cycle_sp=75)
 
 # sample at:
 #https://github.com/rhempel/ev3dev-lang-python/blob/develop/demo/auto-drive.py
@@ -18,19 +26,14 @@ m2.run_timed(time_sp=3000, duty_cycle_sp=75)
     Start both motors. `run-direct` command will allow to vary motor
     performance on the fly by adjusting `duty_cycle_sp` attribute.
     """
+
+m1.run_direct()
+m2.run_direct()
+
     # for m in motors:
     #     m.run_direct()
 
 
-# Sound backup alarm.
-#Sound.tone([(1000, 500, 500)] * 3)
-
-# Connect infrared and touch sensors.
-#ir = InfraredSensor(); assert ir.connected
-#ts = TouchSensor();    assert ts.connected
-
-# Put the infrared sensor into proximity mode.
-#ir.mode = 'IR-PROX'
 
 # Stop both motors and reverse for 1.5 seconds.
     # `run-timed` command will return immediately, so we will have to wait
@@ -58,18 +61,22 @@ while True:
     # object in front of it.
     distance = ir.value()
 
-    if distance > 60:
-        # Path is clear, run at full speed.
-        dc = 90
-    else:
-        # Obstacle ahead, slow down.
-        dc = 40
+    if distance < 60:
+        # Sound backup alarm.
+        ev3.Sound.tone([(1000, 500, 500)] * 3)
+        m1.stop()
+        m2.stop()
+        break
 
-    for m in motors:
-        m.duty_cycle_sp = dc
+        # Path is clear, run at full speed.
+        #dc = 90
+    #else:
+        # Obstacle ahead, slow down.
+        #dc = 40
+
+    #for m in motors:
+    #    m.duty_cycle_sp = dc
 
     sleep(0.1)
 
-# Stop the motors before exiting.
-for m in motors:
-    m.stop()
+exit()

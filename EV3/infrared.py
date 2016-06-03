@@ -13,10 +13,10 @@ ir = ev3.InfraredSensor(); assert ir.connected
 ir.mode = 'IR-PROX'
 
 m1 = ev3.LargeMotor('outA')
-#m1.run_timed(time_sp=3000, duty_cycle_sp=75)
+#m1.run_timed(time_sp=15000, duty_cycle_sp=75)
 
 m2 = ev3.LargeMotor('outB')
-#m2.run_timed(time_sp=3000, duty_cycle_sp=75)
+#m2.run_timed(time_sp=15000, duty_cycle_sp=75)
 
 # sample at:
 #https://github.com/rhempel/ev3dev-lang-python/blob/develop/demo/auto-drive.py
@@ -27,8 +27,8 @@ m2 = ev3.LargeMotor('outB')
     performance on the fly by adjusting `duty_cycle_sp` attribute.
     """
 
-m1.run_direct()
-m2.run_direct()
+m1.run_forever()
+m2.run_forever()
 
     # for m in motors:
     #     m.run_direct()
@@ -77,6 +77,6 @@ while True:
     #for m in motors:
     #    m.duty_cycle_sp = dc
 
-    sleep(0.1)
+    sleep(0.2)
 
 exit()

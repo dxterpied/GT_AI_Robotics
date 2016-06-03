@@ -17,7 +17,7 @@ import time
 #ev3.Sound.speak('I am done running, thank you!').wait()
 
 
-ev3.Sound.speak('Jackie, you need to stop playing with ipad!').wait()
+ev3.Sound.speak('Sasha, you need to stop watching socker!').wait()
 
 
 #m = ev3.LargeMotor('outA')

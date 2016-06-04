@@ -27,13 +27,8 @@ m2 = ev3.LargeMotor('outB')
     performance on the fly by adjusting `duty_cycle_sp` attribute.
     """
 
-m1.run_forever()
-m2.run_forever()
-
-    # for m in motors:
-    #     m.run_direct()
-
-
+m1.run_forever(duty_cycle_sp=75)
+m2.run_forever(duty_cycle_sp=75)
 
 # Stop both motors and reverse for 1.5 seconds.
     # `run-timed` command will return immediately, so we will have to wait
@@ -50,22 +45,16 @@ m2.run_forever()
 # Run the robot
 while True:
 
-    # if ts.value():
-    #     # We bumped an obstacle.
-    #     # Back away, turn and go in other direction.
-    #     backup()
-    #     turn()
-    #     start()
-
     # Infrared sensor in proximity mode will measure distance to the closest
     # object in front of it.
     distance = ir.value()
 
     if distance < 60:
         # Sound backup alarm.
-        ev3.Sound.tone([(1000, 500, 500)] * 3)
         m1.stop()
         m2.stop()
+        ev3.Sound.tone([(1000, 500, 500)] * 3)
+        sleep(2.0)
         break
 
         # Path is clear, run at full speed.

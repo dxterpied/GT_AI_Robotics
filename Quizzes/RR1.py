@@ -67,7 +67,7 @@ import random
 # next position. The OTHER variable that your function returns will be
 # passed back to your function the next time it is called. You can use
 # this to keep track of important information over time.
-def estimate_next_pos(measurement, OTHER = None):
+def estimate_next_pos_(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
     print "estimate_next_pos"
@@ -76,6 +76,48 @@ def estimate_next_pos(measurement, OTHER = None):
     if not OTHER: # this is the first measurement
         OTHER = measurement
     xy_estimate = OTHER
+
+    return xy_estimate, OTHER
+
+
+def estimate_next_pos(measurement, OTHER = None):
+    """Estimate the next (x, y) position of the wandering Traxbot
+    based on noisy (x, y) measurements."""
+    xy_estimate = 100, 100
+    if OTHER is None:
+        OTHER = []
+        OTHER.append(measurement)
+    else:
+        OTHER.append(measurement)
+
+        if len(OTHER) == 3:
+            print 'OTHER--->', OTHER
+
+            p0 = OTHER[0]
+            p1 = OTHER[1]
+            p2 = OTHER[2]
+
+            vx1 = p1[0] - p0[0]
+            vy1 = p1[1] - p0[1]
+            mag_v1 = distance_between(p0, p1)
+
+            vx2 = p2[0] - p1[0]
+            vy2 = p2[1] - p1[1]
+            mag_v2 = distance_between(p1, p2)
+
+            initial_heading = atan((p2[1] - p1[1])/(p2[0] - p1[0]))
+
+            turning_angle = acos((vx1 * vx2 + vy1 * vy2)/(mag_v1 * mag_v2))
+            distance_traveled = mag_v1
+
+            r = robot(p2[0], p2[1], heading=initial_heading, turning=turning_angle, distance=distance_traveled)
+            print 'r--->', r
+            r.move_in_circle()
+            print 'r after move--->', r
+            xy_estimate = r.x, r.y
+            print 'ESTIMATE--->', xy_estimate
+
+########################################################################################################################
 
     return xy_estimate, OTHER
 
@@ -141,7 +183,7 @@ def demo_grading_new(estimate_next_pos_fcn, target_bot, OTHER = None):
     broken_robot.penup()
     measured_broken_robot.penup()
     #End of Visualization
-    while not localized and ctr <= 10:
+    while not localized and ctr <= 40:
         ctr += 1
         measurement = target_bot.sense()
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
@@ -151,7 +193,7 @@ def demo_grading_new(estimate_next_pos_fcn, target_bot, OTHER = None):
         if error <= distance_tolerance:
             print "You got it right! It took you ", ctr, " steps to localize."
             localized = True
-        if ctr == 10:
+        if ctr == 40:
             print "Sorry, it took you too many steps to localize the target."
         #More Visualization
         measured_broken_robot.setheading(target_bot.heading*180/pi)
@@ -182,4 +224,5 @@ def naive_next_pos(measurement, OTHER = None):
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.0)
 
-demo_grading(estimate_next_pos, test_target)
+#demo_grading(estimate_next_pos, test_target)
+demo_grading_new(estimate_next_pos_, test_target)

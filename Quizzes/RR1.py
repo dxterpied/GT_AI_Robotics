@@ -67,7 +67,7 @@ import random
 # next position. The OTHER variable that your function returns will be
 # passed back to your function the next time it is called. You can use
 # this to keep track of important information over time.
-def estimate_next_pos_(measurement, OTHER = None):
+def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
     print "estimate_next_pos"
@@ -80,7 +80,7 @@ def estimate_next_pos_(measurement, OTHER = None):
     return xy_estimate, OTHER
 
 
-def estimate_next_pos(measurement, OTHER = None):
+def estimate_next_pos_(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
     xy_estimate = 100, 100
@@ -106,7 +106,6 @@ def estimate_next_pos(measurement, OTHER = None):
             mag_v2 = distance_between(p1, p2)
 
             initial_heading = atan((p2[1] - p1[1])/(p2[0] - p1[0]))
-
             turning_angle = acos((vx1 * vx2 + vy1 * vy2)/(mag_v1 * mag_v2))
             distance_traveled = mag_v1
 
@@ -168,7 +167,7 @@ def demo_grading_new(estimate_next_pos_fcn, target_bot, OTHER = None):
     broken_robot.shape('turtle')
     broken_robot.color('green')
     broken_robot.resizemode('user')
-    broken_robot.shapesize(0.1, 0.1, 0.1)
+    broken_robot.shapesize(0.5, 0.5, 0.5)
     measured_broken_robot = turtle.Turtle()
     measured_broken_robot.shape('circle')
     measured_broken_robot.color('red')
@@ -221,8 +220,10 @@ def naive_next_pos(measurement, OTHER = None):
 
 # This is how we create a target bot. Check the robot.py file to understand
 # How the robot class behaves.
-test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+#test_target = robot(0, 0, 0.5, 2*pi/34.0, 1.5)
+test_target = robot(0, 0, heading = 0.0, turning = 2*pi/10, distance = 1.0)
+
 test_target.set_noise(0.0, 0.0, 0.0)
 
 #demo_grading(estimate_next_pos, test_target)
-demo_grading_new(estimate_next_pos_, test_target)
+demo_grading_new(estimate_next_pos, test_target)

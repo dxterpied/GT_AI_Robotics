@@ -1,5 +1,7 @@
 from math import *
 import random
+import turtle    #You need to run this locally to use the turtle module
+import time
 
 # helper function to map all angles onto [-pi, pi]
 def angle_trunc(a):
@@ -48,9 +50,11 @@ class robot:
         self.x += distance * cos(self.heading)
         self.y += distance * sin(self.heading)
 
+        return (self.x, self.y)
+
     def move_in_circle(self):
         """This function is used to advance the runaway target bot."""
-        self.move(self.turning, self.distance)
+        return self.move(self.turning, self.distance)
 
     def sense(self):
         """This function represents the robot sensing its location. When
@@ -62,5 +66,44 @@ class robot:
     def __repr__(self):
         """This allows us to print a robot's position"""
         return '[%.5f, %.5f]'  % (self.x, self.y)
+
+# A helper function you may find useful.
+def distance_between(point1, point2):
+    """Computes distance between point1 and point2. Points are (x, y) pairs."""
+    x1, y1 = point1
+    x2, y2 = point2
+    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
+def demo_grading_new(target_bot, OTHER = None):
+    ctr = 0
+    window = turtle.Screen()
+    window.bgcolor('white')
+    size_multiplier= 25.0  #change Size of animation
+
+    broken_robot = turtle.Turtle()
+    broken_robot.shape('turtle')
+    broken_robot.color('blue')
+    broken_robot.resizemode('user')
+    broken_robot.shapesize(0.5, 0.5, 0.5)
+
+    #broken_robot.penup()
+
+    while ctr <= 10:
+        ctr += 1
+        measurement = target_bot.sense()
+        x, y = target_bot.move_in_circle()
+        #print x, y
+        broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
+        broken_robot.stamp()
+
+        time.sleep(0.5)
+
+# This is how we create a target bot. Check the robot.py file to understand
+test_target = robot(x=5.0, y=5.0, heading = 0.0, turning = 2*pi/10, distance = 1.0)
+
+demo_grading_new(test_target)
+
+
 
 

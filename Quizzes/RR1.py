@@ -70,9 +70,13 @@ import random
 def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
-
+    print "estimate_next_pos"
     # You must return xy_estimate (x, y), and OTHER (even if it is None)
     # in this order for grading purposes.
+    if not OTHER: # this is the first measurement
+        OTHER = measurement
+    xy_estimate = OTHER
+
     return xy_estimate, OTHER
 
 # A helper function you may find useful.
@@ -178,4 +182,4 @@ def naive_next_pos(measurement, OTHER = None):
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.0)
 
-demo_grading(naive_next_pos, test_target)
+demo_grading(estimate_next_pos, test_target)

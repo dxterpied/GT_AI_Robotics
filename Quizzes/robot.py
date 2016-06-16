@@ -43,7 +43,7 @@ class robot:
         distance = max(0.0, distance)
 
         # Execute motion
-        self.heading += turning
+        self.heading += turning # update the angle to create a new angle
         self.heading = angle_trunc(self.heading)
         self.x += distance * cos(self.heading)
         self.y += distance * sin(self.heading)

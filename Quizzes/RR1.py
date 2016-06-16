@@ -109,14 +109,12 @@ def estimate_next_pos_(measurement, OTHER = None):
             turning_angle = acos((vx1 * vx2 + vy1 * vy2)/(mag_v1 * mag_v2))
             distance_traveled = mag_v1
 
-            r = robot(p2[0], p2[1], heading=initial_heading, turning=turning_angle, distance=distance_traveled)
+            r = robot(x = p2[0], y = p2[1], heading=initial_heading, turning=turning_angle, distance=distance_traveled)
             print 'r--->', r
             r.move_in_circle()
             print 'r after move--->', r
             xy_estimate = r.x, r.y
             print 'ESTIMATE--->', xy_estimate
-
-########################################################################################################################
 
     return xy_estimate, OTHER
 
@@ -226,4 +224,4 @@ test_target = robot(0, 0, heading = 0.0, turning = 2*pi/10, distance = 1.0)
 test_target.set_noise(0.0, 0.0, 0.0)
 
 #demo_grading(estimate_next_pos, test_target)
-demo_grading_new(estimate_next_pos, test_target)
+demo_grading_new(estimate_next_pos_, test_target)

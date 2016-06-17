@@ -29,17 +29,18 @@ class robot:
 
 
     def move(self, turnAngle, distance, tolerance = 0.001, max_turning_angle = pi):
+
+        turningAngle = random.gauss(turnAngle, self.turning_noise)
+        distance = random.gauss(distance, self.distance_noise)
         # truncate to fit physical limitations
         turningAngle = max( - max_turning_angle, turnAngle)
         turningAngle = min( max_turning_angle, turnAngle)
         distance = max(0.0, distance)
         # Execute motion
         self.headingAngle = self.headingAngle + turnAngle
-        #self.headingAngle = angle_trunc(self.headingAngle)
-        #self.x += distance * cos(self.headingAngle)
-        #self.y += distance * sin(self.headingAngle)
-        self.x += cos(self.headingAngle)
-        self.y += sin(self.headingAngle)
+        self.headingAngle = angle_trunc(self.headingAngle)
+        self.x += distance * cos(self.headingAngle)
+        self.y += distance * sin(self.headingAngle)
 
         return (self.x, self.y)
 
@@ -64,14 +65,12 @@ def estimate_next_pos(measurement, OTHER = None):
     xy_estimate = 0, 0
 
     if OTHER is None: # this is the first measurement
-        #print "not other"
         OTHER = []
         OTHER.append(measurement)
 
     else:
         OTHER.append(measurement)
 
-        #print "else"
         if len(OTHER) == 3:
             point1 = OTHER[0]
             point2 = OTHER[1]
@@ -83,17 +82,14 @@ def estimate_next_pos(measurement, OTHER = None):
             y2Delta = point3[1] - point2[1]
             hyp2 = getEuclidianDistance(point2, point3)
             headingAngle2 = asin(y2Delta / hyp2)
-
             predictedTurnAngle = headingAngle2 - headingAngle1
+            print "----------------"
             newR = robot(x = point3[0], y = point3[1], headingAngle = headingAngle2, turnAngle = predictedTurnAngle, distance = hyp1)
             print 'newR--->', newR
             newR.move_in_circle()
-            #print "measurement: ", measurement
-            #print "point3: ", point3[0], point3[1]
-            newR.move_in_circle()
-            print 'newR after move--->', newR.x, newR.y
             xy_estimate = newR.x, newR.y
             print 'ESTIMATE--->', xy_estimate
+            print "--------------------"
 
 
     return xy_estimate, OTHER
@@ -112,16 +108,14 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     while not localized and ctr <= 10:
         ctr += 1
         measurement = target_bot.sense()
-        print "measurement: ", measurement
-
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = getEuclidianDistance(position_guess, true_position)
         if error <= distance_tolerance:
             print "You got it right! It took you ", ctr, " steps to localize."
-            print "true position: ", true_position
-            print "prediction: ", position_guess
+            #print "true position: ", true_position
+            #print "prediction: ", position_guess
             localized = True
         if ctr == 10:
             print "Sorry, it took you too many steps to localize the target."

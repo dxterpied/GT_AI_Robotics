@@ -163,13 +163,17 @@ def kalman_filter(x, P):
 
 measurements = [1, 2, 3]
 
-x = matrix([[0.], [0.]]) # initial state (location and velocity)
-P = matrix([[1000., 0.], [0., 1000.]]) # initial uncertainty
+x = matrix([[0.],
+            [0.]]) # initial state (location and velocity)
+P = matrix([[1000., 0.],
+            [0., 1000.]]) # initial uncertainty
 u = matrix([[0.], [0.]]) # external motion
-F = matrix([[1., 1.], [0, 1.]]) # next state function
+F = matrix([[1. , 1.],
+            [0. , 1.]]) # next state function (transition matrix)
 H = matrix([[1., 0.]]) # measurement function
 R = matrix([[1.]]) # measurement uncertainty
-I = matrix([[1., 0.], [0., 1.]]) # identity matrix
+I = matrix([[1., 0.],
+            [0., 1.]]) # identity matrix
 
 print kalman_filter(x, P)
 # output should be:

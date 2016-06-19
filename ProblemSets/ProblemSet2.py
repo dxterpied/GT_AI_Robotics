@@ -182,11 +182,21 @@ u = matrix([[0.], [0.], [0.], [0.]]) # external motion
 #### DO NOT MODIFY ANYTHING ABOVE HERE ####
 #### fill this in, remember to use the matrix() function!: ####
 
-P =  # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
-F =  # next state function: generalize the 2d version to 4d
-H =  # measurement function: reflect the fact that we observe x and y but not the two velocities
-R =  # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
-I =  # 4d identity matrix
+P = [ [0.,0.,0.,0.],
+      [0.,0.,0.,0.],
+      [0.,0.,1000.,0.],
+      [0.,0.,0.,1000.]  ] # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
+F =  [ [1.,0., dt, 0.],
+      [0.,1.,0., dt],
+      [0.,0.,1.,0.],
+      [0.,0.,0.,1.]  ] # next state function: generalize the 2d version to 4d
+H = [[1.,0.,0.,0.],
+      [0.,1.,0.,0.]] # measurement function: reflect the fact that we observe x and y but not the two velocities
+R = [ [0.1, 0.], [0., 0.1]] # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
+I = [ [1.,0.,0.,0.],
+      [0.,1.,0.,0.],
+      [0.,0.,1.,0.],
+      [0.,0.,0.,1.]  ] # 4d identity matrix
 
 ###### DO NOT MODIFY ANYTHING HERE #######
 

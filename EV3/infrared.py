@@ -27,8 +27,14 @@ m2 = ev3.LargeMotor('outB')
     performance on the fly by adjusting `duty_cycle_sp` attribute.
     """
 
-m1.run_forever(duty_cycle_sp=75)
-m2.run_forever(duty_cycle_sp=75)
+#m1.run_forever(duty_cycle_sp=75)
+#m2.run_forever(duty_cycle_sp=75)
+
+m1.run_to_abs_pos(position_sp=10, duty_cycle=-75)
+
+
+
+exit()
 
 # Stop both motors and reverse for 1.5 seconds.
     # `run-timed` command will return immediately, so we will have to wait
@@ -49,10 +55,11 @@ while True:
     # object in front of it.
     distance = ir.value()
 
-    if distance < 60:
-        # Sound backup alarm.
+    if distance < 50:
         m1.stop()
         m2.stop()
+
+        # Sound backup alarm.
         ev3.Sound.tone([(1000, 500, 500)] * 3)
         sleep(2.0)
         break

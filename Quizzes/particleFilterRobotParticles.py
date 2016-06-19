@@ -113,6 +113,8 @@ for i in range(N):
 for i in range(N):
     p[i] = p[i].move(0.1, 5.0)
 
+# asdaf
+
 print p #PLEASE LEAVE THIS HERE FOR GRADING PURPOSES
 
 

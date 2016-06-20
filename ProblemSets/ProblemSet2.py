@@ -203,8 +203,9 @@ F = matrix([
     ]) # next state function: generalize the 2d version to 4d
 H = matrix([ [1., 0., 0., 0.],
             [0., 1., 0., 0.]]) # measurement function: reflect the fact that we observe x and y but not the two velocities
-R = matrix([ [0.1, 0.],
-      [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
+R = matrix([
+    [0.1, 0.],
+    [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
 I = matrix([ [1., 0., 0., 0.],
             [0., 1., 0., 0.],
             [0., 0., 1., 0.],

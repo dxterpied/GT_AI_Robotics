@@ -70,53 +70,41 @@ import random
 def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
-    print "estimate_next_pos"
+
     # You must return xy_estimate (x, y), and OTHER (even if it is None)
     # in this order for grading purposes.
-    if not OTHER: # this is the first measurement
-        OTHER = measurement
-    xy_estimate = OTHER
+    xy_estimate = 0, 0
 
-    return xy_estimate, OTHER
-
-
-def estimate_next_pos_(measurement, OTHER = None):
-    """Estimate the next (x, y) position of the wandering Traxbot
-    based on noisy (x, y) measurements."""
-    xy_estimate = 100, 100
-    if OTHER is None:
+    if OTHER is None: # this is the first measurement
         OTHER = []
         OTHER.append(measurement)
     else:
         OTHER.append(measurement)
 
-        if len(OTHER) == 3:
-            print 'OTHER--->', OTHER
+        if len(OTHER) >= 3:
+            # take the last three stored coordinates in case the first ones are not correct estimates
+            point1 = OTHER[len(OTHER) - 3]
+            point2 = OTHER[len(OTHER) - 2]
+            point3 = OTHER[len(OTHER) - 1]
+            y1Delta = point2[1] - point1[1]
+            hyp1 = distance_between(point1, point2)
+            headingAngle1 = asin(y1Delta / hyp1)
 
-            p0 = OTHER[0]
-            p1 = OTHER[1]
-            p2 = OTHER[2]
-
-            vx1 = p1[0] - p0[0]
-            vy1 = p1[1] - p0[1]
-            mag_v1 = distance_between(p0, p1)
-
-            vx2 = p2[0] - p1[0]
-            vy2 = p2[1] - p1[1]
-            mag_v2 = distance_between(p1, p2)
-
-            initial_heading = atan((p2[1] - p1[1])/(p2[0] - p1[0]))
-            turning_angle = acos((vx1 * vx2 + vy1 * vy2)/(mag_v1 * mag_v2))
-            distance_traveled = mag_v1
-
-            r = robot(x = p2[0], y = p2[1], heading=initial_heading, turning=turning_angle, distance=distance_traveled)
-            print 'r--->', r
-            r.move_in_circle()
-            print 'r after move--->', r
-            xy_estimate = r.x, r.y
-            print 'ESTIMATE--->', xy_estimate
+            y2Delta = point3[1] - point2[1]
+            hyp2 = distance_between(point2, point3)
+            headingAngle2 = asin(y2Delta / hyp2)
+            predictedTurnAngle = headingAngle2 - headingAngle1
+            print "----------------"
+            newR = robot(point3[0], point3[1], headingAngle2, predictedTurnAngle, hyp1)
+            print 'newR: ', newR
+            newR.move_in_circle()
+            xy_estimate = newR.x, newR.y
+            print 'xy_estimate', xy_estimate
+            print "--------------------"
 
     return xy_estimate, OTHER
+
+
 
 # A helper function you may find useful.
 def distance_between(point1, point2):
@@ -206,16 +194,6 @@ def demo_grading_new(estimate_next_pos_fcn, target_bot, OTHER = None):
     return localized
 
 
-# This is a demo for what a strategy could look like. This one isn't very good.
-def naive_next_pos(measurement, OTHER = None):
-    """This strategy records the first reported position of the target and
-    assumes that eventually the target bot will eventually return to that
-    position, so it always guesses that the first position will be the next."""
-    if not OTHER: # this is the first measurement
-        OTHER = measurement
-    xy_estimate = OTHER
-    return xy_estimate, OTHER
-
 # This is how we create a target bot. Check the robot.py file to understand
 # How the robot class behaves.
 #test_target = robot(0, 0, 0.5, 2*pi/34.0, 1.5)
@@ -223,5 +201,4 @@ test_target = robot(0, 0, heading = 0.0, turning = 2*pi/10, distance = 1.0)
 
 test_target.set_noise(0.0, 0.0, 0.0)
 
-#demo_grading(estimate_next_pos, test_target)
-demo_grading_new(estimate_next_pos_, test_target)
+demo_grading(estimate_next_pos, test_target)

@@ -3,7 +3,7 @@
 #
 # Now we'll make the scenario a bit more realistic. Now Traxbot's
 # sensor measurements are a bit noisy (though its motions are still
-# completetly noise-free and it still moves in an almost-circle).
+# completely noise-free and it still moves in an almost-circle).
 # You'll have to write a function that takes as input the next
 # noisy (x, y) sensor measurement and outputs the best guess
 # for the robot's next position.
@@ -30,6 +30,7 @@ from robot import *  # Check the robot.py tab to see how this works.
 from math import *
 from matrix import * # Check the matrix.py tab to see how this works.
 import random
+from numpy import *
 
 # This is the function you have to write. Note that measurement is a
 # single (x, y) point. This function will have to be called multiple
@@ -37,6 +38,7 @@ import random
 # next position. The OTHER variable that your function returns will be
 # passed back to your function the next time it is called. You can use
 # this to keep track of important information over time.
+
 def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
@@ -44,6 +46,131 @@ def estimate_next_pos(measurement, OTHER = None):
     # You must return xy_estimate (x, y), and OTHER (even if it is None)
     # in this order for grading purposes.
     xy_estimate = (3.2, 9.1)
+    if OTHER is None:
+        distances = []
+        angles = []
+        coords = []
+    else:
+        distances = OTHER[0]
+        angles = OTHER[1]
+        coords = OTHER[2]
+
+        if len(coords) == 1:
+            x1, y1 = coords[0]
+            x2, y2 = measurement
+            hypotenuse1 = distance_between(coords[0], measurement)
+            y1Delta = y2 - y1
+            headingAngle1 = asin(y1Delta / hypotenuse1)
+            angles.append(headingAngle1)
+            distances.append(hypotenuse1)
+        elif len(coords) == 2:
+            point1 = coords[0]
+            point2 = coords[1]
+            point3 = measurement
+            y1Delta = point2[1] - point1[1]
+            hypotenuse1 = distance_between(point1, point2)
+            headingAngle1 = asin(y1Delta / hypotenuse1)
+            y2Delta = point3[1] - point2[1]
+            hypotenuse2 = distance_between(point2, point3)
+            headingAngle2 = asin(y2Delta / hypotenuse2)
+            predictedTurnAngle = headingAngle2 - headingAngle1
+            angles.append(predictedTurnAngle)
+            distances.append(hypotenuse2)
+        else:
+            point1 = coords[len(coords) - 2]
+            point2 = coords[len(coords) - 1]
+            point3 = measurement
+            y1Delta = point2[1] - point1[1]
+            hypotenuse1 = distance_between(point1, point2)
+            headingAngle1 = asin(y1Delta / hypotenuse1)
+            y2Delta = point3[1] - point2[1]
+            hypotenuse2 = distance_between(point2, point3)
+            headingAngle2 = asin(y2Delta / hypotenuse2)
+            predictedTurnAngle = headingAngle2 - headingAngle1
+            angles.append(predictedTurnAngle)
+            distances.append(hypotenuse2)
+
+            avgDT = sum(distances)/len(distances)
+            avgAngle = sum(angles)/len(angles)
+            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            newR.move_in_circle()
+            xy_estimate = newR.x, newR.y
+
+    coords.append(measurement)
+
+    OTHER = (distances, angles, coords)
+
+    return xy_estimate, OTHER
+
+
+
+
+def estimate_next_pos_1(measurement, OTHER = None):
+    """Estimate the next (x, y) position of the wandering Traxbot
+    based on noisy (x, y) measurements."""
+
+    # You must return xy_estimate (x, y), and OTHER (even if it is None)
+    # in this order for grading purposes.
+    xy_estimate = (3.2, 9.1)
+    if OTHER is None:
+        OTHER = []
+        OTHER.append(measurement)
+    else:
+        OTHER.append(measurement)
+        if len(OTHER) >= 3:
+            # take the last three stored coordinates in case the first ones are not correct estimates
+            point1 = OTHER[len(OTHER) - 3]
+            point2 = OTHER[len(OTHER) - 2]
+            point3 = OTHER[len(OTHER) - 1]
+            y1Delta = point2[1] - point1[1]
+            hyp1 = distance_between(point1, point2)
+            headingAngle1 = asin(y1Delta / hyp1)
+
+            y2Delta = point3[1] - point2[1]
+            hyp2 = distance_between(point2, point3)
+            headingAngle2 = asin(y2Delta / hyp2)
+            predictedTurnAngle = headingAngle2 - headingAngle1
+            newR = robot(point3[0], point3[1], headingAngle2, predictedTurnAngle, hyp1)
+            newR.move_in_circle()
+            xy_estimate = newR.x, newR.y
+
+
+    return xy_estimate, OTHER
+
+
+def estimate_next_pos_other(measurement, OTHER = None):
+    """Estimate the next (x, y) position of the wandering Traxbot
+    based on noisy (x, y) measurements."""
+
+    if not OTHER:
+        opoint = (0.0, 0.0)
+        theta = 0.0
+        db_a = []
+    else:
+        opoint = OTHER[0]
+        theta = OTHER[1]
+        db_a = OTHER[2]
+    cpoint = measurement
+    delta_y = cpoint[1] - opoint[1]
+    delta_x = cpoint[0] - opoint[0]
+
+    beta = atan2(delta_y, delta_x)
+    db = distance_between(opoint, cpoint)
+    db_a.append(db)
+    db_a2 = r_[db_a]
+    db_m = mean(db_a2)
+
+    turn_angle = beta - theta
+
+    heading = beta + turn_angle
+    x_prime = cpoint[0] + db_m * cos(heading)
+    y_prime = cpoint[1] + db_m * sin(heading)
+
+    xy_estimate = (x_prime, y_prime)
+    OTHER  = [cpoint, beta, db_a]
+
+    # You must return xy_estimate (x, y), and OTHER (even if it is None)
+    # in this order for grading purposes.
     return xy_estimate, OTHER
 
 # A helper function you may find useful.
@@ -70,6 +197,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
+
         if error <= distance_tolerance:
             print "You got it right! It took you ", ctr, " steps to localize."
             localized = True
@@ -134,15 +262,6 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
         #End of Visualization
     return localized
 
-# This is a demo for what a strategy could look like. This one isn't very good.
-def naive_next_pos(measurement, OTHER = None):
-    """This strategy records the first reported position of the target and
-    assumes that eventually the target bot will eventually return to that
-    position, so it always guesses that the first position will be the next."""
-    if not OTHER: # this is the first measurement
-        OTHER = measurement
-    xy_estimate = OTHER
-    return xy_estimate, OTHER
 
 # This is how we create a target bot. Check the robot.py file to understand
 # How the robot class behaves.
@@ -150,8 +269,8 @@ test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
-demo_grading_visual(naive_next_pos, test_target)
-
+#demo_grading_visual(estimate_next_pos, test_target)
+demo_grading(estimate_next_pos, test_target)
 
 
 

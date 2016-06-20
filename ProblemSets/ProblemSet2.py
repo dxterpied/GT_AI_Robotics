@@ -144,16 +144,16 @@ class matrix:
 def filter(x, P):
     for n in range(len(measurements)):
 
-        # prediction
+        # PREDICTION
         x = (F * x) + u
-
         P = F * P * F.transpose()
 
-        # measurement update
+        # MEASUREMENT UPDATE
         Z = matrix([measurements[n]])
         y = Z.transpose() - (H * x)
         S = H * P * H.transpose() + R
         K = P * H.transpose() * S.inverse()
+
         x = x + (K * y)
         P = (I - (K * H)) * P
 
@@ -175,7 +175,7 @@ initial_xy = [4., 12.]
 # measurements = [[1., 17.], [1., 15.], [1., 13.], [1., 11.]]
 # initial_xy = [1., 19.]
 
-dt = 0.1
+deltaT = 0.1 # time interval
 
 x = matrix([[initial_xy[0]],
             [initial_xy[1]],
@@ -186,24 +186,29 @@ u = matrix([[0.], [0.], [0.], [0.]]) # external motion
 #### DO NOT MODIFY ANYTHING ABOVE HERE ####
 #### fill this in, remember to use the matrix() function!: ####
 
-P = matrix([ [0., 0., 0., 0.],
-      [0., 0., 0., 0.],
-      [0., 0., 1000., 0.],
-      [0., 0., 0., 1000.]  ]) # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
+""" OK, the 4-d matrix looks like this: [x, y, x_prime, y_prime], right? where x,y are coordinates (position)
+   and x_prime, y_prime are velocities (first derivatives of position) """
+
+
+P = matrix([
+    [0., 0., 0., 0.],
+    [0., 0., 0., 0.],
+    [0., 0., 1000., 0.],
+    [0., 0., 0., 1000.]  ]) # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
 F = matrix([
-        [1., 0., dt, 0.],
-        [0., 1., 0., dt],
-        [0., 0., 1., 0.],
-        [0., 0., 0., 1.]
+        [1., 0., deltaT, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
+        [0., 1., 0., deltaT], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
+        [0., 0., 1., 0.], # this is to update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
+        [0., 0., 0., 1.]  # this is to update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
     ]) # next state function: generalize the 2d version to 4d
 H = matrix([ [1., 0., 0., 0.],
             [0., 1., 0., 0.]]) # measurement function: reflect the fact that we observe x and y but not the two velocities
 R = matrix([ [0.1, 0.],
       [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
 I = matrix([ [1., 0., 0., 0.],
-      [0., 1., 0., 0.],
-      [0., 0., 1., 0.],
-      [0., 0., 0., 1.]  ]) # 4d identity matrix
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.]  ]) # 4d identity matrix
 
 ###### DO NOT MODIFY ANYTHING HERE #######
 

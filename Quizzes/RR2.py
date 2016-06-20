@@ -87,12 +87,12 @@ def estimate_next_pos(measurement, OTHER = None):
             hypotenuse2 = distance_between(point2, point3)
             headingAngle2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngle = headingAngle2 - headingAngle1
-            angles.append(predictedTurnAngle)
+            angles.append(abs(predictedTurnAngle))
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
-            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(point3[0], point3[1], headingAngle2, predictedTurnAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 

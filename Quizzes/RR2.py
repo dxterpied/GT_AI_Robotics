@@ -39,10 +39,10 @@ from numpy import *
 # passed back to your function the next time it is called. You can use
 # this to keep track of important information over time.
 
-def estimate_next_pos(measurement, OTHER = None):
+def estimate_next_pos(target_bot, measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
-
+    headingAngle1 = 0.0
     # You must return xy_estimate (x, y), and OTHER (even if it is None)
     # in this order for grading purposes.
     xy_estimate = (3.2, 9.1)
@@ -70,31 +70,46 @@ def estimate_next_pos(measurement, OTHER = None):
             y1Delta = point2[1] - point1[1]
             hypotenuse1 = distance_between(point1, point2)
             headingAngle1 = asin(y1Delta / hypotenuse1)
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+
             y2Delta = point3[1] - point2[1]
             hypotenuse2 = distance_between(point2, point3)
             headingAngle2 = asin(y2Delta / hypotenuse2)
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngle = headingAngle2 - headingAngle1
-            angles.append(predictedTurnAngle)
+            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+            angles.append(abs(predictedTurnAngleAvg))
+
             distances.append(hypotenuse2)
         else:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement
             y1Delta = point2[1] - point1[1]
+            x1Delta = point2[0] - point1[0]
             hypotenuse1 = distance_between(point1, point2)
-            headingAngle1 = asin(y1Delta / hypotenuse1)
+            headingAngle1 = atan2(y1Delta, x1Delta)
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
             y2Delta = point3[1] - point2[1]
+            x2Delta = point3[0] - point2[0]
             hypotenuse2 = distance_between(point2, point3)
-            headingAngle2 = asin(y2Delta / hypotenuse2)
+            headingAngle2 = atan2(y2Delta, x2Delta)
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngle = headingAngle2 - headingAngle1
-            angles.append(abs(predictedTurnAngle))
+            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+            angles.append(abs(predictedTurnAngleAvg))
             distances.append(hypotenuse2)
-
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
-            newR = robot(point3[0], point3[1], headingAngle2, predictedTurnAngle, avgDT)
+
+            #print "target_bot.heading", target_bot.heading
+            #print "avgDT:", avgDT, "avgAngle:", avgAngle, "headingAngle2:", headingAngle2
+
+            print "predictedTurnAngle", predictedTurnAngle, "avgAngle:", avgAngle
+            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
+        #print "headingAngle1", headingAngle1
 
     coords.append(measurement)
 
@@ -191,30 +206,30 @@ def estimate_next_pos_other(measurement, OTHER = None):
 
     if not OTHER:
         opoint = (0.0, 0.0)
-        theta = 0.0
+        oldHeading = 0.0
         db_a = []
     else:
         opoint = OTHER[0]
-        theta = OTHER[1]
+        oldHeading = OTHER[1]
         db_a = OTHER[2]
     cpoint = measurement
     delta_y = cpoint[1] - opoint[1]
     delta_x = cpoint[0] - opoint[0]
 
-    beta = atan2(delta_y, delta_x)
+    newHeading = atan2(delta_y, delta_x)
     db = distance_between(opoint, cpoint)
     db_a.append(db)
     db_a2 = r_[db_a]
     db_m = mean(db_a2)
 
-    turn_angle = beta - theta
+    turn_angle = newHeading - oldHeading
 
-    heading = beta + turn_angle
+    heading = newHeading + turn_angle
     x_prime = cpoint[0] + db_m * cos(heading)
     y_prime = cpoint[1] + db_m * sin(heading)
 
     xy_estimate = (x_prime, y_prime)
-    OTHER  = [cpoint, beta, db_a]
+    OTHER  = [cpoint, newHeading, db_a]
 
     # You must return xy_estimate (x, y), and OTHER (even if it is None)
     # in this order for grading purposes.
@@ -240,7 +255,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense()
-        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(target_bot, measurement, OTHER)
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
@@ -269,7 +284,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     broken_robot.shape('turtle')
     broken_robot.color('green')
     broken_robot.resizemode('user')
-    broken_robot.shapesize(0.1, 0.1, 0.1)
+    broken_robot.shapesize(0.2, 0.2, 0.2)
     measured_broken_robot = turtle.Turtle()
     measured_broken_robot.shape('circle')
     measured_broken_robot.color('red')
@@ -279,7 +294,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     prediction.shape('arrow')
     prediction.color('blue')
     prediction.resizemode('user')
-    prediction.shapesize(0.1, 0.1, 0.1)
+    prediction.shapesize(0.2, 0.2, 0.2)
     prediction.penup()
     broken_robot.penup()
     measured_broken_robot.penup()
@@ -287,7 +302,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense()
-        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(target_bot, measurement, OTHER)
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
@@ -321,6 +336,74 @@ angles = []
 distances = []
 coords = []
 
+
+def test2():
+    ctr = 0
+    # if you haven't localized the target bot, make a guess about the next
+    # position, then we move the bot and compare your guess to the true
+    # next position. When you are close enough, we stop checking.
+    while ctr <= 500:
+        ctr += 1
+        measurement = test_target.sense()
+        test_target.move_in_circle()
+
+        if len(coords) == 1:
+            x1, y1 = coords[0]
+            x2, y2 = measurement
+            hypotenuse1 = distance_between(coords[0], measurement)
+            y1Delta = y2 - y1
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+            angles.append(headingAngleAvg1)
+            distances.append(hypotenuse1)
+        elif len(coords) == 2:
+            point1 = coords[0]
+            point2 = coords[1]
+            point3 = measurement
+            y1Delta = point2[1] - point1[1]
+            x1Delta = point2[0] - point1[0]
+            hypotenuse1 = distance_between(point1, point2)
+            headingAngle1 = atan2(y1Delta, x1Delta)
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+            y2Delta = point3[1] - point2[1]
+            x2Delta = point3[0] - point2[0]
+            hypotenuse2 = distance_between(point2, point3)
+            headingAngle2 = atan2(y2Delta, x2Delta)
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+            predictedTurnAngle = headingAngle2 - headingAngle1
+            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+            angles.append(abs(predictedTurnAngleAvg))
+            distances.append(hypotenuse2)
+        elif len(coords) > 2:
+            point1 = coords[len(coords) - 2]
+            point2 = coords[len(coords) - 1]
+            point3 = measurement
+            y1Delta = point2[1] - point1[1]
+            x1Delta = point2[0] - point1[0]
+            hypotenuse1 = distance_between(point1, point2)
+            headingAngle1 = atan2(y1Delta, x1Delta)
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+            y2Delta = point3[1] - point2[1]
+            x2Delta = point3[0] - point2[0]
+            hypotenuse2 = distance_between(point2, point3)
+            headingAngle2 = atan2(y2Delta, x2Delta)
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+            predictedTurnAngle = headingAngle2 - headingAngle1
+            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+            angles.append(abs(predictedTurnAngleAvg))
+            distances.append(hypotenuse2)
+        coords.append(measurement)
+
+    avgDT = sum(distances)/len(distances)
+    avgAngle = sum(angles)/len(angles)
+    print angles
+
+    #print "avgDT: ", avgDT
+    #print "actual distance: ", 1.5
+    print "avgAngle: ", avgAngle
+    #print "actual turn angle: ", 2*pi / 34.0
+
+
+
 def test():
     ctr = 0
     # if you haven't localized the target bot, make a guess about the next
@@ -353,7 +436,6 @@ def test():
             angles.append(predictedTurnAngle)
             distances.append(hypotenuse2)
         elif len(coords) > 2:
-
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement
@@ -373,12 +455,14 @@ def test():
     avgAngle = sum(angles)/len(angles)
 
     print "avgDT: ", avgDT
+    print "actual distance: ", 1.5
     print "avgAngle: ", avgAngle
+    print "actual turn angle: ", 2*pi / 34.0
 
-
-test()
-#demo_grading_visual(estimate_next_pos, test_target)
+#test2()
+demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
+#print "actual turn angle: ", 2*pi / 34.0
 
 
 

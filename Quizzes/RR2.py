@@ -39,7 +39,7 @@ from numpy import *
 # passed back to your function the next time it is called. You can use
 # this to keep track of important information over time.
 
-def estimate_next_pos(target_bot, measurement, OTHER = None):
+def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
     headingAngle1 = 0.0
@@ -76,7 +76,7 @@ def estimate_next_pos(target_bot, measurement, OTHER = None):
             hypotenuse2 = distance_between(point2, point3)
             headingAngle2 = asin(y2Delta / hypotenuse2)
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
-            predictedTurnAngle = headingAngle2 - headingAngle1
+            #predictedTurnAngle = headingAngle2 - headingAngle1
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
             angles.append(abs(predictedTurnAngleAvg))
 
@@ -95,17 +95,16 @@ def estimate_next_pos(target_bot, measurement, OTHER = None):
             hypotenuse2 = distance_between(point2, point3)
             headingAngle2 = atan2(y2Delta, x2Delta)
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
-            predictedTurnAngle = headingAngle2 - headingAngle1
+            #predictedTurnAngle = headingAngle2 - headingAngle1
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
             angles.append(abs(predictedTurnAngleAvg))
             distances.append(hypotenuse2)
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            #print "target_bot.heading", target_bot.heading
             #print "avgDT:", avgDT, "avgAngle:", avgAngle, "headingAngle2:", headingAngle2
 
-            print "predictedTurnAngle", predictedTurnAngle, "avgAngle:", avgAngle
+            #print "avgAngle:", avgAngle
             newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
@@ -255,7 +254,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense()
-        position_guess, OTHER = estimate_next_pos_fcn(target_bot, measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
@@ -302,7 +301,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense()
-        position_guess, OTHER = estimate_next_pos_fcn(target_bot, measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
@@ -460,8 +459,8 @@ def test():
     print "actual turn angle: ", 2*pi / 34.0
 
 #test2()
-demo_grading_visual(estimate_next_pos, test_target)
-#demo_grading(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
+demo_grading(estimate_next_pos, test_target)
 #print "actual turn angle: ", 2*pi / 34.0
 
 

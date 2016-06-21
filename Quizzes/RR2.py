@@ -63,42 +63,43 @@ def estimate_next_pos(measurement, OTHER = None):
             headingAngle1 = asin(y1Delta / hypotenuse1)
             angles.append(headingAngle1)
             distances.append(hypotenuse1)
+
         elif len(coords) == 2:
             point1 = coords[0]
             point2 = coords[1]
             point3 = measurement
+
             y1Delta = point2[1] - point1[1]
             hypotenuse1 = distance_between(point1, point2)
             headingAngle1 = asin(y1Delta / hypotenuse1)
-            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
 
             y2Delta = point3[1] - point2[1]
             hypotenuse2 = distance_between(point2, point3)
             headingAngle2 = asin(y2Delta / hypotenuse2)
-            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
-            #predictedTurnAngle = headingAngle2 - headingAngle1
-            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-            angles.append(abs(predictedTurnAngleAvg))
 
+            angles.append(abs(headingAngle2 - headingAngle1))
             distances.append(hypotenuse2)
+
         else:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement
+
             y1Delta = point2[1] - point1[1]
             x1Delta = point2[0] - point1[0]
             hypotenuse1 = distance_between(point1, point2)
-            headingAngle1 = atan2(y1Delta, x1Delta)
             headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+
             y2Delta = point3[1] - point2[1]
             x2Delta = point3[0] - point2[0]
             hypotenuse2 = distance_between(point2, point3)
             headingAngle2 = atan2(y2Delta, x2Delta)
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
-            #predictedTurnAngle = headingAngle2 - headingAngle1
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
             angles.append(abs(predictedTurnAngleAvg))
+
             distances.append(hypotenuse2)
+
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
@@ -248,6 +249,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     localized = False
     distance_tolerance = 0.01 * target_bot.distance
     ctr = 0
+    import sys
     # if you haven't localized the target bot, make a guess about the next
     # position, then we move the bot and compare your guess to the true
     # next position. When you are close enough, we stop checking.
@@ -261,6 +263,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
 
         if error <= distance_tolerance:
             print "You got it right! It took you ", ctr, " steps to localize."
+            return ctr
             localized = True
         if ctr == 1000:
             print "Sorry, it took you too many steps to localize the target."
@@ -460,7 +463,14 @@ def test():
 
 #test2()
 #demo_grading_visual(estimate_next_pos, test_target)
-demo_grading(estimate_next_pos, test_target)
+
+scores = []
+
+for i in range(1000):
+    scores.append(demo_grading(estimate_next_pos, test_target))
+
+print "average score: ", sum(scores)/len(scores)
+
 #print "actual turn angle: ", 2*pi / 34.0
 
 

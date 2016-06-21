@@ -103,6 +103,53 @@ def estimate_next_pos(measurement, OTHER = None):
     return xy_estimate, OTHER
 
 
+def estimate_next_pos_2(measurement, OTHER = None):
+    xy_estimate = 0, 0
+    if OTHER is None:
+        OTHER = []
+        OTHER.append(measurement)
+    elif len(OTHER) < 3:
+        OTHER.append(measurement)
+    elif len(OTHER) >= 3:
+        OTHER.append(measurement)
+        turning = 0
+        distance = 0
+        for i in range(len(OTHER)-2):
+            p0 = OTHER[i]
+            p1 = OTHER[i + 1]
+            p2 = OTHER[i + 2]
+
+            vx1 = p1[0] - p0[0]
+            vy1 = p1[1] - p0[1]
+            mag_v1 = distance_between(p0, p1)
+
+            vx2 = p2[0] - p1[0]
+            vy2 = p2[1] - p1[1]
+            mag_v2 = distance_between(p1, p2)
+
+            turning += acos((vx1 * vx2 + vy1 * vy2)/(mag_v1 * mag_v2))
+        turning = turning/(len(OTHER) - 2)
+        print 'turning--->', turning * 34 / 2 / pi
+
+        for i in range(len(OTHER)-1):
+            p0 = OTHER[i]
+            p1 = OTHER[i + 1]
+            distance += distance_between(p0, p1)
+        distance = distance/(len(OTHER[0]) - 1)
+        print 'distance--->', distance
+
+        p2 = OTHER[-1]
+        p1 = OTHER[-2]
+        heading = atan2((p2[1] - p1[1]), (p2[0] - p1[0]))
+
+        r = robot(measurement[0], measurement[1], heading, 2*pi / 34.0, 1.5)
+        print 'robot--->', r
+        r.set_noise(0.01, 0.01, 0)
+        r.move_in_circle()
+        xy_estimate = r.x, r.y
+
+    return xy_estimate, OTHER
+
 
 
 def estimate_next_pos_1(measurement, OTHER = None):

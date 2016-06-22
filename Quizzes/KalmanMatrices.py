@@ -143,17 +143,17 @@ class matrix:
 def kalman_filter(x, P):
     for n in range(len(measurements)):
 
-        # measurement update
+        # measurement update   # in Michel van Biezen it's y1 = C * x1 + z1: https://www.youtube.com/watch?v=fojH-viOxI4
         Z = matrix([[measurements[n]]])
-        y = Z - (H * x)
+        y = Z - (H * x)                # Innovation or measurement residual
         S = H * P * H.transpose() + R
-        K = P * H.transpose() * S.inverse()
+        K = P * H.transpose() * S.inverse() # Kalman gain
         x = x + (K * y)
         P = (I - (K * H)) * P
 
-        # prediction
-        x = (F * x) + u
-        P = F * P * F.transpose()
+        # prediction step (based on theory)
+        x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4
+        P = F * P * F.transpose() # + Q  the Q matrix (process noise) is not present here
 
     return x,P
 
@@ -163,17 +163,20 @@ def kalman_filter(x, P):
 
 measurements = [1, 2, 3]
 
-x = matrix([[0.],
-            [0.]]) # initial state (location and velocity)
+x = matrix([[0.], [0.]]) # state matrix (location and velocity)
 P = matrix([[1000., 0.],
-            [0., 1000.]]) # initial uncertainty
-u = matrix([[0.], [0.]]) # external motion
+            [0., 1000.]]) # estimate noise; state covariance matrix;
+
 F = matrix([[1. , 1.],
             [0. , 1.]]) # next state function (transition matrix)
+
+u = matrix([[0.], [0.]]) # external motion
+
 H = matrix([[1., 0.]]) # measurement function
-R = matrix([[1.]]) # measurement uncertainty
-I = matrix([[1., 0.],
-            [0., 1.]]) # identity matrix
+
+R = matrix([[1.]]) # measurement noise
+
+I = matrix([[1., 0.], [0., 1.]]) # identity matrix
 
 print kalman_filter(x, P)
 # output should be:

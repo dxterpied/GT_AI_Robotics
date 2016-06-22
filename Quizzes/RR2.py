@@ -470,6 +470,8 @@ for i in range(1000):
     scores.append(demo_grading(estimate_next_pos, test_target))
 
 print "average score: ", sum(scores)/len(scores)
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
 
 #print "actual turn angle: ", 2*pi / 34.0
 

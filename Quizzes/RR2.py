@@ -110,7 +110,6 @@ def estimate_next_pos(measurement, OTHER = None):
         #print "headingAngle1", headingAngle1
 
     coords.append(measurement)
-
     OTHER = (distances, angles, coords)
 
     return xy_estimate, OTHER

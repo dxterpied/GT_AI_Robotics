@@ -47,23 +47,38 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
     turning = 0
     distance = 0
+    avgDT = max_distance
+    distanceToTarget = 0
 
     if not OTHER: # first time calling this function, set up my OTHER variables.
-        measurements = [target_measurement]
-        hunter_positions = [hunter_position]
-        hunter_headings = [hunter_heading]
-        OTHER = (measurements, hunter_positions, hunter_headings) # now I can keep track of history
+        coords = [target_measurement]
+        dt = []
     else: # not the first time, update my history
-        OTHER[0].append(target_measurement)
-        OTHER[1].append(hunter_position)
-        OTHER[2].append(hunter_heading)
-        measurements, hunter_positions, hunter_headings = OTHER # now I can always refer to these variables
+        coords, dt = OTHER # now I can always refer to these variables
+
+        if len(coords) == 1:
+            hypotenuse1 = distance_between(coords[0], target_measurement)
+            dt.append(hypotenuse1)
+        elif len(coords) >= 2:
+            point2 = coords[len(coords) - 1]
+            point3 = target_measurement
+            hypotenuse1 = distance_between(point2, point3)
+            dt.append(hypotenuse1)
+
+            avgDT = sum(dt)/len(dt)
+
+    coords.append(target_measurement)
+    OTHER = (coords, dt)
 
     heading_to_target = get_heading(hunter_position, target_measurement)
     heading_difference = heading_to_target - hunter_heading
     turning =  heading_difference # turn towards the target
-    distance = max_distance # full speed ahead!
 
+    distanceToTarget = distance_between(hunter_position, target_measurement)
+
+    distance = distanceToTarget
+    if distanceToTarget > max_distance:
+        distance = max_distance
 
     return turning, distance, OTHER
 
@@ -142,7 +157,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
-    #prediction.penup()
+    prediction.penup()
     broken_robot.penup()
     #End of Visualization
 

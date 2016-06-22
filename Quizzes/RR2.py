@@ -51,9 +51,7 @@ def estimate_next_pos(measurement, OTHER = None):
         angles = []
         coords = []
     else:
-        distances = OTHER[0]
-        angles = OTHER[1]
-        coords = OTHER[2]
+        distances, angles, coords = OTHER
 
         if len(coords) == 1:
             x1, y1 = coords[0]

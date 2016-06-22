@@ -62,29 +62,12 @@ def estimate_next_pos(measurement, OTHER = None):
             angles.append(headingAngle1)
             distances.append(hypotenuse1)
 
-        elif len(coords) == 2:
-            point1 = coords[0]
-            point2 = coords[1]
-            point3 = measurement
-
-            y1Delta = point2[1] - point1[1]
-            hypotenuse1 = distance_between(point1, point2)
-            headingAngle1 = asin(y1Delta / hypotenuse1)
-
-            y2Delta = point3[1] - point2[1]
-            hypotenuse2 = distance_between(point2, point3)
-            headingAngle2 = asin(y2Delta / hypotenuse2)
-
-            angles.append(abs(headingAngle2 - headingAngle1))
-            distances.append(hypotenuse2)
-
-        else:
+        elif len(coords) >= 2:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement
 
             y1Delta = point2[1] - point1[1]
-            x1Delta = point2[0] - point1[0]
             hypotenuse1 = distance_between(point1, point2)
             headingAngleAvg1 = asin(y1Delta / hypotenuse1)
 
@@ -95,7 +78,6 @@ def estimate_next_pos(measurement, OTHER = None):
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
             angles.append(abs(predictedTurnAngleAvg))
-
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
@@ -114,123 +96,6 @@ def estimate_next_pos(measurement, OTHER = None):
 
     return xy_estimate, OTHER
 
-
-def estimate_next_pos_2(measurement, OTHER = None):
-    xy_estimate = 0, 0
-    if OTHER is None:
-        OTHER = []
-        OTHER.append(measurement)
-    elif len(OTHER) < 3:
-        OTHER.append(measurement)
-    elif len(OTHER) >= 3:
-        OTHER.append(measurement)
-        turning = 0
-        distance = 0
-        for i in range(len(OTHER)-2):
-            p0 = OTHER[i]
-            p1 = OTHER[i + 1]
-            p2 = OTHER[i + 2]
-
-            vx1 = p1[0] - p0[0]
-            vy1 = p1[1] - p0[1]
-            mag_v1 = distance_between(p0, p1)
-
-            vx2 = p2[0] - p1[0]
-            vy2 = p2[1] - p1[1]
-            mag_v2 = distance_between(p1, p2)
-
-            turning += acos((vx1 * vx2 + vy1 * vy2)/(mag_v1 * mag_v2))
-        turning = turning/(len(OTHER) - 2)
-        print 'turning--->', turning * 34 / 2 / pi
-
-        for i in range(len(OTHER)-1):
-            p0 = OTHER[i]
-            p1 = OTHER[i + 1]
-            distance += distance_between(p0, p1)
-        distance = distance/(len(OTHER[0]) - 1)
-        print 'distance--->', distance
-
-        p2 = OTHER[-1]
-        p1 = OTHER[-2]
-        heading = atan2((p2[1] - p1[1]), (p2[0] - p1[0]))
-
-        r = robot(measurement[0], measurement[1], heading, 2*pi / 34.0, 1.5)
-        print 'robot--->', r
-        r.set_noise(0.01, 0.01, 0)
-        r.move_in_circle()
-        xy_estimate = r.x, r.y
-
-    return xy_estimate, OTHER
-
-
-
-def estimate_next_pos_1(measurement, OTHER = None):
-    """Estimate the next (x, y) position of the wandering Traxbot
-    based on noisy (x, y) measurements."""
-
-    # You must return xy_estimate (x, y), and OTHER (even if it is None)
-    # in this order for grading purposes.
-    xy_estimate = (3.2, 9.1)
-    if OTHER is None:
-        OTHER = []
-        OTHER.append(measurement)
-    else:
-        OTHER.append(measurement)
-        if len(OTHER) >= 3:
-            # take the last three stored coordinates in case the first ones are not correct estimates
-            point1 = OTHER[len(OTHER) - 3]
-            point2 = OTHER[len(OTHER) - 2]
-            point3 = OTHER[len(OTHER) - 1]
-            y1Delta = point2[1] - point1[1]
-            hyp1 = distance_between(point1, point2)
-            headingAngle1 = asin(y1Delta / hyp1)
-
-            y2Delta = point3[1] - point2[1]
-            hyp2 = distance_between(point2, point3)
-            headingAngle2 = asin(y2Delta / hyp2)
-            predictedTurnAngle = headingAngle2 - headingAngle1
-            newR = robot(point3[0], point3[1], headingAngle2, predictedTurnAngle, hyp1)
-            newR.move_in_circle()
-            xy_estimate = newR.x, newR.y
-
-
-    return xy_estimate, OTHER
-
-
-def estimate_next_pos_other(measurement, OTHER = None):
-    """Estimate the next (x, y) position of the wandering Traxbot
-    based on noisy (x, y) measurements."""
-
-    if not OTHER:
-        opoint = (0.0, 0.0)
-        oldHeading = 0.0
-        db_a = []
-    else:
-        opoint = OTHER[0]
-        oldHeading = OTHER[1]
-        db_a = OTHER[2]
-    cpoint = measurement
-    delta_y = cpoint[1] - opoint[1]
-    delta_x = cpoint[0] - opoint[0]
-
-    newHeading = atan2(delta_y, delta_x)
-    db = distance_between(opoint, cpoint)
-    db_a.append(db)
-    db_a2 = r_[db_a]
-    db_m = mean(db_a2)
-
-    turn_angle = newHeading - oldHeading
-
-    heading = newHeading + turn_angle
-    x_prime = cpoint[0] + db_m * cos(heading)
-    y_prime = cpoint[1] + db_m * sin(heading)
-
-    xy_estimate = (x_prime, y_prime)
-    OTHER  = [cpoint, newHeading, db_a]
-
-    # You must return xy_estimate (x, y), and OTHER (even if it is None)
-    # in this order for grading purposes.
-    return xy_estimate, OTHER
 
 # A helper function you may find useful.
 def distance_between(point1, point2):
@@ -460,15 +325,23 @@ def test():
 
 #test2()
 #demo_grading_visual(estimate_next_pos, test_target)
+demo_grading(estimate_next_pos, test_target)
+# scores = []
+# for i in range(10000):
+#     scores.append(demo_grading(estimate_next_pos, test_target))
+#
+# print "average score: ", sum(scores)/len(scores)
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
 
-scores = []
+# stats:
+# Sorry, it took you too many steps to localize the target.
+# Sorry, it took you too many steps to localize the target.
+# Sorry, it took you too many steps to localize the target.
+# average score:  123
+# minimum score:  False
+# maximum score:  947
 
-for i in range(1000):
-    scores.append(demo_grading(estimate_next_pos, test_target))
-
-print "average score: ", sum(scores)/len(scores)
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
 
 #print "actual turn angle: ", 2*pi / 34.0
 

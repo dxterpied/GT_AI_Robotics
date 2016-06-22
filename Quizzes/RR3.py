@@ -45,11 +45,8 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     said it was and then moves forwards at full speed. This strategy also keeps track of all
     the target measurements, hunter positions, and hunter headings over time, but it doesn't
     do anything with that information."""
-    time.sleep(0.5)
-    turning = 0
-    distance = 0
-    avgDT = max_distance
-    distanceToTarget = 0
+
+    #time.sleep(0.5)
     xy_estimate = None
 
     if OTHER is None:
@@ -65,32 +62,15 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             hypotenuse1 = distance_between(coords[0], target_measurement)
             y1Delta = y2 - y1
             headingAngle1 = asin(y1Delta / hypotenuse1)
-            angles.append(headingAngle1)
+            #angles.append(headingAngle1)
             distances.append(hypotenuse1)
 
-        elif len(coords) == 2:
-            point1 = coords[0]
-            point2 = coords[1]
-            point3 = target_measurement
-
-            y1Delta = point2[1] - point1[1]
-            hypotenuse1 = distance_between(point1, point2)
-            headingAngle1 = asin(y1Delta / hypotenuse1)
-
-            y2Delta = point3[1] - point2[1]
-            hypotenuse2 = distance_between(point2, point3)
-            headingAngle2 = asin(y2Delta / hypotenuse2)
-
-            angles.append(abs(headingAngle2 - headingAngle1))
-            distances.append(hypotenuse2)
-
-        else:
+        elif len(coords) >= 2:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = target_measurement
 
             y1Delta = point2[1] - point1[1]
-            x1Delta = point2[0] - point1[0]
             hypotenuse1 = distance_between(point1, point2)
             headingAngleAvg1 = asin(y1Delta / hypotenuse1)
 
@@ -100,8 +80,8 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             headingAngle2 = atan2(y2Delta, x2Delta)
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-            angles.append(abs(predictedTurnAngleAvg))
 
+            angles.append(abs(predictedTurnAngleAvg))
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
@@ -120,7 +100,6 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     heading_to_target = get_heading(hunter_position, xy_estimate)
     heading_difference = heading_to_target - hunter_heading
     turning = heading_difference # turn towards the target
-
     distance = distance_between(hunter_position, xy_estimate)
 
     return turning, distance, OTHER
@@ -151,6 +130,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
+            return ctr
             caught = True
 
         # The target broadcasts its noisy measurement
@@ -269,9 +249,21 @@ target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -20.0, 0.0)
 
-#demo_grading(hunter, target, next_move)
-demo_grading_visual(hunter, target, next_move)
+demo_grading(hunter, target, next_move)
+#demo_grading_visual(hunter, target, next_move)
 
+# scores = []
+# for i in range(10000):
+#     hunter = robot(-10.0, -20.0, 0.0)
+#     scores.append(demo_grading(hunter, target, next_move))
+# print "average score: ", sum(scores)/len(scores)
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+#
+# stats:
+# average score:  48
+# minimum score:  8
+# maximum score:  374
 
 
 

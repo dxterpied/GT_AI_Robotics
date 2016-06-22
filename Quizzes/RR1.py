@@ -79,13 +79,11 @@ def estimate_next_pos(measurement, OTHER = None):
         OTHER = []
         OTHER.append(measurement)
     else:
-        OTHER.append(measurement)
-
-        if len(OTHER) >= 3:
+        if len(OTHER) >= 2:
             # take the last three stored coordinates in case the first ones are not correct estimates
-            point1 = OTHER[len(OTHER) - 3]
-            point2 = OTHER[len(OTHER) - 2]
-            point3 = OTHER[len(OTHER) - 1]
+            point1 = OTHER[len(OTHER) - 2]
+            point2 = OTHER[len(OTHER) - 1]
+            point3 = measurement
             y1Delta = point2[1] - point1[1]
             hyp1 = distance_between(point1, point2)
             headingAngle1 = asin(y1Delta / hyp1)
@@ -94,13 +92,14 @@ def estimate_next_pos(measurement, OTHER = None):
             hyp2 = distance_between(point2, point3)
             headingAngle2 = asin(y2Delta / hyp2)
             predictedTurnAngle = headingAngle2 - headingAngle1
-            print "----------------"
+            #print "----------------"
             newR = robot(point3[0], point3[1], headingAngle2, predictedTurnAngle, hyp1)
-            print 'newR: ', newR
+            #print 'newR: ', newR
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
-            print 'xy_estimate', xy_estimate
-            print "--------------------"
+            #print 'xy_estimate', xy_estimate
+            #print "--------------------"
+        OTHER.append(measurement)
 
     return xy_estimate, OTHER
 

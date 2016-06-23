@@ -39,6 +39,7 @@ from numpy import *
 # passed back to your function the next time it is called. You can use
 # this to keep track of important information over time.
 
+
 def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""

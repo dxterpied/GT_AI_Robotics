@@ -143,7 +143,8 @@ class matrix:
 def kalman_filter(x, P):
     for n in range(len(measurements)):
 
-        # measurement update   # in Michel van Biezen it's y1 = C * x1 + z1: https://www.youtube.com/watch?v=fojH-viOxI4
+        # MEASUREMENT UPDATE   # in Michel van Biezen it's y1 = C * x1 + z1: https://www.youtube.com/watch?v=fojH-viOxI4
+        # uses Bayes rule product
         Z = matrix([[measurements[n]]])
         y = Z - (H * x)                # Innovation or measurement residual
         S = H * P * H.transpose() + R
@@ -151,7 +152,7 @@ def kalman_filter(x, P):
         x = x + (K * y)
         P = (I - (K * H)) * P
 
-        # prediction step (based on theory)
+        # PREDICTION  (based on theory). Uses total probability and convolution
         x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4
         P = F * P * F.transpose() # + Q  the Q matrix (process noise) is not present here
 

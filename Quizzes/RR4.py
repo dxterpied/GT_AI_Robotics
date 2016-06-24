@@ -23,6 +23,134 @@ import time
 import turtle    #You need to run this locally to use the turtle module
 
 
+deltaT = 0.1
+x = matrix([[0.],
+            [0.],
+            [0.],
+            [0.]]) # initial state
+u = matrix([[0.], [0.], [0.], [0.]]) # external motion
+
+F = matrix([
+        [1., 0., deltaT, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
+        [0., 1., 0., deltaT], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
+        [0., 0., 1., 0.], # this is to update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
+        [0., 0., 0., 1.]  # this is to update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
+    ]) # next state function: generalize the 2d version to 4d
+
+H = matrix([ [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]) # measurement function: reflect the fact that we observe x and y but not the two velocities
+R = matrix([
+    [0.1, 0.],
+    [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
+I = matrix([ [1., 0., 0., 0.],
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.]  ]) # 4d identity matrix
+
+# this is much much much worse than the regular next_move() ......
+def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
+    predictedPosition = (0, 0)
+    xy_estimate = None
+    steps = 0
+
+    if OTHER is None:
+        P_matrix = matrix([
+            [0., 0., 0., 0.],
+            [0., 0., 0., 0.],
+            [0., 0., 1000., 0.],
+            [0., 0., 0., 1000.] ]) # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
+        measurements = [(0.0, 0.0)]
+        prevAngle = 0.
+    else:
+        measurements, P_matrix, prevAngle, xy_estimate, steps = OTHER
+
+    #print "faulty target", target_measurement
+    x = matrix([[target_measurement[0]], [target_measurement[1]], [0.], [0.]])
+    new_x, P_matrix = kalman_filter(x, P_matrix, measurements[-1:]) # take last n items in measurements
+    adjustedTarget = (new_x.value[0][0], new_x.value[1][0]) # get new x and y from new_x matrix
+    #print "adjusted target", adjustedTarget
+
+    prevCoord = measurements[len(measurements) - 1]
+    x1Delta = adjustedTarget[0] - prevCoord[0]
+    y1Delta = adjustedTarget[1] - prevCoord[1]
+    heading = atan2(y1Delta, x1Delta)
+    turning = heading - prevAngle
+    distance = distance_between(prevCoord, adjustedTarget)
+
+    newR = robot(adjustedTarget[0], adjustedTarget[1], heading, turning, distance)
+    newR.move_in_circle()
+    predictedPosition = newR.x, newR.y
+
+    if xy_estimate is None:
+
+        broken_robot = turtle.Turtle()
+        broken_robot.shape('turtle')
+        broken_robot.color('red')
+        #broken_robot.resizemode('user')
+        broken_robot.shapesize(0.2, 0.2, 0.2)
+
+        steps = 1
+
+        while True:
+            #time.sleep(0.1)
+            xy_estimate = newR.x, newR.y
+            headingAngle2 = newR.heading
+            distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
+            # check how many steps it will take to get there for Hunter
+            projectedDistance = steps * max_distance
+
+            broken_robot.setheading(headingAngle2 * 180/pi)
+            broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
+            broken_robot.stamp()
+
+            if projectedDistance >= distanceBetweenHunterAndRobot:
+                #print xy_estimate, steps
+                break
+
+            steps += 1
+            if steps > 50:
+                break
+
+            newR.move_in_circle()
+
+    else:
+        steps -= 1
+        #print "decrement steps", steps
+        if steps == 0:
+            xy_estimate = None
+
+    prevAngle = heading
+    measurements.append(adjustedTarget)
+    OTHER = (measurements, P_matrix, prevAngle, xy_estimate, steps)
+
+    if xy_estimate is None:
+        xy_estimate = target_measurement
+
+    heading_to_target = get_heading(hunter_position, xy_estimate)
+    heading_to_target2 = get_heading(hunter_position, predictedPosition)
+
+    turning = heading_to_target - hunter_heading # turn towards the target
+    turning2 = heading_to_target2 - hunter_heading # turn towards the target
+
+    #print hunter_position, xy_estimate, heading_to_target, hunter_heading, heading_difference
+    distance = distance_between(hunter_position, xy_estimate)
+    distance2 = distance_between(hunter_position, predictedPosition)
+
+    # if distance2 < distance:
+    #      turning = turning2
+    #      distance = distance2
+
+    # if steps == 1 and distance2 < distance:
+    #      turning = turning2
+    #      distance = distance2
+
+    # turning = turning2
+    # distance = distance2
+
+    #print turning, distance
+    return turning, distance, OTHER
+
 
 # this function sometimes works; does not work most of the time
 def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
@@ -95,7 +223,6 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
                     if projectedDistance >= distanceBetweenHunterAndRobot:
                         #print xy_estimate, steps
-                        targetSet = True
                         break
 
                     steps += 1
@@ -350,6 +477,23 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
     return caught
 
+def kalman_filter(x, P, measurements):
+    for n in range(len(measurements)):
+
+        # PREDICTION  (based on theory). Uses total probability and convolution
+        x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4
+        P = F * P * F.transpose() # + Q  the Q matrix (process noise) is not present here
+
+        # MEASUREMENT UPDATE
+        Z = matrix([measurements[n]])
+        y = Z.transpose() - (H * x)  # Innovation or measurement residual
+        S = H * P * H.transpose() + R
+        K = P * H.transpose() * S.inverse() # Kalman gain
+        x = x + (K * y)
+        P = (I - (K * H)) * P
+
+
+    return x,P
 
 
 def angle_trunc(a):
@@ -373,7 +517,7 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -20.0, 0.0)
 
 #demo_grading(hunter, target, next_move)
-demo_grading_visual(hunter, target, next_move)
+demo_grading_visual(hunter, target, next_move_KF)
 
 
 

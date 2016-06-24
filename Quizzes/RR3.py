@@ -345,8 +345,8 @@ target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -20.0, 0.0)
 
-#demo_grading(hunter, target, next_move_KF)
-demo_grading_visual(hunter, target, next_move_KF)
+demo_grading(hunter, target, next_move_KF)
+#demo_grading_visual(hunter, target, next_move_KF)
 
 # scores = []
 # for i in range(10000):

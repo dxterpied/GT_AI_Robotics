@@ -31,8 +31,8 @@ x = matrix([[0.],
 u = matrix([[0.], [0.], [0.], [0.]]) # external motion
 
 F = matrix([
-        [1., 0., deltaT, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
-        [0., 1., 0., deltaT], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
+        [1., 0., 0.0, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
+        [0., 1., 0., 0.0], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
         [0., 0., 1., 0.], # this is to update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
         [0., 0., 0., 1.]  # this is to update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
     ]) # next state function: generalize the 2d version to 4d

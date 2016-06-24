@@ -65,11 +65,11 @@ def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distan
     else:
         measurements, P_matrix, prevAngle, xy_estimate, steps = OTHER
 
-    #print "faulty target", target_measurement
+    print "faulty target", target_measurement
     x = matrix([[target_measurement[0]], [target_measurement[1]], [0.], [0.]])
     new_x, P_matrix = kalman_filter(x, P_matrix, measurements[-1:]) # take last n items in measurements
     adjustedTarget = (new_x.value[0][0], new_x.value[1][0]) # get new x and y from new_x matrix
-    #print "adjusted target", adjustedTarget
+    print "adjusted target", adjustedTarget
 
     prevCoord = measurements[len(measurements) - 1]
     x1Delta = adjustedTarget[0] - prevCoord[0]
@@ -438,7 +438,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
         target_position = (target_bot.x, target_bot.y)
-        #print target_position
+        print "actual target position", target_position
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."

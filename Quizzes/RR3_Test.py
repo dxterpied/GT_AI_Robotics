@@ -51,35 +51,32 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         P = OTHER[1]
         old_target = OTHER[2]
         theta = OTHER[3]
-    print "NOISY MEASUREMENT:  ", target_measurement
+    #print "NOISY MEASUREMENT:  ", target_measurement
+
     x = matrix([[target_measurement[0]], [target_measurement[1]], [0.], [0.]])
-
-    new_x, P = filter(x, P, measurements[-25:]) # only take last 25 items in measurements
-
+    new_x, P = filter(x, P, measurements[-1:]) # only take last 25 items in measurements
 
     xprime = new_x.value[0][0]
     yprime = new_x.value[1][0]
     fixed_target = (xprime, yprime)
-    print "FIXED MEASUREMENT:  ", fixed_target
+    #print "FIXED MEASUREMENT:  ", fixed_target
+
     delta_y = fixed_target[1] - old_target[1]
     delta_x = fixed_target[0] - old_target[0]
-
     beta = atan2(delta_y, delta_x)
+    heading = beta + beta - theta
+
     db = distance_between(old_target, fixed_target)
-
-    turn_angle = beta - theta
-
-    heading = beta + turn_angle
     future_x = fixed_target[0] + db * cos(heading)
     future_y = fixed_target[1] + db * sin(heading)
     future_target = (future_x, future_y)
+
     heading_to_target = get_heading(hunter_position, future_target)
     heading_difference = heading_to_target - hunter_heading
     turning =  heading_difference # turn towards the target
-    measurements.append(fixed_target)
     distance = distance_between(hunter_position, future_target)
-#    distance = max_distance
 
+    measurements.append(fixed_target)
     OTHER = [measurements, P, fixed_target, beta]
     return turning, distance, OTHER
 
@@ -104,7 +101,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
         target_position = (target_bot.x, target_bot.y)
-        print "TARGET POSITION:  ", target_position
+        #print "TARGET POSITION:  ", target_position
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
@@ -199,4 +196,13 @@ R =  matrix([[0.1, 0.0], [0.0, 0.1]])
 I =  matrix([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
 
 
-print demo_grading(hunter, target, next_move)
+#demo_grading(hunter, target, next_move)
+
+scores = []
+for i in range(10000):
+    hunter = robot(-10.0, -20.0, 0.0)
+    scores.append(demo_grading(hunter, target, next_move))
+print "average score: ", sum(scores)/len(scores)
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+

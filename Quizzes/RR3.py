@@ -39,6 +39,78 @@ from matrix import *
 import random
 import time
 
+
+deltaT = 0.1
+x = matrix([[0.],
+            [0.],
+            [0.],
+            [0.]]) # initial state
+u = matrix([[0.], [0.], [0.], [0.]]) # external motion
+
+F = matrix([
+        [1., 0., deltaT, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
+        [0., 1., 0., deltaT], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
+        [0., 0., 1., 0.], # this is to update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
+        [0., 0., 0., 1.]  # this is to update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
+    ]) # next state function: generalize the 2d version to 4d
+
+H = matrix([ [1., 0., 0., 0.],
+            [0., 1., 0., 0.]]) # measurement function: reflect the fact that we observe x and y but not the two velocities
+R = matrix([
+    [0.1, 0.],
+    [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
+I = matrix([ [1., 0., 0., 0.],
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.]  ]) # 4d identity matrix
+
+
+def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
+    #time.sleep(0.5)
+    xy_estimate = None
+
+    if OTHER is None:
+        P_matrix = matrix([
+            [0., 0., 0., 0.],
+            [0., 0., 0., 0.],
+            [0., 0., 1000., 0.],
+            [0., 0., 0., 1000.] ]) # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
+        measurements = [(0.0, 0.0)]
+        prevAngle = 0.
+    else:
+        measurements, P_matrix, prevAngle = OTHER
+
+    #print "faulty target", target_measurement
+    x = matrix([[target_measurement[0]], [target_measurement[1]], [0.], [0.]])
+    new_x, P_matrix = kalman_filter(x, P_matrix, measurements[-1:]) # take last n items in measurements
+    adjustedTarget = (new_x.value[0][0], new_x.value[1][0]) # get new x and y from new_x matrix
+    #print "adjusted target", adjustedTarget
+
+    prevCoord = measurements[len(measurements) - 1]
+    x1Delta = adjustedTarget[0] - prevCoord[0]
+    y1Delta = adjustedTarget[1] - prevCoord[1]
+    heading = atan2(y1Delta, x1Delta)
+    turning = heading - prevAngle
+    distance = distance_between(prevCoord, adjustedTarget)
+
+    newR = robot(adjustedTarget[0], adjustedTarget[1], heading, turning, distance)
+    newR.move_in_circle()
+    xy_estimate = newR.x, newR.y
+
+    prevAngle = heading
+    measurements.append(adjustedTarget)
+    OTHER = (measurements, P_matrix, prevAngle)
+
+
+    heading_to_target = get_heading(hunter_position, xy_estimate)
+    heading_difference = heading_to_target - hunter_heading
+    turning = heading_difference # turn towards the target
+    distance = distance_between(hunter_position, xy_estimate)
+
+    return turning, distance, OTHER
+
+
 def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     """This strategy always tries to steer the hunter directly towards where the target last
@@ -243,19 +315,40 @@ def get_heading(hunter_position, target_position):
     heading = angle_trunc(heading)
     return heading
 
+
+def kalman_filter(x, P, measurements):
+    for n in range(len(measurements)):
+
+        # PREDICTION  (based on theory). Uses total probability and convolution
+        x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4
+        P = F * P * F.transpose() # + Q  the Q matrix (process noise) is not present here
+
+        # MEASUREMENT UPDATE
+        Z = matrix([measurements[n]])
+        y = Z.transpose() - (H * x)  # Innovation or measurement residual
+        S = H * P * H.transpose() + R
+        K = P * H.transpose() * S.inverse() # Kalman gain
+        x = x + (K * y)
+        P = (I - (K * H)) * P
+
+
+    return x,P
+
+
+
 target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -20.0, 0.0)
 
-demo_grading(hunter, target, next_move)
-#demo_grading_visual(hunter, target, next_move)
+demo_grading(hunter, target, next_move_KF)
+#demo_grading_visual(hunter, target, next_move_KF)
 
 # scores = []
 # for i in range(10000):
 #     hunter = robot(-10.0, -20.0, 0.0)
-#     scores.append(demo_grading(hunter, target, next_move))
+#     scores.append(demo_grading(hunter, target, next_move_KF))
 # print "average score: ", sum(scores)/len(scores)
 # print "minimum score: ", min(scores)
 # print "maximum score: ", max(scores)
@@ -264,6 +357,13 @@ demo_grading(hunter, target, next_move)
 # average score:  48
 # minimum score:  8
 # maximum score:  374
+
+# stats with KF:
+#
+# average score:  169
+# minimum score:  False
+# maximum score:  998
+
 
 
 

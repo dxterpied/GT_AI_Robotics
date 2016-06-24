@@ -20,10 +20,14 @@ from math import *
 from matrix import *
 import random
 import time
+import turtle    #You need to run this locally to use the turtle module
+
 
 
 # this function sometimes works; does not work most of the time
 def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
+    predictedPosition = (0, 0)
 
     if OTHER is None:
         distances = []
@@ -38,7 +42,6 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             x1, y1 = coords[0]
             x2, y2 = target_measurement
             hypotenuse1 = distance_between(coords[0], target_measurement)
-            y1Delta = y2 - y1
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
@@ -63,19 +66,32 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
+            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            newR.move_in_circle()
+            predictedPosition = newR.x, newR.y
+
             if xy_estimate is None:
+
+                broken_robot = turtle.Turtle()
+                broken_robot.shape('turtle')
+                broken_robot.color('red')
+                #broken_robot.resizemode('user')
+                broken_robot.shapesize(0.2, 0.2, 0.2)
+
                 steps = 1
-                xy_estimate = point3[0], point3[1]
+
                 while True:
-                    newR = robot(xy_estimate[0], xy_estimate[1], headingAngle2, avgAngle, avgDT)
-                    newR.move_in_circle()
+                    #time.sleep(0.1)
                     xy_estimate = newR.x, newR.y
                     headingAngle2 = newR.heading
                     distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
                     # check how many steps it will take to get there for Hunter
                     projectedDistance = steps * max_distance
 
-                    #print "xy_estimate", xy_estimate
+                    # broken_robot.setheading(headingAngle2 * 180/pi)
+                    # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
+                    # broken_robot.stamp()
+
 
                     if projectedDistance >= distanceBetweenHunterAndRobot:
                         #print xy_estimate, steps
@@ -85,6 +101,9 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
                     steps += 1
                     if steps > 50:
                         break
+
+                    newR.move_in_circle()
+
             else:
                 steps -= 1
                 #print "decrement steps", steps
@@ -96,11 +115,28 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
     if xy_estimate is None:
         xy_estimate = target_measurement
+
     heading_to_target = get_heading(hunter_position, xy_estimate)
+    heading_to_target2 = get_heading(hunter_position, predictedPosition)
+
     turning = heading_to_target - hunter_heading # turn towards the target
+    turning2 = heading_to_target2 - hunter_heading # turn towards the target
 
     #print hunter_position, xy_estimate, heading_to_target, hunter_heading, heading_difference
     distance = distance_between(hunter_position, xy_estimate)
+    distance2 = distance_between(hunter_position, predictedPosition)
+
+    # if distance2 < distance:
+    #      turning = turning2
+    #      distance = distance2
+
+    # if steps == 1 and distance2 < distance:
+    #      turning = turning2
+    #      distance = distance2
+
+    turning = turning2
+    distance = distance2
+
 
     #print turning, distance
     return turning, distance, OTHER
@@ -247,10 +283,9 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     # position, then we move the bot and compare your guess to the true
     # next position. When you are close enough, we stop checking.
     #For Visualization
-    import turtle    #You need to run this locally to use the turtle module
     window = turtle.Screen()
     window.bgcolor('white')
-    size_multiplier= 15.0  #change Size of animation
+    size_multiplier= 25.0  #change Size of animation
     broken_robot = turtle.Turtle()
     broken_robot.shape('turtle')
     broken_robot.color('green')
@@ -331,14 +366,14 @@ def get_heading(hunter_position, target_position):
     heading = angle_trunc(heading)
     return heading
 
-target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 
-hunter = robot(-10.0, -10.0, 0.0)
+hunter = robot(-10.0, -20.0, 0.0)
 
-demo_grading(hunter, target, next_move)
-#demo_grading_visual(hunter, target, next_move)
+#demo_grading(hunter, target, next_move)
+demo_grading_visual(hunter, target, next_move)
 
 
 

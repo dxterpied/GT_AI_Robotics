@@ -105,6 +105,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
+            return ctr
             caught = True
 
         # The target broadcasts its noisy measurement
@@ -125,6 +126,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         ctr += 1
         if ctr >= 1000:
             print "It took too many steps to catch the target."
+            return 1000
     return caught
 
 def angle_trunc(a):
@@ -196,13 +198,13 @@ R =  matrix([[0.1, 0.0], [0.0, 0.1]])
 I =  matrix([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
 
 
-#demo_grading(hunter, target, next_move)
+demo_grading(hunter, target, next_move)
 
-scores = []
-for i in range(10000):
-    hunter = robot(-10.0, -20.0, 0.0)
-    scores.append(demo_grading(hunter, target, next_move))
-print "average score: ", sum(scores)/len(scores)
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
+# scores = []
+# for i in range(10000):
+#     hunter = robot(-10.0, -20.0, 0.0)
+#     scores.append(demo_grading(hunter, target, next_move))
+# print "average score: ", sum(scores)/len(scores)
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
 

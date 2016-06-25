@@ -22,6 +22,14 @@ import random
 import time
 import turtle    #You need to run this locally to use the turtle module
 
+# Testing parameters:
+#
+# -20.0 <= target_starting_position_x <= 20.0
+# -20.0 <= target_starting_position_y <= 20.0
+# 0 <= target_starting_heading < 2*math.pi
+# 10 <= target_period <= 50 (target might go either clockwise or counterclockwise)
+# 1 <= target_speed <= 5
+
 
 deltaT = 0.1
 x = matrix([[0.],
@@ -47,8 +55,14 @@ I = matrix([ [1., 0., 0., 0.],
             [0., 0., 1., 0.],
             [0., 0., 0., 1.]  ]) # 4d identity matrix
 
+#stats for this method:
+# average score: 188
+# minimum score: 16
+# maximum score: 993
+# fails: 36
 
-def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+def next_move_cut_angle(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
 
 
     #time.sleep(0.5)
@@ -229,17 +243,23 @@ def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distan
     #print turning, distance
     return turning, distance, OTHER
 
+#Stats:
+# average score:  194
+# minimum score:  21
+# maximum score:  995
+# fails:  35
+def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
-# this function sometimes works; does not work most of the time
-def next_move_old2(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
-    predictedPosition = (0, 0)
+
+    predictedPosition = [0, 0]
+    xy_estimate = None
 
     if OTHER is None:
         distances = []
         angles = []
         coords = []
-        xy_estimate = None
+        xy_estimate = target_measurement
         steps = 0
     else:
         distances, angles, coords, xy_estimate, steps = OTHER
@@ -249,6 +269,7 @@ def next_move_old2(hunter_position, hunter_heading, target_measurement, max_dist
             x2, y2 = target_measurement
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
+            xy_estimate = target_measurement
 
         elif len(coords) >= 2:
             point1 = coords[len(coords) - 2]
@@ -278,11 +299,11 @@ def next_move_old2(hunter_position, hunter_heading, target_measurement, max_dist
 
             if xy_estimate is None:
 
-                broken_robot = turtle.Turtle()
-                broken_robot.shape('turtle')
-                broken_robot.color('red')
-                #broken_robot.resizemode('user')
-                broken_robot.shapesize(0.2, 0.2, 0.2)
+                # broken_robot = turtle.Turtle()
+                # broken_robot.shape('turtle')
+                # broken_robot.color('red')
+                # #broken_robot.resizemode('user')
+                # broken_robot.shapesize(0.2, 0.2, 0.2)
 
                 steps = 1
 
@@ -312,11 +333,12 @@ def next_move_old2(hunter_position, hunter_heading, target_measurement, max_dist
             else:
                 steps -= 1
                 #print "decrement steps", steps
-                if steps == 0:
+                if steps <= 0:
                     xy_estimate = None
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps)
+
 
     if xy_estimate is None:
         xy_estimate = target_measurement
@@ -331,16 +353,18 @@ def next_move_old2(hunter_position, hunter_heading, target_measurement, max_dist
     distance = distance_between(hunter_position, xy_estimate)
     distance2 = distance_between(hunter_position, predictedPosition)
 
-    # if distance2 < distance:
-    #      turning = turning2
-    #      distance = distance2
+    if distance2 <= max_distance:
+        turning = turning2
+        distance = distance2
+        OTHER = (distances, angles, coords, None, steps)
+
 
     # if steps == 1 and distance2 < distance:
     #      turning = turning2
     #      distance = distance2
 
-    turning = turning2
-    distance = distance2
+    #turning = turning2
+    #distance = distance2
 
 
     #print turning, distance
@@ -492,7 +516,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     #For Visualization
     window = turtle.Screen()
     window.bgcolor('white')
-    size_multiplier= 25.0  #change Size of animation
+    size_multiplier= 15.0  #change Size of animation
     broken_robot = turtle.Turtle()
     broken_robot.shape('turtle')
     broken_robot.color('green')
@@ -590,14 +614,14 @@ def get_heading(hunter_position, target_position):
     heading = angle_trunc(heading)
     return heading
 
-target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 
-hunter = robot(-10.0, -20.0, 0.0)
+hunter = robot(-10.0, -5.0, 0.0)
 
-#demo_grading(hunter, target, next_move_cut_angle)
-#demo_grading_visual(hunter, target, next_move_cut_angle)
+#demo_grading(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
 
 scores = []
 fails = 0
@@ -605,7 +629,7 @@ for i in range(10000):
     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
     target.set_noise(0.0, 0.0, measurement_noise)
     hunter = robot(-10.0, -20.0, 0.0)
-    score = demo_grading(hunter, target, next_move)
+    score = demo_grading(hunter, target, next_move_straight_line)
     if score == 1000:
         fails += 1
     else:

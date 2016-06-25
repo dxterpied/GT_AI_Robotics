@@ -85,15 +85,6 @@ class robot:
     def __repr__(self):
         return '[x=%.6s y=%.6s orient=%.6s]' % (str(self.x), str(self.y), str(self.orientation))
 
-
-#myrobot = robot()
-#myrobot.set_noise(5.0, 0.1, 5.0)
-#myrobot.set(30.0, 50.0, pi/2)
-#myrobot = myrobot.move(-pi/2, 15.0)
-#print myrobot.sense()
-#myrobot = myrobot.move(-pi/2, 10.0)
-#print myrobot.sense()
-
 ####   DON'T MODIFY ANYTHING ABOVE HERE! ENTER CODE BELOW ####
 myrobot = robot()
 myrobot = myrobot.move(0.1, 5.0)
@@ -130,5 +121,5 @@ for i in range(N):
     p3.append(p[index])
 
 p = p3
-print p #please leave this print statement here for grading!
+print len(p) #please leave this print statement here for grading!
 

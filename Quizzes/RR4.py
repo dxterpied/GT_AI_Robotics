@@ -47,6 +47,84 @@ I = matrix([ [1., 0., 0., 0.],
             [0., 0., 1., 0.],
             [0., 0., 0., 1.]  ]) # 4d identity matrix
 
+
+def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
+
+    #time.sleep(0.5)
+    xy_estimate = target_measurement
+    xy_estimate_first_step = target_measurement
+    xy_estimate_second_step = target_measurement
+
+    if OTHER is None:
+        distances = []
+        angles = []
+        coords = []
+    else:
+        distances, angles, coords = OTHER
+
+        if len(coords) == 1:
+            x1, y1 = coords[0]
+            x2, y2 = target_measurement
+            hypotenuse1 = distance_between(coords[0], target_measurement)
+            y1Delta = y2 - y1
+            distances.append(hypotenuse1)
+
+        elif len(coords) >= 2:
+            point1 = coords[len(coords) - 2]
+            point2 = coords[len(coords) - 1]
+            point3 = target_measurement
+
+            y1Delta = point2[1] - point1[1]
+            hypotenuse1 = distance_between(point1, point2)
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+
+            y2Delta = point3[1] - point2[1]
+            x2Delta = point3[0] - point2[0]
+            hypotenuse2 = distance_between(point2, point3)
+            headingAngle2 = atan2(y2Delta, x2Delta)
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+
+            angles.append(abs(predictedTurnAngleAvg))
+            distances.append(hypotenuse2)
+
+            avgDT = sum(distances)/len(distances)
+            avgAngle = sum(angles)/len(angles)
+
+            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            newR.move_in_circle()
+            xy_estimate_first_step = newR.x, newR.y
+            newR.move_in_circle()
+            xy_estimate_second_step = newR.x, newR.y
+            newR.move_in_circle()
+
+            xy_estimate = newR.x, newR.y
+
+    coords.append(target_measurement)
+    OTHER = (distances, angles, coords)
+
+    distance = distance_between(hunter_position, xy_estimate)
+    distance_first_step = distance_between(hunter_position, xy_estimate_first_step)
+    distance_second_step = distance_between(hunter_position, xy_estimate_second_step)
+
+    # if first step prediction is within hunter's reach, go there
+    if distance_first_step < max_distance:
+        distance = distance_first_step
+        xy_estimate = xy_estimate_first_step
+
+    # if second step prediction is within hunter's reach, go there
+    if distance_second_step < max_distance:
+        distance = distance_second_step
+        xy_estimate = xy_estimate_second_step
+
+    heading_to_target = get_heading(hunter_position, xy_estimate)
+    turning = heading_to_target - hunter_heading # turn towards the target
+
+    return turning, distance, OTHER
+
+
+
 # this is much much much worse than the regular next_move() ......
 def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
@@ -153,7 +231,7 @@ def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distan
 
 
 # this function sometimes works; does not work most of the time
-def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+def next_move_old2(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     predictedPosition = (0, 0)
 
@@ -272,10 +350,6 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
 def next_move_old(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
-    """This strategy always tries to steer the hunter directly towards where the target last
-    said it was and then moves forwards at full speed. This strategy also keeps track of all
-    the target measurements, hunter positions, and hunter headings over time, but it doesn't
-    do anything with that information."""
 
     #time.sleep(0.5)
     xy_estimate = None
@@ -349,11 +423,15 @@ def next_move_old(hunter_position, hunter_heading, target_measurement, max_dista
 
     return turning, distance, OTHER
 
+
+
 def distance_between(point1, point2):
     """Computes distance between point1 and point2. Points are (x, y) pairs."""
     x1, y1 = point1
     x2, y2 = point2
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
 
 def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     """Returns True if your next_move_fcn successfully guides the hunter_bot
@@ -373,6 +451,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
+            return ctr
             caught = True
 
         # The target broadcasts its noisy measurement
@@ -394,6 +473,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         ctr += 1
         if ctr >= 1000:
             print "It took too many steps to catch the target."
+            return 1000
     return caught
 
 
@@ -438,7 +518,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
         target_position = (target_bot.x, target_bot.y)
-        print "actual target position", target_position
+        #print "actual target position", target_position
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
@@ -516,8 +596,26 @@ target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -20.0, 0.0)
 
-#demo_grading(hunter, target, next_move)
-demo_grading_visual(hunter, target, next_move_KF)
+#demo_grading(hunter, target, next_move_cut_angle)
+#demo_grading_visual(hunter, target, next_move_cut_angle)
+
+scores = []
+fails = 0
+for i in range(10000):
+    target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, measurement_noise)
+    hunter = robot(-10.0, -20.0, 0.0)
+    score = demo_grading(hunter, target, next_move)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/len(scores)
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
 
 
 

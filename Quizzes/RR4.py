@@ -56,10 +56,10 @@ I = matrix([ [1., 0., 0., 0.],
             [0., 0., 0., 1.]  ]) # 4d identity matrix
 
 #stats for this method:
-# average score: 188
-# minimum score: 16
-# maximum score: 993
-# fails: 36
+# average score:  155
+# minimum score:  22
+# maximum score:  985
+# fails:  7
 
 def next_move_cut_angle(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
@@ -134,6 +134,16 @@ def next_move_cut_angle(hunter_position, hunter_heading, target_measurement, max
 
     heading_to_target = get_heading(hunter_position, xy_estimate)
     turning = heading_to_target - hunter_heading # turn towards the target
+
+
+    # if heading_to_target < -2.0 and hunter_heading > 0:
+    #     print heading_to_target, hunter_heading, turning
+        #time.sleep(2)
+
+    if abs(turning) > pi:
+        turning = turning % pi
+
+
 
     return turning, distance, OTHER
 
@@ -244,13 +254,11 @@ def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distan
     return turning, distance, OTHER
 
 #Stats:
-# average score:  194
+# average score:  165
 # minimum score:  21
-# maximum score:  995
-# fails:  35
+# maximum score:  991
+# fails:  6
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
-
-
 
     predictedPosition = [0, 0]
     xy_estimate = None
@@ -319,7 +327,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                     # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
                     # broken_robot.stamp()
 
-
                     if projectedDistance >= distanceBetweenHunterAndRobot:
                         #print xy_estimate, steps
                         break
@@ -347,9 +354,17 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     heading_to_target2 = get_heading(hunter_position, predictedPosition)
 
     turning = heading_to_target - hunter_heading # turn towards the target
+    if abs(turning) > pi:
+        turning = turning % pi
+
     turning2 = heading_to_target2 - hunter_heading # turn towards the target
 
-    #print hunter_position, xy_estimate, heading_to_target, hunter_heading, heading_difference
+    # if heading_to_target < -2.0 and hunter_heading > 0:
+    #     print heading_to_target, hunter_heading, turning
+    #     time.sleep(2)
+
+
+    #print hunter_position, xy_estimate, heading_to_target, hunter_heading, turning
     distance = distance_between(hunter_position, xy_estimate)
     distance2 = distance_between(hunter_position, predictedPosition)
 
@@ -514,9 +529,12 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     # position, then we move the bot and compare your guess to the true
     # next position. When you are close enough, we stop checking.
     #For Visualization
+
+    turtle.setup(800, 800)
+
     window = turtle.Screen()
     window.bgcolor('white')
-    size_multiplier= 15.0  #change Size of animation
+    size_multiplier= 20.0  #change Size of animation
     broken_robot = turtle.Turtle()
     broken_robot.shape('turtle')
     broken_robot.color('green')
@@ -621,7 +639,7 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -5.0, 0.0)
 
 #demo_grading(hunter, target, next_move_straight_line)
-#demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_cut_angle)
 
 scores = []
 fails = 0

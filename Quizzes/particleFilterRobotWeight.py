@@ -73,19 +73,16 @@ class robot:
         return res
 
     def Gaussian(self, mu, sigma, x):
-
         # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
         return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
 
 
-    def measurement_prob(self, measurement):
-
+    def measurement_prob(self, robotMeasuredDistanceToLandmark):
         # calculates how likely a measurement should be
-
         prob = 1.0;
         for i in range(len(landmarks)):
-            dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
-            prob *= self.Gaussian(dist, self.sense_noise, measurement[i])
+            particleActualDistanceToLandmark = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
+            prob *= self.Gaussian(particleActualDistanceToLandmark, self.sense_noise, robotMeasuredDistanceToLandmark[i])
         return prob
 
     def __repr__(self):
@@ -122,6 +119,12 @@ p = p2
 w = []
 
 for i in range(N):
+
+
+    # for each particle, measure its actual distance to each landmark:
+    # distanceToLandmark = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
+    # for each landmark, calculate probability that the robot is where it thinks it is:
+    # prob *= self.Gaussian(particleActualDistanceToLandmark, self.sense_noise, robotMeasuredDistanceToLandmark[i])
     w.append(p[i].measurement_prob(Z))
 
 print w #Please print w for grading purposes.

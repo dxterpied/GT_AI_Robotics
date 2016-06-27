@@ -660,27 +660,27 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -5.0, 0.0)
 
 
-demo_grading(hunter, target, next_move_straight_line)
+#demo_grading(hunter, target, next_move_straight_line)
 #demo_grading_visual(hunter, target, next_move_cut_angle)
 
 #print maxX, maxY, minX, minY
 
-# scores = []
-# fails = 0
-# for i in range(10000):
-#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
-#     target.set_noise(0.0, 0.0, measurement_noise)
-#     hunter = robot(-10.0, -20.0, 0.0)
-#     score = demo_grading(hunter, target, next_move_straight_line)
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/len(scores)
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(10000):
+    target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, measurement_noise)
+    hunter = robot(-10.0, -20.0, 0.0)
+    score = demo_grading(hunter, target, next_move_straight_line)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
 
 
 

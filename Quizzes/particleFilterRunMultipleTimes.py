@@ -5,6 +5,7 @@
 from math import *
 import random
 import turtle
+import time
 
 landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
 world_size = 100.0
@@ -90,14 +91,15 @@ class robot:
 
 ####   DON'T MODIFY ANYTHING ABOVE HERE! ENTER/MODIFY CODE BELOW ####
 myrobot = robot()
+myrobot.set(50, 50, myrobot.orientation)
 
-# window = turtle.Screen()
-# window.bgcolor('white')
-# size_multiplier= 3.0  #change Size of animation
-# target = turtle.Turtle()
-# target.color('blue')
-# target.shape('circle')
-# target.shapesize(0.4, 0.4, 0.4)
+window = turtle.Screen()
+window.bgcolor('white')
+size_multiplier= 3.0  #change Size of animation
+target = turtle.Turtle()
+target.color('blue')
+target.shape('circle')
+target.shapesize(0.3, 0.3, 0.3)
 
 
 N = 1000
@@ -109,28 +111,37 @@ for i in range(N):
     x = robot()
     x.set_noise(0.05, 0.05, 5.0)
     p.append(x)
-    # t = turtle.Turtle()
-    # t.color('red')
-    # t.shapesize(0.2, 0.2, 0.2)
-    # t.penup()
-    # turtles.append(t)
+    t = turtle.Turtle()
+    t.color('red')
+    t.shapesize(0.2, 0.2, 0.2)
+    t.penup()
+    turtles.append(t)
+
 
 for t in range(T):
+    # move the target
     myrobot = myrobot.move(0.1, 5.0)
     Z = myrobot.sense()
 
-    # target.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier)
-    # target.stamp()
+    time.sleep(1)
+    target.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier)
+    target.stamp()
 
     p2 = []
+
+    # move all particles
     for i in range(N):
         r = p[i]
         r.move(0.1, 5.0)
         p2.append(r)
 
-        # t = turtles[i]
-        # t.goto(r.x * size_multiplier, r.y * size_multiplier)
-        # stampid = t.stamp()
+        turtle = turtles[i]
+        if t == 9:
+            window.clear()
+            t.color('black')
+        turtle.goto(r.x * size_multiplier, r.y * size_multiplier)
+        stampid = turtle.stamp()
+
     p = p2
 
     w = []
@@ -148,7 +159,7 @@ for t in range(T):
             index = (index + 1) % N
         p3.append(p[index])
     p = p3
-    print "round done"
+    print "round ", t
     # window.clear()
 
 

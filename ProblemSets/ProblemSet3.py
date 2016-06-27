@@ -114,8 +114,8 @@ class robot:
         result = robot(self.length)
 
         # basically a straight implementation of the equations for bicycle-based movement
-        turningAngle =  + random.gauss(motion[0], self.steering_noise)
-        distance =  + random.gauss(motion[1], self.distance_noise)
+        turningAngle = random.gauss(motion[0], self.steering_noise)
+        distance = random.gauss(motion[1], self.distance_noise)
         beta = distance * tan(turningAngle) / self.length
         if abs(beta) < 0.001:
             # no movement

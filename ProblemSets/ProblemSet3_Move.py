@@ -95,10 +95,28 @@ class robot:
 
     def move(self, motion): # Do not change the name of this function
 
-        # ADD CODE HERE
+        result = robot(self.length)
+
+        # basically a straight implementation of the equations for bicycle-based movement
+        turningAngle = motion[0]
+        distance = motion[1]
+        beta = distance * tan(turningAngle) / self.length
+        if abs(beta) < 0.001:
+            # no movement
+            result.x = self.x + distance * cos(self.orientation)
+            result.y = self.y + distance * sin(self.orientation)
+        else:
+            R = distance / beta
+            cx = self.x - sin(self.orientation) * R
+            cy = self.y + cos(self.orientation) * R
+            result.x = cx + sin(self.orientation + beta) * R
+            result.y = cy - cos(self.orientation + beta) * R
+
+        result.orientation = (self.orientation + beta) % (2 * pi)
+        result.set_noise(self.bearing_noise, self.steering_noise, self.distance_noise)
 
         return result # make sure your move function returns an instance
-                      # of the robot class with the correct coordinates.
+					  # of the robot class with the correct coordinates.
 
     ############## ONLY ADD/MODIFY CODE ABOVE HERE ####################
 
@@ -118,23 +136,23 @@ class robot:
 ##       Robot:     [x=39.034 y=7.1270 orient=0.2886]
 ##
 ##
-##length = 20.
-##bearing_noise  = 0.0
-##steering_noise = 0.0
-##distance_noise = 0.0
-##
-##myrobot = robot(length)
-##myrobot.set(0.0, 0.0, 0.0)
-##myrobot.set_noise(bearing_noise, steering_noise, distance_noise)
-##
-##motions = [[0.0, 10.0], [pi / 6.0, 10], [0.0, 20.0]]
-##
-##T = len(motions)
-##
-##print 'Robot:    ', myrobot
-##for t in range(T):
-##    myrobot = myrobot.move(motions[t])
-##    print 'Robot:    ', myrobot
+length = 20.
+bearing_noise  = 0.0
+steering_noise = 0.0
+distance_noise = 0.0
+
+myrobot = robot(length)
+myrobot.set(0.0, 0.0, 0.0)
+myrobot.set_noise(bearing_noise, steering_noise, distance_noise)
+
+motions = [[0.0, 10.0], [pi / 6.0, 10], [0.0, 20.0]]
+
+T = len(motions)
+
+print 'Robot:    ', myrobot
+for t in range(T):
+   myrobot = myrobot.move(motions[t])
+   print 'Robot:    ', myrobot
 ##
 ##
 

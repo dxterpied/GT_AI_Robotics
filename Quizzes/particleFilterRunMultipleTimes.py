@@ -138,9 +138,8 @@ for t in range(T):
         turtle = turtles[i]
         if t == 9:
             window.clear()
-            t.color('black')
+            turtle.color('black')
         turtle.goto(r.x * size_multiplier, r.y * size_multiplier)
-        stampid = turtle.stamp()
 
     p = p2
 

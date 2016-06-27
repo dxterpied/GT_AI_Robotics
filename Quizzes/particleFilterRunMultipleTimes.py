@@ -142,7 +142,8 @@ for t in range(T):
         if t == 9:
             turtle.color('black')
         turtle.goto(r.x * size_multiplier, r.y * size_multiplier)
-
+    if t == 9:
+        time.sleep(10)
     p = p2
 
     w = []

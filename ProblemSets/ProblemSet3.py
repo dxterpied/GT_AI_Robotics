@@ -298,17 +298,17 @@ def particle_filter(motions, measurements, N=500): # I know it's tempting, but d
 ##    It will print the robot's last location when calling it.
 ##
 ##
-number_of_iterations = 6
-motions = [[2. * pi / 20, 12.] for row in range(number_of_iterations)]
-
-x = generate_ground_truth(motions)
-final_robot = x[0]
-measurements = x[1]
-estimated_position = particle_filter(motions, measurements)
-print_measurements(measurements)
-print 'Ground truth:    ', final_robot
-print 'Particle filter: ', estimated_position
-print 'Code check:      ', check_output(final_robot, estimated_position)
+# number_of_iterations = 6
+# motions = [[2. * pi / 20, 12.] for row in range(number_of_iterations)]
+#
+# x = generate_ground_truth(motions)
+# final_robot = x[0]
+# measurements = x[1]
+# estimated_position = particle_filter(motions, measurements)
+# print_measurements(measurements)
+# print 'Ground truth:    ', final_robot
+# print 'Particle filter: ', estimated_position
+# print 'Code check:      ', check_output(final_robot, estimated_position)
 
 
 

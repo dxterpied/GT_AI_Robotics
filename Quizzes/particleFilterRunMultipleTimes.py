@@ -102,7 +102,7 @@ target.shape('circle')
 target.shapesize(0.3, 0.3, 0.3)
 
 
-N = 1000
+N = 100
 T = 10
 p = []
 turtles = []
@@ -119,6 +119,9 @@ for i in range(N):
 
 
 for t in range(T):
+    if t == 9:
+        window.clear()
+
     # move the target
     myrobot = myrobot.move(0.1, 5.0)
     Z = myrobot.sense()
@@ -137,7 +140,6 @@ for t in range(T):
 
         turtle = turtles[i]
         if t == 9:
-            window.clear()
             turtle.color('black')
         turtle.goto(r.x * size_multiplier, r.y * size_multiplier)
 

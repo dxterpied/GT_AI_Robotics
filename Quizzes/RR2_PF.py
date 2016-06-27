@@ -39,6 +39,45 @@ from numpy import *
 # passed back to your function the next time it is called. You can use
 # this to keep track of important information over time.
 
+landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
+particles = []
+
+#create particles for the state space
+for x in range(-10, 10):
+    for y in range(0, 30):
+
+        r = robot(x, y, 0.0, 2*pi / 30, 1.5)
+        r.set_noise(0.05, 0.05, 5.0)
+        particles.append(r)
+
+
+def measurement_prob(bearing_noise, measurements):
+    # calculate the correct measurement
+    predicted_measurements = sense(0) # Our sense function took 0 as an argument to switch off noise.
+    # compute errors
+    error = 1.0
+    for i in range(len(measurements)):
+        error_bearing = abs(measurements[i] - predicted_measurements[i])
+        error_bearing = (error_bearing + pi) % (2.0 * pi) - pi # truncate
+        # update Gaussian
+        error *= (exp(- (error_bearing ** 2) / (bearing_noise ** 2) / 2.0) /
+                  sqrt(2.0 * pi * (bearing_noise ** 2)))
+    return error
+
+
+def sense(x, y, orientation, bearing_noise, noise = 1): #do not change the name of this function
+    Z = []
+
+    for landmark in landmarks:
+        ly, lx = landmark
+        headingToLandmark = atan2( ly - y , lx - x )
+        bearing = headingToLandmark - orientation
+        if noise == 1:
+            bearing += random.gauss(0, bearing_noise)
+        Z.append( bearing % (2*pi)  )
+    return Z #Leave this line here. Return vector Z of 4 bearings.
+
+
 
 def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot

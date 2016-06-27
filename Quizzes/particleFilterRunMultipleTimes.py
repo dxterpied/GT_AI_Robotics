@@ -4,6 +4,7 @@
 
 from math import *
 import random
+import turtle
 
 landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
 world_size = 100.0
@@ -87,32 +88,49 @@ class robot:
         return '[x=%.6s y=%.6s orient=%.6s]' % (str(self.x), str(self.y), str(self.orientation))
 
 
-#myrobot = robot()
-#myrobot.set_noise(5.0, 0.1, 5.0)
-#myrobot.set(30.0, 50.0, pi/2)
-#myrobot = myrobot.move(-pi/2, 15.0)
-#print myrobot.sense()
-#myrobot = myrobot.move(-pi/2, 10.0)
-#print myrobot.sense()
-
 ####   DON'T MODIFY ANYTHING ABOVE HERE! ENTER/MODIFY CODE BELOW ####
 myrobot = robot()
 
+# window = turtle.Screen()
+# window.bgcolor('white')
+# size_multiplier= 3.0  #change Size of animation
+# target = turtle.Turtle()
+# target.color('blue')
+# target.shape('circle')
+# target.shapesize(0.4, 0.4, 0.4)
+
+
 N = 1000
-T = 2
+T = 10
 p = []
+turtles = []
+
 for i in range(N):
     x = robot()
     x.set_noise(0.05, 0.05, 5.0)
     p.append(x)
+    # t = turtle.Turtle()
+    # t.color('red')
+    # t.shapesize(0.2, 0.2, 0.2)
+    # t.penup()
+    # turtles.append(t)
 
 for t in range(T):
     myrobot = myrobot.move(0.1, 5.0)
     Z = myrobot.sense()
 
+    # target.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier)
+    # target.stamp()
+
     p2 = []
     for i in range(N):
-        p2.append(p[i].move(0.1, 5.0))
+        r = p[i]
+        r.move(0.1, 5.0)
+        p2.append(r)
+
+        # t = turtles[i]
+        # t.goto(r.x * size_multiplier, r.y * size_multiplier)
+        # stampid = t.stamp()
     p = p2
 
     w = []
@@ -130,7 +148,11 @@ for t in range(T):
             index = (index + 1) % N
         p3.append(p[index])
     p = p3
+    print "round done"
+    # window.clear()
+
 
 print p #Leave this print statement for grading purposes!
+print myrobot
 
 

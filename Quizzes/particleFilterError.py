@@ -66,20 +66,18 @@ class robot:
         return res
 
     def Gaussian(self, mu, sigma, x):
-
         # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
         return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
 
 
     def measurement_prob(self, measurement):
-
         # calculates how likely a measurement should be
-
         prob = 1.0;
         for i in range(len(landmarks)):
             dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
             prob *= self.Gaussian(dist, self.sense_noise, measurement[i])
         return prob
+
 
     def __repr__(self):
         return '[x=%.6s y=%.6s orient=%.6s]' % (str(self.x), str(self.y), str(self.orientation))
@@ -91,17 +89,28 @@ def eval(r, p):
     for i in range(len(p)): # calculate mean error
         dx = (p[i].x - r.x + (world_size/2.0)) % world_size - (world_size/2.0)
         dy = (p[i].y - r.y + (world_size/2.0)) % world_size - (world_size/2.0)
-        err = sqrt(dx * dx + dy * dy)
+        err = sqrt(dx**2 + dy**2)
         sum += err
     return sum / float(len(p))
+
+
+def get_position(p):
+    x = 0.0
+    y = 0.0
+    orientation = 0.0
+    for i in range(len(p)):
+        x += p[i].x
+        y += p[i].y
+        orientation += (((p[i].orientation - p[0].orientation + pi) % (2.0 * pi))  + p[0].orientation - pi)
+    return [x / len(p), y / len(p), orientation / len(p)]
 
 
 ####   DON'T MODIFY ANYTHING ABOVE HERE! ENTER/MODIFY CODE BELOW ####
 myrobot = robot()
 myrobot = myrobot.move(0.1, 5.0)
 Z = myrobot.sense()
-N = 1000
-T = 50 #Leave this as 10 for grading purposes.
+N = 10000
+T = 10 #Leave this as 10 for grading purposes.
 
 p = []
 for i in range(N):
@@ -136,9 +145,11 @@ for t in range(T):
             index = (index + 1) % N
         p3.append(p[index])
     p = p3
+
     print eval(myrobot, p)
+    print get_position(p)
 
-
+print "actual position: ", myrobot
 
 
     #enter code here, make sure that you output 10 print statements.

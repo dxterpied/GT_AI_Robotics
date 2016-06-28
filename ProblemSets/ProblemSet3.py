@@ -91,12 +91,18 @@ class robot:
     #
 
     def measurement_prob(self, measurements):
+
+        # measurements contain
+        # print measurements [3.3248981415499257, 2.3415178749937997, 0.7312337564877514, 4.864542506564464]
         # calculate the correct measurement
         predicted_measurements = self.sense(0) # Our sense function took 0 as an argument to switch off noise.
+        # print predicted_measurements [4.8232483063350555, 3.7478643011718544, 2.7116928100261153, 0.875792744299571]
         # compute errors
         error = 1.0
         for i in range(len(measurements)):
             error_bearing = abs(measurements[i] - predicted_measurements[i])
+            #print error_bearing 2.30763730938
+
             error_bearing = (error_bearing + pi) % (2.0 * pi) - pi # truncate
             # update Gaussian
             error *= (exp(- (error_bearing ** 2) / (self.bearing_noise ** 2) / 2.0) /
@@ -111,6 +117,7 @@ class robot:
     ############# ONLY ADD/MODIFY CODE BELOW HERE ###################
 
     def move(self, motion): # Do not change the name of this function
+        # motion[0] is heading angle, motion[1] is distance
 
         result = robot(self.length)
 
@@ -146,7 +153,7 @@ class robot:
             if noise == 1:
                 bearing += random.gauss(0, self.bearing_noise)
             Z.append( bearing % (2*pi)  )
-        return Z #Leave this line here. Return vector Z of 4 bearings.
+        return Z #Leave this line here. Return vector Z of 4 bearings. For example: [1.9267312016649392, 0.4641086737309461, 5.618444871041761, 4.514357510936977]
 
     ############## ONLY ADD/MODIFY CODE ABOVE HERE ####################
 
@@ -218,7 +225,8 @@ def check_output(final_robot, estimated_position):
     return correct
 
 
-
+# measurements - bearings to landmarks for target robot
+# motions - motions of target
 def particle_filter(motions, measurements, N=500): # I know it's tempting, but don't change N!
     # --------
     #
@@ -258,6 +266,9 @@ def particle_filter(motions, measurements, N=500): # I know it's tempting, but d
             p3.append(p[index])
         p = p3
 
+    print get_position(p)
+    exit()
+
     return get_position(p)
 
 ## IMPORTANT: You may uncomment the test cases below to test your code.
@@ -282,6 +293,7 @@ def particle_filter(motions, measurements, N=500): # I know it's tempting, but d
 ##    vector near [x=93.476 y=75.186 orient=5.2664], that is, the
 ##    robot's true location.
 ##
+# these are target motions and measurements
 # motions = [[2. * pi / 10, 20.] for row in range(8)]
 # measurements = [[4.746936, 3.859782, 3.045217, 2.045506],
 #                [3.510067, 2.916300, 2.146394, 1.598332],

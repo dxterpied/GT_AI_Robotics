@@ -104,23 +104,24 @@ myrobot = myrobot.move(0.1, 5.0)
 Z = myrobot.sense()
 
 
-window = turtle.Screen()
-window.bgcolor('white')
-size_multiplier= 25.0  #change Size of animation
+# window = turtle.Screen()
+# window.bgcolor('white')
+# size_multiplier= 25.0  #change Size of animation
 
 N = 100
 p = []
 turtles = []
+
 for i in range(N):
     x = robot()
     x.set_noise(0.05, 0.05, 5.0)
     p.append(x)
 
-    t = turtle.Turtle()
-    t.color('red')
-    t.shapesize(0.2, 0.2, 0.2)
-    t.penup()
-    turtles.append(t)
+    # t = turtle.Turtle()
+    # t.color('red')
+    # t.shapesize(0.2, 0.2, 0.2)
+    # t.penup()
+    # turtles.append(t)
 
 
 p2 = []
@@ -129,17 +130,15 @@ for i in range(N):
     r.move(0.1, 5.0)
     p2.append(r)
     print r.x, r.y
-    turtles[i].goto(r.x, r.y)
-    stampid = turtles[i].stamp()
-    turtles[i].clearstamp(stampid)
+    # turtles[i].goto(r.x, r.y)
+    # stampid = turtles[i].stamp()
+    # turtles[i].clearstamp(stampid)
 
 p = p2
 
 w = []
 
 for i in range(N):
-
-
     # for each particle, measure its actual distance to each landmark:
     # distanceToLandmark = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
     # for each landmark, calculate probability that the robot is where it thinks it is:

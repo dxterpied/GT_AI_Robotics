@@ -89,21 +89,38 @@ class robot:
         return '[x=%.6s y=%.6s orient=%.6s]' % (str(self.x), str(self.y), str(self.orientation))
 
 
+# returns the arithmetic means of x, y and orientation. It is already weighted.
+def get_position(p):
+    x = 0.0
+    y = 0.0
+    orientation = 0.0
+    for i in range(len(p)):
+        x += p[i].x
+        y += p[i].y
+        # orientation is tricky because it is cyclic. By normalizing
+        # around the first particle we are somewhat more robust to
+        # the 0=2pi problem
+        orientation += (((p[i].orientation - p[0].orientation + pi) % (2.0 * pi))
+                        + p[0].orientation - pi)
+    return [x / len(p), y / len(p), orientation / len(p)]
+
+
 ####   DON'T MODIFY ANYTHING ABOVE HERE! ENTER/MODIFY CODE BELOW ####
 myrobot = robot()
 myrobot.set(50, 50, myrobot.orientation)
 
-window = turtle.Screen()
-window.bgcolor('white')
-size_multiplier= 3.0  #change Size of animation
-target = turtle.Turtle()
-target.color('blue')
-target.shape('circle')
-target.shapesize(0.3, 0.3, 0.3)
+# window = turtle.Screen()
+# window.bgcolor('white')
+# size_multiplier= 4.0  #change Size of animation
+#
+# target = turtle.Turtle()
+# target.color('blue')
+# target.shape('circle')
+# target.shapesize(0.3, 0.3, 0.3)
 
 
-N = 100
-T = 10
+N = 10000
+T = 7
 p = []
 turtles = []
 
@@ -111,24 +128,23 @@ for i in range(N):
     x = robot()
     x.set_noise(0.05, 0.05, 5.0)
     p.append(x)
-    t = turtle.Turtle()
-    t.color('red')
-    t.shapesize(0.2, 0.2, 0.2)
-    t.penup()
-    turtles.append(t)
+    # t = turtle.Turtle()
+    # t.color('red')
+    # t.shapesize(0.2, 0.2, 0.2)
+    # t.penup()
+    # turtles.append(t)
 
 
 for t in range(T):
-    if t == 9:
-        window.clear()
+    # if t == 9:
+        # window.clear()
 
     # move the target
     myrobot = myrobot.move(0.1, 5.0)
     Z = myrobot.sense()
 
-    time.sleep(1)
-    target.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier)
-    target.stamp()
+    # target.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier)
+    # target.stamp()
 
     p2 = []
 
@@ -138,12 +154,13 @@ for t in range(T):
         r.move(0.1, 5.0)
         p2.append(r)
 
-        turtle = turtles[i]
-        if t == 9:
-            turtle.color('black')
-        turtle.goto(r.x * size_multiplier, r.y * size_multiplier)
-    if t == 9:
-        time.sleep(10)
+        # turtle = turtles[i]
+        # if t == 4:
+        #     turtle.color('black')
+        #     turtle.goto(r.x * size_multiplier, r.y * size_multiplier)
+        #     turtle.stamp()
+    # if t == 9:
+    #     time.sleep(10)
     p = p2
 
     w = []
@@ -164,8 +181,10 @@ for t in range(T):
     print "round ", t
     # window.clear()
 
+print "prediction: ", get_position(p) #Leave this print statement for grading purposes!
+print "actual position: ", myrobot
 
-print p #Leave this print statement for grading purposes!
-print myrobot
+# turtle.getscreen()._root.mainloop()
+
 
 

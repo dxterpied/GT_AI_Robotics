@@ -121,5 +121,5 @@ for i in range(N):
     p3.append(p[index])
 
 p = p3
-print len(p) #please leave this print statement here for grading!
+print p #please leave this print statement here for grading!
 

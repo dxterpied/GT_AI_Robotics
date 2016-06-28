@@ -48,7 +48,6 @@ def Gaussian(mu, sigma, x):
 def particle_filter(targetMeasurementToLandmarks, p):
 
     # PREDICTION
-    p2 = []
     N = len(p)
     for i in range(N):
         # move the particle the same way the target would move
@@ -145,9 +144,6 @@ def distance_between(point1, point2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-# This is here to give you a sense for how we will be running and grading
-# your code. Note that the OTHER variable allows you to store any
-# information that you want.
 def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     localized = False
     distance_tolerance = 0.01 * target_bot.distance
@@ -231,15 +227,11 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     return localized
 
 
-# This is how we create a target bot. Check the robot.py file to understand
-# How the robot class behaves.
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
-
 demo_grading_visual(estimate_next_pos, test_target)
-
 #demo_grading(estimate_next_pos, test_target)
 # scores = []
 # for i in range(10000):

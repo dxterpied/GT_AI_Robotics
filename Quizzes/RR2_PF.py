@@ -1,43 +1,9 @@
-# ----------
-# Part Two
-#
-# Now we'll make the scenario a bit more realistic. Now Traxbot's
-# sensor measurements are a bit noisy (though its motions are still
-# completely noise-free and it still moves in an almost-circle).
-# You'll have to write a function that takes as input the next
-# noisy (x, y) sensor measurement and outputs the best guess
-# for the robot's next position.
-#
-# ----------
-# YOUR JOB
-#
-# Complete the function estimate_next_pos. You will be considered
-# correct if your estimate is within 0.01 stepsizes of Traxbot's next
-# true position.
-#
-# ----------
-# GRADING
-#
-# We will make repeated calls to your estimate_next_pos function. After
-# each call, we will compare your estimated position to the robot's true
-# position. As soon as you are within 0.01 stepsizes of the true position,
-# you will be marked correct and we will tell you how many steps it took
-# before your function successfully located the target bot.
-
-# These import steps give you access to libraries which you may (or may
-# not) want to use.
 from robot import *  # Check the robot.py tab to see how this works.
 from math import *
 from matrix import * # Check the matrix.py tab to see how this works.
 import random
 from numpy import *
 
-# This is the function you have to write. Note that measurement is a
-# single (x, y) point. This function will have to be called multiple
-# times before you have enough information to accurately predict the
-# next position. The OTHER variable that your function returns will be
-# passed back to your function the next time it is called. You can use
-# this to keep track of important information over time.
 
 landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
 particles = []
@@ -53,9 +19,9 @@ for x in range(-10, 10):
         particles.append(r)
 
 
-def measurement_prob(bearing_noise, measurement):
+def measurement_prob(x, y, orientation, bearing_noise, measurement):
     # calculate the correct measurement
-    predicted_measurements = sense(0) # Our sense function took 0 as an argument to switch off noise.
+    predicted_measurements = sense(x, y, orientation, 0) # Our sense function took 0 as an argument to switch off noise.
     # compute errors
     error = 1.0
     error_bearing = abs(measurement - predicted_measurements)
@@ -68,6 +34,7 @@ def measurement_prob(bearing_noise, measurement):
 
 def sense(x, y, orientation, bearing_noise, noise = 1): #do not change the name of this function
     Z = []
+    import random
 
     for landmark in landmarks:
         ly, lx = landmark
@@ -75,42 +42,40 @@ def sense(x, y, orientation, bearing_noise, noise = 1): #do not change the name 
         bearing = headingToLandmark - orientation
         if noise == 1:
             bearing += random.gauss(0, bearing_noise)
+
         Z.append( bearing % (2*pi)  )
     return Z #Leave this line here. Return vector Z of 4 bearings.
 
 
-def particle_filter(motion, measurement, p): # I know it's tempting, but don't change N!
-    # --------
-    #
+def particle_filter(measurement, p):
     # Update particles
-    #
     p2 = []
-    for i in range(p(len)):
-        p2.append(p[i].move(motion))
+    N = len(p)
+    for i in range(N):
+        p2.append(p[i].move_in_circle())
     p = p2
 
     # measurement update
     w = []
-
-    for i in range(p(len)):
-        w.append(measurement_prob(bearing_noise, measurement))
+    for i in range(N):
+        w.append(measurement_prob(p[i].x, p[i].y, p[i].heading, bearing_noise, measurement))
 
     # resampling
     p3 = []
-    index = int(random.random() * len(p))
+    index = int(random.random() * N)
     beta = 0.0
     mw = max(w)
     for i in range(N):
         beta += random.random() * 2.0 * mw
         while beta > w[index]:
             beta -= w[index]
-            index = (index + 1) % len(p)
+            index = (index + 1) % N
         p3.append(p[index])
     p = p3
 
     return get_position(p)
 
-
+# returns the arithmetic means of x, y and orientation. It is already weighted.
 def get_position(p):
     x = 0.0
     y = 0.0
@@ -127,6 +92,7 @@ def get_position(p):
 
 
 def estimate_next_pos(measurement, OTHER = None):
+    global particles
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
     headingAngle1 = 0.0
@@ -170,6 +136,9 @@ def estimate_next_pos(measurement, OTHER = None):
 
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
+
+            z = sense(x, y, headingAngle2, bearing_noise, noise = 1)
+            particle_filter(z, particles)
 
             #print "avgDT:", avgDT, "avgAngle:", avgAngle, "headingAngle2:", headingAngle2
 

@@ -15,10 +15,10 @@ measurement_noise = 5.0
 for x in range(-10, 10):
     for y in range(0, 30):
         # add two particles per x, y
-        r = robot(x, y, 0.0, 2*pi / 30, 1.5)
+        r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 30, 1.5)
         r.set_noise(bearing_noise, distance_noise, measurement_noise)
         particles.append(r)
-        r = robot(x, y, 0.0, 2*pi / 30, 1.5)
+        r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 30, 1.5)
         r.set_noise(bearing_noise, distance_noise, measurement_noise)
 
 def measurement_prob(particleX, particleY, targetMeasurement):

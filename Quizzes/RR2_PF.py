@@ -41,6 +41,8 @@ from numpy import *
 
 landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
 particles = []
+world_size = 100.0
+bearing_noise = 0.05
 
 #create particles for the state space
 for x in range(-10, 10):
@@ -51,17 +53,16 @@ for x in range(-10, 10):
         particles.append(r)
 
 
-def measurement_prob(bearing_noise, measurements):
+def measurement_prob(bearing_noise, measurement):
     # calculate the correct measurement
     predicted_measurements = sense(0) # Our sense function took 0 as an argument to switch off noise.
     # compute errors
     error = 1.0
-    for i in range(len(measurements)):
-        error_bearing = abs(measurements[i] - predicted_measurements[i])
-        error_bearing = (error_bearing + pi) % (2.0 * pi) - pi # truncate
-        # update Gaussian
-        error *= (exp(- (error_bearing ** 2) / (bearing_noise ** 2) / 2.0) /
-                  sqrt(2.0 * pi * (bearing_noise ** 2)))
+    error_bearing = abs(measurement - predicted_measurements)
+    error_bearing = (error_bearing + pi) % (2.0 * pi) - pi # truncate
+    # update Gaussian
+    error *= (exp(- (error_bearing ** 2) / (bearing_noise ** 2) / 2.0) /
+              sqrt(2.0 * pi * (bearing_noise ** 2)))
     return error
 
 
@@ -77,6 +78,52 @@ def sense(x, y, orientation, bearing_noise, noise = 1): #do not change the name 
         Z.append( bearing % (2*pi)  )
     return Z #Leave this line here. Return vector Z of 4 bearings.
 
+
+def particle_filter(motion, measurement, p): # I know it's tempting, but don't change N!
+    # --------
+    #
+    # Update particles
+    #
+    p2 = []
+    for i in range(p(len)):
+        p2.append(p[i].move(motion))
+    p = p2
+
+    # measurement update
+    w = []
+
+    for i in range(p(len)):
+        w.append(measurement_prob(bearing_noise, measurement))
+
+    # resampling
+    p3 = []
+    index = int(random.random() * len(p))
+    beta = 0.0
+    mw = max(w)
+    for i in range(N):
+        beta += random.random() * 2.0 * mw
+        while beta > w[index]:
+            beta -= w[index]
+            index = (index + 1) % len(p)
+        p3.append(p[index])
+    p = p3
+
+    return get_position(p)
+
+
+def get_position(p):
+    x = 0.0
+    y = 0.0
+    orientation = 0.0
+    for i in range(len(p)):
+        x += p[i].x
+        y += p[i].y
+        # orientation is tricky because it is cyclic. By normalizing
+        # around the first particle we are somewhat more robust to
+        # the 0=2pi problem
+        orientation += (((p[i].orientation - p[0].orientation + pi) % (2.0 * pi))
+                        + p[0].orientation - pi)
+    return [x / len(p), y / len(p), orientation / len(p)]
 
 
 def estimate_next_pos(measurement, OTHER = None):

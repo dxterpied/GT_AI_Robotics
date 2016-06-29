@@ -5,6 +5,7 @@ import random
 from numpy import *
 from collections import Counter
 import time
+import turtle
 
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 particles = []
@@ -19,8 +20,23 @@ bearing_noise = 0.1
 # using more than 1000 particles did not make any difference
 # applying heading to weight calculation made it much worse
 for i in range(1000):
-    r = robot(random.uniform(-1, 1) * world_size, random.uniform(-1, 1) * world_size, random.random() * 2.0*pi, 2*pi / 34.0, 1.5)
-    r.set_noise(0.0, 0.0, measurement_noise)
+    # r = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
+
+    # r = robot(random.uniform(-1, 1) * world_size,
+    #           random.uniform(-1, 1) * world_size,
+    #           0.5 + random.random(),
+    #           2*pi/34.0 + random.random(),
+    #           1.5 + random.random())
+    # r.set_noise(0.01, 0.01, measurement_noise)
+
+    r = robot(random.uniform(-1, 1) * world_size,
+              random.uniform(-1, 1) * world_size,
+              0.5,
+              2*pi/34.0,
+              1.5)
+    # r.set_noise(0.0, 0.0, measurement_noise)
+    r.set_noise(0.0, 0.0, 0.0)
+
     particles.append(r)
 
 
@@ -221,19 +237,22 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
 
+        #print "error", error
+
         if error <= distance_tolerance:
-            print "True position: ", true_position
             print "You got it right! It took you ", ctr, " steps to localize."
             return ctr
             localized = True
         if ctr == 1000:
             print "Sorry, it took you too many steps to localize the target."
+            return 1000
     return localized
 
 
 def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     localized = False
     distance_tolerance = 0.01 * target_bot.distance
+    print "distance_tolerance", distance_tolerance
     ctr = 0
     # if you haven't localized the target bot, make a guess about the next
     # position, then we move the bot and compare your guess to the true
@@ -300,17 +319,17 @@ test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
-demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
-# scores = []
-# for i in range(10000):
-#     scores.append(demo_grading(estimate_next_pos, test_target))
-#
-# print "average score: ", sum(scores)/len(scores)
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
+scores = []
+for i in range(100):
+    scores.append(demo_grading(estimate_next_pos, test_target))
 
+print "average score: ", sum(scores)/len(scores)
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
 
+#turtle.getscreen()._root.mainloop()
 
 
 

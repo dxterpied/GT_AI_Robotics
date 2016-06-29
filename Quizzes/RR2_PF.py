@@ -29,13 +29,26 @@ for i in range(1000):
     #           1.5 + random.random())
     # r.set_noise(0.01, 0.01, measurement_noise)
 
+    # this sometimes works
+    # r = robot(random.uniform(-1, 1) * world_size,
+    #           random.uniform(-1, 1) * world_size,
+    #           0.5,
+    #           2*pi/34.0,
+    #           1.5)
+    # # r.set_noise(0.0, 0.0, measurement_noise)
+    # r.set_noise(0.0, 0.0, 0.0)
+
+
+    # random x, y, orientation
     r = robot(random.uniform(-1, 1) * world_size,
               random.uniform(-1, 1) * world_size,
-              0.5,
-              2*pi/34.0,
-              1.5)
-    # r.set_noise(0.0, 0.0, measurement_noise)
-    r.set_noise(0.0, 0.0, 0.0)
+              heading = random.random() * 2.0*pi, # noise in orientation
+              turning = 2*pi/34.0,
+              distance = 1.5)
+    r.set_noise(new_t_noise = 0.05,
+                new_d_noise = 0.05,
+                new_m_noise = measurement_noise) # measurement noise is not used in particles
+
 
     particles.append(r)
 
@@ -84,7 +97,8 @@ def sense(targetX, targetY):
 
     for i in range(len(landmarks)):
         dist = distance_between( (targetX, targetY),  (landmarks[i][0], landmarks[i][1]) )
-        dist += random.gauss(0.0, measurement_noise)
+        # dist += random.gauss(0.0, measurement_noise) no noise is needed because particles should have no measurement noise and
+        # target already has noise when giving its x and y coordinates
         Z.append(dist)
     return Z
 
@@ -319,36 +333,36 @@ test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
-#demo_grading_visual(estimate_next_pos, test_target)
+demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
 
-scores = []
-fails = 0
-for i in range(100):
-    test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
-    test_target.set_noise(0.0, 0.0, measurement_noise)
-    score = demo_grading(estimate_next_pos, test_target)
+# scores = []
+# fails = 0
+# for i in range(100):
+#     test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
+#     test_target.set_noise(0.0, 0.0, measurement_noise)
+#     score = demo_grading(estimate_next_pos, test_target)
+#
+#     for i in range(1000):
+#         r = robot(random.uniform(-1, 1) * world_size,
+#                   random.uniform(-1, 1) * world_size,
+#                   0.5,
+#                   2*pi/34.0,
+#                   1.5)
+#         r.set_noise(0.0, 0.0, 0.0)
+#         particles.append(r)
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
-    for i in range(1000):
-        r = robot(random.uniform(-1, 1) * world_size,
-                  random.uniform(-1, 1) * world_size,
-                  0.5,
-                  2*pi/34.0,
-                  1.5)
-        r.set_noise(0.0, 0.0, 0.0)
-        particles.append(r)
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
 
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
-
-
-#turtle.getscreen()._root.mainloop()
+turtle.getscreen()._root.mainloop()
 
 
 

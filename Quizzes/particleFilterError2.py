@@ -134,14 +134,15 @@ myrobot = robot(x=0, y=0)
 myrobot = myrobot.move(0.1, 5.0)
 Z = myrobot.sense()
 N = 10000
-T = 100 #Leave this as 10 for grading purposes.
+T = 1000 #Leave this as 10 for grading purposes.
 distance_tolerance = 0.01 * 5.0
+
 
 import turtle    #You need to run this locally to use the turtle module
 window = turtle.Screen()
 window.screensize(800, 800)
 window.bgcolor('white')
-size_multiplier= 4.0  #change Size of animation
+size_multiplier= 3.0  #change Size of animation
 
 target_robot = turtle.Turtle()
 target_robot.shape('turtle')
@@ -158,6 +159,7 @@ hunter_robot.shapesize(0.2, 0.2, 0.2)
 hunter_robot.penup()
 
 p = []
+ctr = 1
 for i in range(N):
     r = robot(None, None)
     r.set_noise(0.05, 0.05, 5.0)
@@ -192,12 +194,21 @@ for t in range(T):
         p3.append(p[index])
     p = p3
 
+
+
     predicted_position = get_position(p)
+    error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))
+
     hunter_robot.goto(predicted_position[0] * size_multiplier, predicted_position[1] * size_multiplier - 200)
     hunter_robot.stamp()
 
+    if error <= distance_tolerance:
+        print "You got it right! It took you ", ctr, " steps to localize."
+        break
 
-    print eval(myrobot, p)
+    ctr += 1
+
+    #print eval(myrobot, p)
     #enter code here, make sure that you output 10 print statements.
 
 error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))

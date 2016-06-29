@@ -39,7 +39,7 @@ class robot:
         Z = []
         for i in range(len(landmarks)):
             dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
-            dist += random.gauss(0.0, self.sense_noise)
+            dist += random.gauss(0.0, self.sense_noise) # measurement noise for
             Z.append(dist)
         return Z
 
@@ -117,8 +117,8 @@ myrobot = robot()
 myrobot = myrobot.move(0.1, 5.0)
 distance_tolerance = 0.01 * 5.0
 Z = myrobot.sense()
-N = 10000
-T = 20 #Leave this as 10 for grading purposes.
+N = 1000
+T = 1000 #Leave this as 10 for grading purposes.
 
 p = []
 for i in range(N):
@@ -126,8 +126,7 @@ for i in range(N):
     r.set_noise(0.05, 0.05, 5.0)
     p.append(r)
 
-print eval(myrobot, p)
-
+ctr = 1
 for t in range(T):
     myrobot = myrobot.move(0.1, 5.0)
     Z = myrobot.sense()
@@ -154,7 +153,16 @@ for t in range(T):
         p3.append(p[index])
     p = p3
 
-    print eval(myrobot, p)
+    predicted_position = get_position(p)
+    error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))
+
+    if error <= distance_tolerance:
+        print "You got it right! It took you ", ctr, " steps to localize."
+        break
+
+    ctr += 1
+
+    #print eval(myrobot, p)
 
 error = distance_between( (get_position(p)[0], get_position(p)[1]), (myrobot.x, myrobot.y))
 print "prediction: ", get_position(p)

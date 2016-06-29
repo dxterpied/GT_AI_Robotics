@@ -4,6 +4,7 @@ from matrix import *
 import random
 from numpy import *
 from collections import Counter
+import time
 
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 particles = []
@@ -102,7 +103,7 @@ def get_position(p):
 def estimate_next_pos(measurement, OTHER = None):
     global particles
 
-    xy_estimate = (0., 0.)
+    xy_estimate = measurement
 
     if OTHER is None:
         distances = []
@@ -135,11 +136,14 @@ def estimate_next_pos(measurement, OTHER = None):
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
             # sense bearings to landmarks by target robot
+
             z = sense(measurement[0], measurement[1])
             predictedX, predictedY, predictedHeading = particle_filter(z, particles)
-            predictedTurnAngleAvg = headingAngle2 - headingAngle1
-            angles.append(abs(predictedTurnAngleAvg))
-            newR = robot(predictedX, predictedY, headingAngle2, 2*pi / 30, 1.5)
+
+            # predictedTurnAngleAvg = headingAngle2 - headingAngle1
+            # angles.append(abs(predictedTurnAngleAvg))
+
+            newR = robot(predictedX, predictedY, headingAngle2, 2*pi/34.0, 1.5)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
@@ -205,7 +209,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     measured_broken_robot.resizemode('user')
     measured_broken_robot.shapesize(0.1, 0.1, 0.1)
     prediction = turtle.Turtle()
-    prediction.shape('arrow')
+    prediction.shape('circle')
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
@@ -214,25 +218,32 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     measured_broken_robot.penup()
     #End of Visualization
     while not localized and ctr <= 1000:
+        time.sleep(1)
         ctr += 1
         measurement = target_bot.sense()
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
+
+        print "true_position", true_position
+        print "position_guess", position_guess
+
         error = distance_between(position_guess, true_position)
+
+        print "error", error
+        print "distance_tolerance", distance_tolerance
+
+
         if error <= distance_tolerance:
             print "You got it right! It took you ", ctr, " steps to localize."
             localized = True
         if ctr == 1000:
             print "Sorry, it took you too many steps to localize the target."
         #More Visualization
-        measured_broken_robot.setheading(target_bot.heading*180/pi)
-        measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
-        measured_broken_robot.stamp()
-        #broken_robot.setheading(target_bot.heading*180/pi)
-        #broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-200)
-        #broken_robot.stamp()
-        prediction.setheading(target_bot.heading*180/pi)
+        # measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
+        # measured_broken_robot.stamp()
+        broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-200)
+        broken_robot.stamp()
         prediction.goto(position_guess[0]*size_multiplier, position_guess[1]*size_multiplier-200)
         prediction.stamp()
         #End of Visualization

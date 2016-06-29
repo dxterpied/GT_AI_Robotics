@@ -321,13 +321,32 @@ test_target.set_noise(0.0, 0.0, measurement_noise)
 
 #demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
-scores = []
-for i in range(100):
-    scores.append(demo_grading(estimate_next_pos, test_target))
 
-print "average score: ", sum(scores)/len(scores)
+scores = []
+fails = 0
+for i in range(100):
+    test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
+    test_target.set_noise(0.0, 0.0, measurement_noise)
+    score = demo_grading(estimate_next_pos, test_target)
+
+    for i in range(1000):
+        r = robot(random.uniform(-1, 1) * world_size,
+                  random.uniform(-1, 1) * world_size,
+                  0.5,
+                  2*pi/34.0,
+                  1.5)
+        r.set_noise(0.0, 0.0, 0.0)
+        particles.append(r)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
 print "minimum score: ", min(scores)
 print "maximum score: ", max(scores)
+print "fails: ", fails
+
 
 #turtle.getscreen()._root.mainloop()
 

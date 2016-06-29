@@ -3,6 +3,7 @@ from math import *
 from matrix import *
 import random
 from numpy import *
+from collections import Counter
 
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 particles = []
@@ -12,14 +13,13 @@ distance_noise = 0.05
 measurement_noise = 5.0
 
 #create evenly distributed particles for the state space
-for x in range(-10, 10):
-    for y in range(0, 30):
+for x in range(-10, 30):
+    for y in range(-10, 30):
         # add two particles per x, y
-        r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 30, 1.5)
+        r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
         r.set_noise(bearing_noise, distance_noise, measurement_noise)
         particles.append(r)
-        r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 30, 1.5)
-        r.set_noise(bearing_noise, distance_noise, measurement_noise)
+print len(particles)
 
 def measurement_prob(particleX, particleY, targetMeasurement):
     # calculates how likely a measurement should be
@@ -80,11 +80,23 @@ def get_position(p):
     x = 0.0
     y = 0.0
     orientation = 0.0
+
+    # dataX = Counter([item.x for item in p])
+    # dataY = Counter([item.y for item in p])
+    # dataOrientation = Counter([item.heading for item in p])
+    #
+    # dataX = dataX.most_common(1)
+    # dataY = dataY.most_common(1)
+    # dataOrientation = dataOrientation.most_common(1)
+
     for i in range(len(p)):
         x += p[i].x
         y += p[i].y
         orientation += (((p[i].heading - p[0].heading + pi) % (2.0 * pi)) + p[0].heading - pi)
     return [x / len(p), y / len(p), orientation / len(p)]
+    #return [dataX[0][0], dataY[0][0], dataOrientation[0][0]]
+
+
 
 
 def estimate_next_pos(measurement, OTHER = None):
@@ -217,9 +229,9 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
         measured_broken_robot.setheading(target_bot.heading*180/pi)
         measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
         measured_broken_robot.stamp()
-        broken_robot.setheading(target_bot.heading*180/pi)
-        broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-200)
-        broken_robot.stamp()
+        #broken_robot.setheading(target_bot.heading*180/pi)
+        #broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-200)
+        #broken_robot.stamp()
         prediction.setheading(target_bot.heading*180/pi)
         prediction.goto(position_guess[0]*size_multiplier, position_guess[1]*size_multiplier-200)
         prediction.stamp()
@@ -227,7 +239,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     return localized
 
 
-test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 

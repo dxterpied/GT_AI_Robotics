@@ -266,9 +266,6 @@ def particle_filter(motions, measurements, N=500): # I know it's tempting, but d
             p3.append(p[index])
         p = p3
 
-    print get_position(p)
-    exit()
-
     return get_position(p)
 
 ## IMPORTANT: You may uncomment the test cases below to test your code.

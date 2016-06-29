@@ -129,7 +129,7 @@ for i in range(N):
     r = p[i]
     r.move(0.1, 5.0)
     p2.append(r)
-    print r.x, r.y
+    #print r.x, r.y
     # turtles[i].goto(r.x, r.y)
     # stampid = turtles[i].stamp()
     # turtles[i].clearstamp(stampid)

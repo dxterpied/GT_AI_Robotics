@@ -8,27 +8,59 @@ import time
 
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 particles = []
-world_size = 100.0
-bearing_noise = 0.05
-distance_noise = 0.05
-measurement_noise = 5.0
+world_size = 10.0
+measurement_noise = 0.05 * 1.5
+bearing_noise = 0.1
+
+
+#create randomly distributed particles
+# random distribution close to the original location seems to give better results than even particle distribution
+# where there is turning and distance noise, the results are worse than without noise
+# using more than 1000 particles did not make any difference
+# applying heading to weight calculation made it much worse
+for i in range(1000):
+    r = robot(random.uniform(-1, 1) * world_size, random.uniform(-1, 1) * world_size, random.random() * 2.0*pi, 2*pi / 34.0, 1.5)
+    r.set_noise(0.0, 0.0, measurement_noise)
+    particles.append(r)
+
 
 #create evenly distributed particles for the state space
-for x in range(-10, 30):
-    for y in range(-10, 30):
-        # add two particles per x, y
-        r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
-        r.set_noise(bearing_noise, distance_noise, measurement_noise)
-        particles.append(r)
-print len(particles)
+# for x in range(-10, 10):
+#     for y in range(-10, 10):
+#         # add two particles per x, y
+#         r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
+#         r.set_noise(0.0, 0.0, measurement_noise)
+#         particles.append(r)
+#
+#         r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
+#         r.set_noise(0.0, 0.0, measurement_noise)
+#         particles.append(r)
 
-def measurement_prob(particleX, particleY, targetMeasurement):
+#print len(particles)
+
+def measurement_prob(particleX, particleY, targetMeasurement, targetMeasurementHeading = 0):
     # calculates how likely a measurement should be
     prob = 1.0;
     for i in range(len(landmarks)):
         dist = distance_between( (particleX, particleY),  (landmarks[i][0], landmarks[i][1]) )
         prob *= Gaussian(dist, measurement_noise, targetMeasurement[i])
     return prob
+
+
+def measurement_probHeading(particleX, particleY, particleOrientation, targetMeasurementHeading):
+    predicted_measurements = senseHeading(particleX, particleY, particleOrientation)
+
+    # compute errors
+    error = 1.0
+    for i in range(len(targetMeasurementHeading)):
+        error_bearing = abs(targetMeasurementHeading[i] - predicted_measurements[i])
+        #print error_bearing 2.30763730938
+
+        error_bearing = (error_bearing + pi) % (2.0 * pi) - pi # truncate
+        # update Gaussian
+        error *= (exp(- (error_bearing ** 2) / (bearing_noise ** 2) / 2.0) /
+                  sqrt(2.0 * pi * (bearing_noise ** 2)))
+    return error
 
 def sense(targetX, targetY):
     Z = []
@@ -41,12 +73,24 @@ def sense(targetX, targetY):
     return Z
 
 
+def senseHeading(x, y, orientation, noise = 1): #do not change the name of this function
+    Z = []
+
+    for landmark in landmarks:
+        ly, lx = landmark
+        headingToLandmark = atan2( ly - y , lx - x )
+        bearing = headingToLandmark - orientation
+        Z.append( bearing % (2*pi)  )
+    return Z #Leave this line here. Return vector Z of 4 bearings. For example: [1.9267312016649392, 0.4641086737309461, 5.618444871041761, 4.514357510936977]
+
+
+
 def Gaussian(mu, sigma, x):
     # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
     return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
 
 
-def particle_filter(targetMeasurementToLandmarks, p):
+def particle_filter(targetMeasurementToLandmarks, targetMeasurementHeading, p):
 
     # PREDICTION
     N = len(p)
@@ -138,7 +182,8 @@ def estimate_next_pos(measurement, OTHER = None):
             # sense bearings to landmarks by target robot
 
             z = sense(measurement[0], measurement[1])
-            predictedX, predictedY, predictedHeading = particle_filter(z, particles)
+            headingToLandmarks = senseHeading(measurement[0], measurement[1], headingAngle2)
+            predictedX, predictedY, predictedHeading = particle_filter(z, headingToLandmarks, particles)
 
             # predictedTurnAngleAvg = headingAngle2 - headingAngle1
             # angles.append(abs(predictedTurnAngleAvg))
@@ -196,6 +241,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     #For Visualization
     import turtle    #You need to run this locally to use the turtle module
     window = turtle.Screen()
+    window.screensize(800, 800)
     window.bgcolor('white')
     size_multiplier= 25.0  #change Size of animation
     broken_robot = turtle.Turtle()
@@ -218,20 +264,20 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     measured_broken_robot.penup()
     #End of Visualization
     while not localized and ctr <= 1000:
-        time.sleep(1)
+        #time.sleep(1)
         ctr += 1
         measurement = target_bot.sense()
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
 
-        print "true_position", true_position
-        print "position_guess", position_guess
+        #print "true_position", true_position
+        #print "position_guess", position_guess
 
         error = distance_between(position_guess, true_position)
 
         print "error", error
-        print "distance_tolerance", distance_tolerance
+        #print "distance_tolerance", distance_tolerance
 
 
         if error <= distance_tolerance:

@@ -43,10 +43,10 @@ class robot:
         self.turning_noise    = 0.0;
         self.measurement_noise   = 0.0;
 
-    def set_noise(self, new_f_noise, new_t_noise, new_s_noise):
-        self.forward_noise = float(new_f_noise);
-        self.turning_noise    = float(new_t_noise);
-        self.measurement_noise   = float(new_s_noise);
+    def set_noise(self, distance_noise, turning_noise, measurement_noise):
+        self.distance_noise = float(distance_noise);
+        self.turning_noise    = float(turning_noise);
+        self.measurement_noise   = float(measurement_noise);
 
 
     def sense(self):
@@ -64,9 +64,9 @@ class robot:
         x = self.x + (cos(heading) * dist)
         y = self.y + (sin(heading) * dist)
 
-        # self.x = x
+        #self.x = x
         # self.y = y
-        # self.heading = heading
+        #self.heading = heading
 
         # create new particle
         res = robot(x, y, heading)
@@ -80,10 +80,8 @@ class robot:
 
 
     def measurement_prob(self, measurement):
-
         # calculates how likely a measurement should be
-
-        prob = 1.0;
+        prob = 1.0
         for i in range(len(landmarks)):
             dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
             prob *= self.Gaussian(dist, self.measurement_noise, measurement[i])
@@ -95,43 +93,45 @@ class robot:
 
 
 def get_position(p):
-    x = 0.0
-    y = 0.0
-    heading = 0.0
+    x = y = 0.0
     for i in range(len(p)):
         x += p[i].x
         y += p[i].y
-        heading += (((p[i].heading - p[0].heading + pi) % (2.0 * pi))  + p[0].heading - pi)
-    return [x / len(p), y / len(p), heading / len(p)]
+    return [x / len(p), y / len(p)]
 
 
 def distance_between(point1, point2):
-    """Computes distance between point1 and point2. Points are (x, y) pairs."""
+    """Computes Euclidean distance between point1 and point2. Points are (x, y) pairs."""
     x1, y1 = point1
     x2, y2 = point2
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
+
+turning = 0.1
+distance = 1.5
+
 myrobot = robot(x=0.0, y=0.0, heading = 0.0)
-myrobot = myrobot.move(0.1, 1.5)
+myrobot = myrobot.move(turning, distance)
 Z = myrobot.sense()
 
 N = 1000
 T = 1000 #Leave this as 10 for grading purposes.
-distance_tolerance = 0.01 * 1.5
+distance_tolerance = 0.01 * distance
 
 # create new particles
 p = []
 for i in range(N):
     r = robot(None, None, None) # use random initialization
-    r.set_noise(0.05, 0.05, 5.0)
-    p.append(r)
 
+
+    r.set_noise(distance_noise=0.05, turning_noise=0.05, measurement_noise=2.0)
+    p.append(r)
 
 ctr = 1
 for t in range(T):
 
-    myrobot = myrobot.move(0.1, 1.5)
+    myrobot = myrobot.move(turning, distance)
     Z = myrobot.sense()
     target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
     target_robot.stamp()
@@ -139,7 +139,7 @@ for t in range(T):
 
     p2 = []
     for i in range(N):
-        p2.append(p[i].move(0.1, 1.5))
+        p2.append(p[i].move(turning, distance))
     p = p2
 
     w = []
@@ -160,23 +160,13 @@ for t in range(T):
 
     predicted_position = get_position(p)
     error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))
-
     hunter_robot.goto(predicted_position[0] * size_multiplier, predicted_position[1] * size_multiplier - 200)
     hunter_robot.stamp()
 
     if error <= distance_tolerance:
         print "You got it right! It took you ", ctr, " steps to localize."
         break
-
     ctr += 1
-
-    #print eval(myrobot, p)
-    #enter code here, make sure that you output 10 print statements.
-
-# error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))
-# print "prediction: ", get_position(p)
-# print "actual position: ", myrobot
-# print "error: ", error
 
 
 turtle.getscreen()._root.mainloop()

@@ -31,7 +31,7 @@ bearing_noise = 0.1
 # where there is turning and distance noise, the results are worse than without noise
 # using more than 1000 particles did not make any difference
 # applying heading to weight calculation made it much worse
-for i in range(1000):
+#for i in range(1000):
     # r = robot(random.uniform(-1, 1) * world_size,
     #           random.uniform(-1, 1) * world_size,
     #           0.5 + random.random(),
@@ -41,12 +41,12 @@ for i in range(1000):
 
     # this  works better than the other two methods
     # but it is not right because it only works if heading, turning and distance match those of target
-    r = robot(random.uniform(-1, 1) * world_size,
-              random.uniform(-1, 1) * world_size,
-              0.5,
-              2*pi/34.0,
-              1.5)
-    r.set_noise(0.0, 0.0, 0.0)
+    # r = robot(random.uniform(-1, 1) * world_size,
+    #           random.uniform(-1, 1) * world_size,
+    #           0.5,
+    #           2*pi/34.0,
+    #           1.5)
+    # r.set_noise(0.0, 0.0, 0.0)
 
 
     # random x, y, orientation
@@ -63,20 +63,16 @@ for i in range(1000):
     # particle.goto(r.x*size_multiplier, r.y*size_multiplier-200)
     # particle.stamp()
 
-    particles.append(r)
+    #particles.append(r)
 
 
 #create evenly distributed particles for the state space
-# for x in range(-10, 10):
-#     for y in range(-10, 10):
-#         # add two particles per x, y
-#         r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
+# for x in range(-10, 20):
+#     for y in range(-10, 20):
+#         r = robot(x, y, 0.5, 2*pi/34.0, 1.5)
 #         r.set_noise(0.0, 0.0, measurement_noise)
 #         particles.append(r)
-#
-#         r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
-#         r.set_noise(0.0, 0.0, measurement_noise)
-#         particles.append(r)
+
 
 #print len(particles)
 

@@ -9,9 +9,21 @@ import turtle
 
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 particles = []
-world_size = 10.0
+world_size = 3.0
 measurement_noise = 0.05 * 1.5
 bearing_noise = 0.1
+
+
+# window = turtle.Screen()
+# window.screensize(800, 800)
+# window.bgcolor('white')
+# size_multiplier= 25.0  #change Size of animation
+# particle = turtle.Turtle()
+# particle.shape('arrow')
+# particle.color('red')
+# particle.resizemode('user')
+# particle.shapesize(0.4, 0.4, 0.4)
+# particle.penup()
 
 
 #create randomly distributed particles
@@ -29,26 +41,28 @@ for i in range(1000):
     #           1.5 + random.random())
     # r.set_noise(0.01, 0.01, measurement_noise)
 
-    # this sometimes works
-    # r = robot(random.uniform(-1, 1) * world_size,
-    #           random.uniform(-1, 1) * world_size,
-    #           0.5,
-    #           2*pi/34.0,
-    #           1.5)
-    # # r.set_noise(0.0, 0.0, measurement_noise)
-    # r.set_noise(0.0, 0.0, 0.0)
+    # this  works better than the other two methods
+    r = robot(random.uniform(-1, 1) * world_size,
+              random.uniform(-1, 1) * world_size,
+              0.5,
+              2*pi/34.0,
+              1.5)
+    r.set_noise(0.0, 0.0, 0.0)
 
 
     # random x, y, orientation
-    r = robot(random.uniform(-1, 1) * world_size,
-              random.uniform(-1, 1) * world_size,
-              heading = random.random() * 2.0*pi, # noise in orientation
-              turning = 2*pi/34.0,
-              distance = 1.5)
-    r.set_noise(new_t_noise = 0.05,
-                new_d_noise = 0.05,
-                new_m_noise = measurement_noise) # measurement noise is not used in particles
+    # r = robot(random.uniform(-1, 1) * world_size,
+    #           random.uniform(-1, 1) * world_size,
+    #           heading = random.random() * 2.0*pi, # noise in orientation
+    #           turning = 2*pi/34.0,
+    #           distance = 1.5)
+    # r.set_noise(new_t_noise = 0.05,
+    #             new_d_noise = 0.05,
+    #             new_m_noise = measurement_noise) # measurement noise is not used in particles
 
+    # particle.setheading(r.heading * 180/pi)
+    # particle.goto(r.x*size_multiplier, r.y*size_multiplier-200)
+    # particle.stamp()
 
     particles.append(r)
 
@@ -91,6 +105,7 @@ def measurement_probHeading(particleX, particleY, particleOrientation, targetMea
                   sqrt(2.0 * pi * (bearing_noise ** 2)))
     return error
 
+# this sense is only used for target bot, hence no randomness
 def sense(targetX, targetY):
     Z = []
     import random
@@ -206,21 +221,33 @@ def estimate_next_pos(measurement, OTHER = None):
             x2Delta = point3[0] - point2[0]
             hypotenuse2 = distance_between(point2, point3)
             headingAngle2 = atan2(y2Delta, x2Delta)
+
+            #print "headingAngle2", headingAngle2 this angle is pretty close to the actual angle
+
             distances.append(hypotenuse2)
+
             avgDT = sum(distances)/len(distances)
-            avgAngle = sum(angles)/len(angles)
+
+            #avgAngle = sum(angles)/len(angles)
             # sense bearings to landmarks by target robot
 
-            z = sense(measurement[0], measurement[1])
-            headingToLandmarks = senseHeading(measurement[0], measurement[1], headingAngle2)
-            predictedX, predictedY, predictedHeading = particle_filter(z, headingToLandmarks, particles)
+            # z = sense(measurement[0], measurement[1])
+            # #headingToLandmarks = senseHeading(measurement[0], measurement[1], headingAngle2)
+            # predictedX, predictedY, predictedHeading = particle_filter(z, None, particles)
 
             # predictedTurnAngleAvg = headingAngle2 - headingAngle1
             # angles.append(abs(predictedTurnAngleAvg))
 
-            newR = robot(predictedX, predictedY, headingAngle2, 2*pi/34.0, 1.5)
-            newR.move_in_circle()
-            xy_estimate = newR.x, newR.y
+            # newR = robot(predictedX, predictedY, headingAngle2, 2*pi/34.0, 1.5) # create a bot with guessed coordinates x, y, heading
+            # newR.move_in_circle()
+            # xy_estimate = newR.x, newR.y
+            #
+            # # experiment, just send guessed position
+            # xy_estimate = predictedX, predictedY
+
+    z = sense(measurement[0], measurement[1])
+    predictedX, predictedY, predictedHeading = particle_filter(z, None, particles)
+    xy_estimate = predictedX, predictedY
 
     coords.append(measurement)
     OTHER = (distances, angles, coords)
@@ -301,7 +328,11 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
         ctr += 1
         measurement = target_bot.sense()
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
-        target_bot.move_in_circle()
+
+
+        #print "actual heading", target_bot.heading
+
+
         true_position = (target_bot.x, target_bot.y)
 
         #print "true_position", true_position
@@ -309,7 +340,8 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 
         error = distance_between(position_guess, true_position)
 
-        print "error", error
+
+        #print "error", error
         #print "distance_tolerance", distance_tolerance
 
 
@@ -325,6 +357,10 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
         broken_robot.stamp()
         prediction.goto(position_guess[0]*size_multiplier, position_guess[1]*size_multiplier-200)
         prediction.stamp()
+
+        target_bot.move_in_circle()
+
+
         #End of Visualization
     return localized
 

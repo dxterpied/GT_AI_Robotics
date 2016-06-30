@@ -7,38 +7,29 @@ import turtle    #You need to run this locally to use the turtle module
 window = turtle.Screen()
 window.screensize(800, 800)
 window.bgcolor('white')
-size_multiplier= 10.0  #change Size of animation
 target_robot = turtle.Turtle()
 target_robot.shape('turtle')
 target_robot.color('green')
-target_robot.resizemode('user')
 target_robot.shapesize(0.1, 0.1, 0.1)
 target_robot.penup()
 hunter_robot = turtle.Turtle()
 hunter_robot.shape('circle')
 hunter_robot.color('blue')
-hunter_robot.resizemode('user')
 hunter_robot.shapesize(0.1, 0.1, 0.1)
 hunter_robot.penup()
 
-
-landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
+landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 world_size = 100.0
+size_multiplier= 10.0  #change Size of animation
+
 
 class robot:
-    def __init__(self, x=0.0, y=0.0, heading = 0.0):
-        if x is None:
-            self.x = random.random() * world_size
-        else:
-            self.x = x
-        if y is None:
-            self.y = random.random() * world_size
-        else:
-            self.y = y
-        if heading is None:
-            self.heading = random.random() * 2.0 * pi
-        else:
-            self.heading = heading
+    def __init__(self, x=0.0, y=0.0, heading = 0.0, turning = 2*pi/10, distance = 1.0):
+        self.x = x
+        self.y = y
+        self.heading = heading
+        self.turning = turning # only applies to target robots who constantly move in a circle
+        self.distance = distance # only applies to target bot, who always moves at same speed.
         self.distance_noise = 0.0;
         self.turning_noise    = 0.0;
         self.measurement_noise   = 0.0;
@@ -63,16 +54,13 @@ class robot:
         dist = distance + random.gauss(0.0, self.distance_noise)
         x = self.x + (cos(heading) * dist)
         y = self.y + (sin(heading) * dist)
-
-        #self.x = x
-        # self.y = y
-        #self.heading = heading
-
         # create new particle
-        res = robot(x, y, heading)
-        res.set_noise(self.distance_noise, self.turning_noise, self.measurement_noise)
-        return res
+        newRobot = robot(x, y, heading, turning, distance)
+        newRobot.set_noise(self.distance_noise, self.turning_noise, self.measurement_noise)
+        return newRobot
 
+    def move_in_circle(self):
+        return self.move(self.turning, self.distance)
 
     def Gaussian(self, mu, sigma, x):
         # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
@@ -109,37 +97,43 @@ def distance_between(point1, point2):
 
 
 turning = 0.1
-distance = 1.5
+distance = 2.0
+distance_tolerance = 0.01 * distance
 
-myrobot = robot(x=0.0, y=0.0, heading = 0.0)
-myrobot = myrobot.move(turning, distance)
-Z = myrobot.sense()
+myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = 2*pi/34.0, distance =  1.5)
+# if turning in particles is different from turning in target, it all goes kaboom.....
+#myrobot = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance = distance)
+measurement_noise = 0.05 * myrobot.distance
+myrobot.set_noise(distance_noise=0.0, turning_noise=0.0, measurement_noise=measurement_noise)
 
 N = 1000
-T = 1000 #Leave this as 10 for grading purposes.
-distance_tolerance = 0.01 * distance
+T = 1000
 
 # create new particles
 p = []
 for i in range(N):
-    r = robot(None, None, None) # use random initialization
-
-
+    r = robot(random.random() * world_size,
+              random.random() * world_size,
+              random.random() * 2.0*pi,
+              turning = turning,
+              distance = distance) # use random initialization
     r.set_noise(distance_noise=0.05, turning_noise=0.05, measurement_noise=2.0)
     p.append(r)
+
 
 ctr = 1
 for t in range(T):
 
-    myrobot = myrobot.move(turning, distance)
+    myrobot = myrobot.move_in_circle()
     Z = myrobot.sense()
+
     target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
     target_robot.stamp()
 
-
     p2 = []
     for i in range(N):
-        p2.append(p[i].move(turning, distance))
+        p2.append(p[i].move_in_circle())
+
     p = p2
 
     w = []

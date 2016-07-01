@@ -31,34 +31,51 @@ class robot:
         self.measurement_noise = float(new_m_noise)
 
 
-    def move(self, turning, distance, tolerance = 0.001, max_turning_angle = pi):
+    def move_original(self, turning, distance, tolerance = 0.001, max_turning_angle = pi):
         """This function turns the robot and then moves it forward."""
         # apply noise, this doesn't change anything if turning_noise
         # and distance_noise are zero.
 
         # this code is from particle filter working
-        self.heading = (self.heading + turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
-        distance = distance + random.gauss(0.0, self.distance_noise)
-        self.x += (cos(self.heading) * distance)
-        self.y += (sin(self.heading) * distance)
+        # self.heading = (self.heading + turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
+        # distance = distance + random.gauss(0.0, self.distance_noise)
+        # self.x += (cos(self.heading) * distance)
+        # self.y += (sin(self.heading) * distance)
         # end of code from particle filter working
 
-        # turning = random.gauss(turning, self.turning_noise)
-        # distance = random.gauss(distance, self.distance_noise)
-        # # truncate to fit physical limitations
-        # turning = max(-max_turning_angle, turning)
-        # turning = min( max_turning_angle, turning)
-        # distance = max(0.0, distance)
-        #
-        # # Execute motion
-        # self.heading += turning # update the angle to create a new angle
-        # self.heading = angle_trunc(self.heading)
-        # self.x += distance * cos(self.heading)
-        # self.y += distance * sin(self.heading)
+        turning = random.gauss(turning, self.turning_noise)
+        distance = random.gauss(distance, self.distance_noise)
+        # truncate to fit physical limitations
+        turning = max(-max_turning_angle, turning)
+        turning = min( max_turning_angle, turning)
+        distance = max(0.0, distance)
+
+        # Execute motion
+        self.heading += turning # update the angle to create a new angle
+        self.heading = angle_trunc(self.heading)
+        self.x += distance * cos(self.heading)
+        self.y += distance * sin(self.heading)
+
+
+    def move(self, turning, distance):
+        heading = (self.heading + turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
+        dist = distance + random.gauss(0.0, self.distance_noise)
+        x = self.x + (cos(heading) * dist)
+        y = self.y + (sin(heading) * dist)
+        # create new particle
+        newRobot = robot(x, y, heading, turning, distance)
+        newRobot.set_noise( self.turning_noise, self.distance_noise, self.measurement_noise)
+        return newRobot
+
+
+    def move_in_circle_original(self):
+        """This function is used to advance the runaway target bot."""
+        self.move_original(self.turning, self.distance)
 
     def move_in_circle(self):
         """This function is used to advance the runaway target bot."""
-        self.move(self.turning, self.distance)
+        return self.move(self.turning, self.distance)
+
 
     def sense(self):
         """This function represents the robot sensing its location. When

@@ -91,7 +91,7 @@ for i in range(N):
 ctr = 1
 for t in range(T):
 
-    myrobot.move_in_circle()
+    myrobot.move_in_circle_original()
     Z = sense(myrobot.x, myrobot.y, myrobot.measurement_noise)
 
     target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
@@ -99,22 +99,24 @@ for t in range(T):
 
 
     p2 = []
+    # for i in range(N):
+    #     p[i].move_in_circle()
+    #     r = robot(
+    #             p[i].x,
+    #             p[i].y,
+    #             heading = p[i].heading, # noise in orientation
+    #             turning = p[i].turning,
+    #             distance = p[i].distance)
+    #     r.set_noise(
+    #             new_t_noise = p[i].turning_noise,
+    #             new_d_noise = p[i].distance_noise,
+    #             new_m_noise = p[i].measurement_noise) # measurement noise is not used in particles
+    #     p2.append(r)
+
     for i in range(N):
-        p[i].move_in_circle()
-        r = robot(
-                p[i].x,
-                p[i].y,
-                heading = p[i].heading, # noise in orientation
-                turning = p[i].turning,
-                distance = p[i].distance)
-        r.set_noise(
-                new_t_noise = p[i].turning_noise,
-                new_d_noise = p[i].distance_noise,
-                new_m_noise = p[i].measurement_noise) # measurement noise is not used in particles
+        p2.append(p[i].move_in_circle())
 
-        p2.append(r)
     p = p2
-
     # UPDATE
     w = []
     for i in range(N):

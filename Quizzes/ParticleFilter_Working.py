@@ -118,7 +118,9 @@ for i in range(N):
               random.random() * 2.0*pi,
               turning = turning,
               distance = distance) # use random initialization
-    r.set_noise(distance_noise=0.05, turning_noise=0.05, measurement_noise=measurement_noise)
+    r.set_noise(distance_noise=0.05,
+                turning_noise=0.05,
+                measurement_noise = measurement_noise) # measurement noise is not used in particles
     p.append(r)
 
 
@@ -138,8 +140,9 @@ for t in range(T):
 
     w = []
     for i in range(N):
-        mp = measurement_prob( p[i].x, p[i].y, Z)
-        w.append(mp)
+        particle = p[i]
+        mp = measurement_prob( particle.x, particle.y, Z)
+        w.append(  mp )
 
     p3 = []
     index = int(random.random() * N)

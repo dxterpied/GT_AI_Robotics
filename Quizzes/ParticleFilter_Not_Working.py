@@ -108,9 +108,9 @@ for t in range(T):
                 turning = p[i].turning,
                 distance = p[i].distance)
         r.set_noise(
-                new_t_noise = 0.05,
-                new_d_noise = 0.05,
-                new_m_noise = 2.0) # measurement noise is not used in particles
+                new_t_noise = p[i].turning_noise,
+                new_d_noise = p[i].distance_noise,
+                new_m_noise = p[i].measurement_noise) # measurement noise is not used in particles
 
         p2.append(r)
     p = p2

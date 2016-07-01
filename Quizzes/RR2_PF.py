@@ -9,10 +9,12 @@ import turtle
 
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 particles = []
-world_size = 3.0
-measurement_noise = 0.05 * 1.5
+world_size = 100.0
 bearing_noise = 0.1
 
+turning = 2*pi/34.0
+distance = 1.5
+measurement_noise = 2.0
 
 # window = turtle.Screen()
 # window.screensize(800, 800)
@@ -41,13 +43,23 @@ for i in range(1000):
     #           1.5 + random.random())
     # r.set_noise(0.01, 0.01, measurement_noise)
 
-    # this  works better than the other two methods
+    #this  works better than the other two methods but it is not right - there should be noise
     r = robot(random.uniform(-1, 1) * world_size,
               random.uniform(-1, 1) * world_size,
               0.5,
               2*pi/34.0,
               1.5)
     r.set_noise(0.0, 0.0, 0.0)
+
+
+    # r = robot(x = random.random() * world_size,
+    #           y = random.random() * world_size,
+    #           heading = random.random() * 2.0*pi,
+    #           turning = turning,
+    #           distance = distance) # use random initialization
+    # r.set_noise(new_d_noise=0.05,
+    #             new_t_noise=0.05,
+    #             new_m_noise = measurement_noise) # measurement noise is not used in particles
 
 
     # random x, y, orientation
@@ -366,8 +378,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 
 
 test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
-measurement_noise = 0.05 * test_target.distance
-test_target.set_noise(0.0, 0.0, measurement_noise)
+test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
 demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)

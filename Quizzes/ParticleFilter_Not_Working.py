@@ -95,11 +95,10 @@ def distance_between(point1, point2):
 
 
 
-def estimate_next_pos(target, measurement, OTHER = None):
+def estimate_next_pos(measurement, OTHER = None):
     global particles
 
-    #Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * myrobot.distance)
-    Z = senseToLandmarks(target.x, target.y, 0.05 * myrobot.distance)
+    Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * myrobot.distance)
 
     xy_estimate = particle_filter(Z)
 
@@ -232,7 +231,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
         target_bot.move_in_circle()
         measurement = target_bot.sense()
         #position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
-        position_guess, OTHER = estimate_next_pos_fcn(target_bot, measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
 
 
         true_position = (target_bot.x, target_bot.y)

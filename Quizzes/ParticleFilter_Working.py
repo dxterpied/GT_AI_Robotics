@@ -44,18 +44,18 @@ class robot:
         self.measurement_noise   = float(measurement_noise);
 
 
-    def move(self, turning, distance):
-        heading = (self.heading + turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
-        dist = distance + random.gauss(0.0, self.distance_noise)
-        x = self.x + (cos(heading) * dist)
-        y = self.y + (sin(heading) * dist)
+    def move(self):
+        newHeading = (self.heading + self.turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
+        dist = self.distance + random.gauss(0.0, self.distance_noise)
+        newX = self.x + (cos(newHeading) * dist)
+        newY = self.y + (sin(newHeading) * dist)
         # create new particle
-        newRobot = robot(x, y, heading, turning, distance)
+        newRobot = robot(newX, newY, newHeading, self.turning, self.distance)
         newRobot.set_noise(self.distance_noise, self.turning_noise, self.measurement_noise)
         return newRobot
 
     def move_in_circle(self):
-        return self.move(self.turning, self.distance)
+        return self.move()
 
     def __repr__(self):
         return '[x=%.6s y=%.6s orient=%.6s]' % (str(self.x), str(self.y), str(self.heading))

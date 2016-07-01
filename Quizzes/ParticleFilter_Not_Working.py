@@ -66,6 +66,23 @@ def get_position(p):
     return [x / len(p), y / len(p)]
 
 
+def move(x, y, turning, distance, heading, distance_noise, turning_noise, measurement_noise):
+    import random
+
+    newHeading = (heading + turning + random.gauss(0.0, turning_noise)) % (2*pi)
+    dist = distance + random.gauss(0.0, distance_noise)
+    newX = x + (cos(newHeading) * dist)
+    newY = y + (sin(newHeading) * dist)
+    # create new particle
+    newRobot = robot(newX, newY, newHeading, turning, distance)
+
+    newRobot.set_noise(new_t_noise = turning_noise,
+                new_d_noise = distance_noise,
+                new_m_noise = measurement_noise) # measurement noise is not used in particles
+
+    return newRobot
+
+
 """Computes distance between point1 and point2. Points are (x, y) pairs."""
 def distance_between(point1, point2):
     x1, y1 = point1
@@ -91,33 +108,20 @@ for i in range(N):
 ctr = 1
 for t in range(T):
 
-    myrobot.move_in_circle_original()
+    myrobot.move_in_circle()
     Z = sense(myrobot.x, myrobot.y, myrobot.measurement_noise)
 
     target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
     target_robot.stamp()
 
-
+    # PREDICT by moving
     p2 = []
-    # for i in range(N):
-    #     p[i].move_in_circle()
-    #     r = robot(
-    #             p[i].x,
-    #             p[i].y,
-    #             heading = p[i].heading, # noise in orientation
-    #             turning = p[i].turning,
-    #             distance = p[i].distance)
-    #     r.set_noise(
-    #             new_t_noise = p[i].turning_noise,
-    #             new_d_noise = p[i].distance_noise,
-    #             new_m_noise = p[i].measurement_noise) # measurement noise is not used in particles
-    #     p2.append(r)
-
     for i in range(N):
-        p2.append(p[i].move_in_circle())
-
+        newParticle = move(p[i].x, p[i].y, p[i].turning, p[i].distance, p[i].heading, p[i].distance_noise, p[i].turning_noise, p[i].measurement_noise)
+        p2.append(newParticle)
     p = p2
-    # UPDATE
+
+    # UPDATE by creating weights
     w = []
     for i in range(N):
         particle = p[i]
@@ -128,19 +132,15 @@ for t in range(T):
     p3 = []
     index = int(random.random() * N)
     beta = 0.0
-
     mw = max(w)
-
     for i in range(N):
         beta += random.random() * 2.0 * mw
-
         while beta > w[index]:
             beta -= w[index]
             index = (index + 1) % N
-
         p3.append( p[index] )
-
     p = p3
+    # end resampling
 
     predicted_position = get_position(p)
     error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))

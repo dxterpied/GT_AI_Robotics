@@ -31,7 +31,7 @@ class robot:
         self.measurement_noise = float(new_m_noise)
 
 
-    def move_original(self, turning, distance, tolerance = 0.001, max_turning_angle = pi):
+    def move(self, turning, distance, tolerance = 0.001, max_turning_angle = pi):
         """This function turns the robot and then moves it forward."""
         # apply noise, this doesn't change anything if turning_noise
         # and distance_noise are zero.
@@ -57,24 +57,24 @@ class robot:
         self.y += distance * sin(self.heading)
 
 
-    def move(self, turning, distance):
-        heading = (self.heading + turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
-        dist = distance + random.gauss(0.0, self.distance_noise)
-        x = self.x + (cos(heading) * dist)
-        y = self.y + (sin(heading) * dist)
-        # create new particle
-        newRobot = robot(x, y, heading, turning, distance)
-        newRobot.set_noise( self.turning_noise, self.distance_noise, self.measurement_noise)
-        return newRobot
+    # def move(self, turning, distance):
+    #     heading = (self.heading + turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
+    #     dist = distance + random.gauss(0.0, self.distance_noise)
+    #     x = self.x + (cos(heading) * dist)
+    #     y = self.y + (sin(heading) * dist)
+    #     # create new particle
+    #     newRobot = robot(x, y, heading, turning, distance)
+    #     newRobot.set_noise( self.turning_noise, self.distance_noise, self.measurement_noise)
+    #     return newRobot
 
-
-    def move_in_circle_original(self):
-        """This function is used to advance the runaway target bot."""
-        self.move_original(self.turning, self.distance)
 
     def move_in_circle(self):
         """This function is used to advance the runaway target bot."""
-        return self.move(self.turning, self.distance)
+        self.move(self.turning, self.distance)
+
+    # def move_in_circle(self):
+    #     """This function is used to advance the runaway target bot."""
+    #     return self.move(self.turning, self.distance)
 
 
     def sense(self):

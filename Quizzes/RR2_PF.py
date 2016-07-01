@@ -34,66 +34,37 @@ measurement_noise = 2.0
 # using more than 1000 particles did not make any difference
 # applying heading to weight calculation made it much worse
 for i in range(1000):
-    # r = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
-
+    #this  works better than the other two methods but it is not right - there should be noise
     # r = robot(random.uniform(-1, 1) * world_size,
     #           random.uniform(-1, 1) * world_size,
-    #           0.5 + random.random(),
-    #           2*pi/34.0 + random.random(),
-    #           1.5 + random.random())
-    # r.set_noise(0.01, 0.01, measurement_noise)
-
-    #this  works better than the other two methods but it is not right - there should be noise
-    r = robot(random.uniform(-1, 1) * world_size,
-              random.uniform(-1, 1) * world_size,
-              0.5,
-              2*pi/34.0,
-              1.5)
-    r.set_noise(0.0, 0.0, 0.0)
-
-
-    # r = robot(x = random.random() * world_size,
-    #           y = random.random() * world_size,
-    #           heading = random.random() * 2.0*pi,
-    #           turning = turning,
-    #           distance = distance) # use random initialization
-    # r.set_noise(new_d_noise=0.05,
-    #             new_t_noise=0.05,
-    #             new_m_noise = measurement_noise) # measurement noise is not used in particles
+    #           0.5,
+    #           2*pi/34.0,
+    #           1.5)
+    # r.set_noise(0.0, 0.0, 0.0)
 
 
     # random x, y, orientation
-    # r = robot(random.uniform(-1, 1) * world_size,
-    #           random.uniform(-1, 1) * world_size,
-    #           heading = random.random() * 2.0*pi, # noise in orientation
-    #           turning = 2*pi/34.0,
-    #           distance = 1.5)
-    # r.set_noise(new_t_noise = 0.05,
-    #             new_d_noise = 0.05,
-    #             new_m_noise = measurement_noise) # measurement noise is not used in particles
+    r = robot(x = random.random() * world_size,
+              y = random.random() * world_size,
+              heading = random.random() * 2.0*pi,
+              turning = turning,
+              distance = distance) # use random initialization
+    r.set_noise(new_d_noise=0.05,
+                new_t_noise=0.05,
+                new_m_noise = measurement_noise) # measurement noise is not used in particles
+
+    particles.append(r)
 
     # particle.setheading(r.heading * 180/pi)
     # particle.goto(r.x*size_multiplier, r.y*size_multiplier-200)
     # particle.stamp()
 
-    particles.append(r)
 
 
-#create evenly distributed particles for the state space
-# for x in range(-10, 10):
-#     for y in range(-10, 10):
-#         # add two particles per x, y
-#         r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
-#         r.set_noise(0.0, 0.0, measurement_noise)
-#         particles.append(r)
-#
-#         r = robot(x, y, random.random() * 2.0 * pi, 2*pi / 34.0, 1.5)
-#         r.set_noise(0.0, 0.0, measurement_noise)
-#         particles.append(r)
 
-#print len(particles)
 
-def measurement_prob(particleX, particleY, targetMeasurement, targetMeasurementHeading = 0):
+# checked, it's ok
+def measurement_prob(particleX, particleY, targetMeasurement):
     # calculates how likely a measurement should be
     prob = 1.0;
     for i in range(len(landmarks)):
@@ -102,21 +73,6 @@ def measurement_prob(particleX, particleY, targetMeasurement, targetMeasurementH
     return prob
 
 
-def measurement_probHeading(particleX, particleY, particleOrientation, targetMeasurementHeading):
-    predicted_measurements = senseHeading(particleX, particleY, particleOrientation)
-
-    # compute errors
-    error = 1.0
-    for i in range(len(targetMeasurementHeading)):
-        error_bearing = abs(targetMeasurementHeading[i] - predicted_measurements[i])
-        #print error_bearing 2.30763730938
-
-        error_bearing = (error_bearing + pi) % (2.0 * pi) - pi # truncate
-        # update Gaussian
-        error *= (exp(- (error_bearing ** 2) / (bearing_noise ** 2) / 2.0) /
-                  sqrt(2.0 * pi * (bearing_noise ** 2)))
-    return error
-
 # this sense is only used for target bot, hence no randomness
 def sense(targetX, targetY):
     Z = []
@@ -124,22 +80,10 @@ def sense(targetX, targetY):
 
     for i in range(len(landmarks)):
         dist = distance_between( (targetX, targetY),  (landmarks[i][0], landmarks[i][1]) )
-        # dist += random.gauss(0.0, measurement_noise) no noise is needed because particles should have no measurement noise and
+        #dist += random.gauss(0.0, measurement_noise) #no noise is needed because particles should have no measurement noise and
         # target already has noise when giving its x and y coordinates
         Z.append(dist)
     return Z
-
-
-def senseHeading(x, y, orientation, noise = 1): #do not change the name of this function
-    Z = []
-
-    for landmark in landmarks:
-        ly, lx = landmark
-        headingToLandmark = atan2( ly - y , lx - x )
-        bearing = headingToLandmark - orientation
-        Z.append( bearing % (2*pi)  )
-    return Z #Leave this line here. Return vector Z of 4 bearings. For example: [1.9267312016649392, 0.4641086737309461, 5.618444871041761, 4.514357510936977]
-
 
 
 def Gaussian(mu, sigma, x):
@@ -147,19 +91,55 @@ def Gaussian(mu, sigma, x):
     return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
 
 
-def particle_filter(targetMeasurementToLandmarks, targetMeasurementHeading, p):
+# returns the arithmetic means of x, y and orientation. It is already weighted.
+def get_position(p):
+    x = 0.0
+    y = 0.0
+    orientation = 0.0
 
-    # PREDICTION
+    for i in range(len(p)):
+        x += p[i].x
+        y += p[i].y
+    return [x / len(p), y / len(p)]
+
+
+def move(x, y, turning, distance, heading, distance_noise, turning_noise, measurement_noise):
+    import random
+
+    newHeading = (heading + turning + random.gauss(0.0, turning_noise)) % (2*pi)
+    dist = distance + random.gauss(0.0, distance_noise)
+    newX = x + (cos(newHeading) * dist)
+    newY = y + (sin(newHeading) * dist)
+    # create new particle
+    newRobot = robot(newX, newY, newHeading, turning, distance)
+
+    newRobot.set_noise(new_t_noise = turning_noise,
+                new_d_noise = distance_noise,
+                new_m_noise = measurement_noise) # measurement noise is not used in particles
+
+    return newRobot
+
+
+
+def particle_filter(targetMeasurementToLandmarks, p):
+
+    # PREDICT by moving particles
     N = len(p)
-    for i in range(N):
-        # move the particle the same way the target would move
-        p[i].move_in_circle()
 
-    # UPDATE
+    # PREDICT by moving
+    p2 = []
+    for i in range(N):
+        newParticle = move(p[i].x, p[i].y, p[i].turning, p[i].distance, p[i].heading, p[i].distance_noise, p[i].turning_noise, p[i].measurement_noise)
+        p2.append(newParticle)
+    p = p2
+
+    # UPDATE by creating weights
     w = []
     for i in range(N):
         particle = p[i]
-        w.append(  measurement_prob( particle.x, particle.y, targetMeasurementToLandmarks) )
+        mp = measurement_prob( particle.x, particle.y, targetMeasurementToLandmarks)
+        w.append(  mp )
+
 
     # RESAMPLING
     p3 = []
@@ -175,30 +155,6 @@ def particle_filter(targetMeasurementToLandmarks, targetMeasurementHeading, p):
     p = p3
 
     return get_position(p)
-
-
-# returns the arithmetic means of x, y and orientation. It is already weighted.
-def get_position(p):
-    x = 0.0
-    y = 0.0
-    orientation = 0.0
-
-    # dataX = Counter([item.x for item in p])
-    # dataY = Counter([item.y for item in p])
-    # dataOrientation = Counter([item.heading for item in p])
-    #
-    # dataX = dataX.most_common(1)
-    # dataY = dataY.most_common(1)
-    # dataOrientation = dataOrientation.most_common(1)
-
-    for i in range(len(p)):
-        x += p[i].x
-        y += p[i].y
-        orientation += (((p[i].heading - p[0].heading + pi) % (2.0 * pi)) + p[0].heading - pi)
-    return [x / len(p), y / len(p), orientation / len(p)]
-    #return [dataX[0][0], dataY[0][0], dataOrientation[0][0]]
-
-
 
 
 def estimate_next_pos(measurement, OTHER = None):
@@ -258,7 +214,8 @@ def estimate_next_pos(measurement, OTHER = None):
             # xy_estimate = predictedX, predictedY
 
     z = sense(measurement[0], measurement[1])
-    predictedX, predictedY, predictedHeading = particle_filter(z, None, particles)
+    predictedX, predictedY = particle_filter(z, particles)
+
     xy_estimate = predictedX, predictedY
 
     coords.append(measurement)
@@ -377,8 +334,9 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     return localized
 
 
-test_target = robot(0.0, 0.0, 0.5, 2*pi / 34.0, 1.5)
+test_target = robot(0.0, 0.0, 0.5, turning, distance)
 test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+
 
 demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)

@@ -20,6 +20,11 @@ hunter_robot.penup()
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 world_size = 100.0
 size_multiplier= 15.0  #change Size of animation
+turning = 2*pi/34.0
+distance = 1.5
+distance_tolerance = 0.01 * distance
+N = 1000
+T = 1000
 
 
 class robot:
@@ -37,15 +42,6 @@ class robot:
         self.distance_noise = float(distance_noise);
         self.turning_noise    = float(turning_noise);
         self.measurement_noise   = float(measurement_noise);
-
-
-    def sense(self):
-        Z = []
-        for i in range(len(landmarks)):
-            dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
-            dist += random.gauss(0.0, self.measurement_noise)
-            Z.append(dist)
-        return Z
 
 
     def move(self, turning, distance):
@@ -75,8 +71,8 @@ def measurement_prob(particleX, particleY, measurement):
     return prob
 
 def Gaussian(mu, sigma, x):
-        # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
-        return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
+    # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
+    return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
 
 
 def get_position(p):
@@ -93,20 +89,26 @@ def distance_between(point1, point2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
+def sense(targetX, targetY, measurement_noise):
+    Z = []
+    import random
+    for i in range(len(landmarks)):
+        dist = distance_between( (targetX, targetY),  (landmarks[i][0], landmarks[i][1]) )
+        dist += random.gauss(0.0, measurement_noise)
+        Z.append(dist)
+    return Z
 
-turning = 2*pi/34.0
-distance = 1.5
-distance_tolerance = 0.01 * distance
+
 
 myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance =  distance)
-# if turning in particles is different from turning in target, it all goes kaboom.....
-#myrobot = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance = distance)
-#measurement_noise = 0.05 * myrobot.distance
 measurement_noise = 2.0
 myrobot.set_noise(distance_noise=0.0, turning_noise=0.0, measurement_noise=0.05 * myrobot.distance)
 
-N = 1000
-T = 1000
+# myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance =  distance)
+# measurement_noise = 2.0
+# myrobot.set_noise(new_t_noise=0.0, new_d_noise=0.0, new_m_noise=0.05 * myrobot.distance)
+
+
 
 # create new particles
 p = []
@@ -124,7 +126,7 @@ ctr = 1
 for t in range(T):
 
     myrobot = myrobot.move_in_circle()
-    Z = myrobot.sense()
+    Z = sense(myrobot.x, myrobot.y, myrobot.measurement_noise)
 
     target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
     target_robot.stamp()

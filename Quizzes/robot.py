@@ -35,18 +35,26 @@ class robot:
         """This function turns the robot and then moves it forward."""
         # apply noise, this doesn't change anything if turning_noise
         # and distance_noise are zero.
-        turning = random.gauss(turning, self.turning_noise)
-        distance = random.gauss(distance, self.distance_noise)
-        # truncate to fit physical limitations
-        turning = max(-max_turning_angle, turning)
-        turning = min( max_turning_angle, turning)
-        distance = max(0.0, distance)
 
-        # Execute motion
-        self.heading += turning # update the angle to create a new angle
-        self.heading = angle_trunc(self.heading)
-        self.x += distance * cos(self.heading)
-        self.y += distance * sin(self.heading)
+        # this code is from particle filter working
+        self.heading = (self.heading + turning + random.gauss(0.0, self.turning_noise)) % (2*pi)
+        distance = distance + random.gauss(0.0, self.distance_noise)
+        self.x += (cos(self.heading) * distance)
+        self.y += (sin(self.heading) * distance)
+        # end of code from particle filter working
+
+        # turning = random.gauss(turning, self.turning_noise)
+        # distance = random.gauss(distance, self.distance_noise)
+        # # truncate to fit physical limitations
+        # turning = max(-max_turning_angle, turning)
+        # turning = min( max_turning_angle, turning)
+        # distance = max(0.0, distance)
+        #
+        # # Execute motion
+        # self.heading += turning # update the angle to create a new angle
+        # self.heading = angle_trunc(self.heading)
+        # self.x += distance * cos(self.heading)
+        # self.y += distance * sin(self.heading)
 
     def move_in_circle(self):
         """This function is used to advance the runaway target bot."""

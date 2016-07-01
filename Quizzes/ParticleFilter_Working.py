@@ -13,14 +13,13 @@ target_robot.color('green')
 target_robot.shapesize(0.1, 0.1, 0.1)
 target_robot.penup()
 hunter_robot = turtle.Turtle()
-hunter_robot.shape('circle')
+hunter_robot.shape('arrow')
 hunter_robot.color('blue')
 hunter_robot.shapesize(0.1, 0.1, 0.1)
 hunter_robot.penup()
-
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 world_size = 100.0
-size_multiplier= 10.0  #change Size of animation
+size_multiplier= 15.0  #change Size of animation
 
 
 class robot:
@@ -62,22 +61,22 @@ class robot:
     def move_in_circle(self):
         return self.move(self.turning, self.distance)
 
-    def Gaussian(self, mu, sigma, x):
-        # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
-        return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
-
-
-    def measurement_prob(self, measurement):
-        # calculates how likely a measurement should be
-        prob = 1.0
-        for i in range(len(landmarks)):
-            dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
-            prob *= self.Gaussian(dist, self.measurement_noise, measurement[i])
-        return prob
-
-
     def __repr__(self):
         return '[x=%.6s y=%.6s orient=%.6s]' % (str(self.x), str(self.y), str(self.heading))
+
+
+def measurement_prob(particleX, particleY, measurement):
+        # calculates how likely a measurement should be
+    prob = 1.0
+    for i in range(len(landmarks)):
+        dist = distance_between( (particleX, particleY), (landmarks[i][0], landmarks[i][1]) )
+        prob *= Gaussian(dist, measurement_noise, measurement[i])
+
+    return prob
+
+def Gaussian(mu, sigma, x):
+        # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
+        return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
 
 
 def get_position(p):
@@ -87,24 +86,24 @@ def get_position(p):
         y += p[i].y
     return [x / len(p), y / len(p)]
 
-
-def distance_between(point1, point2):
     """Computes Euclidean distance between point1 and point2. Points are (x, y) pairs."""
+def distance_between(point1, point2):
     x1, y1 = point1
     x2, y2 = point2
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
 
-turning = 0.1
-distance = 2.0
+turning = 2*pi/34.0
+distance = 1.5
 distance_tolerance = 0.01 * distance
 
-myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = 2*pi/34.0, distance =  1.5)
+myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance =  distance)
 # if turning in particles is different from turning in target, it all goes kaboom.....
 #myrobot = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance = distance)
-measurement_noise = 0.05 * myrobot.distance
-myrobot.set_noise(distance_noise=0.0, turning_noise=0.0, measurement_noise=measurement_noise)
+#measurement_noise = 0.05 * myrobot.distance
+measurement_noise = 2.0
+myrobot.set_noise(distance_noise=0.0, turning_noise=0.0, measurement_noise=0.05 * myrobot.distance)
 
 N = 1000
 T = 1000
@@ -117,7 +116,7 @@ for i in range(N):
               random.random() * 2.0*pi,
               turning = turning,
               distance = distance) # use random initialization
-    r.set_noise(distance_noise=0.05, turning_noise=0.05, measurement_noise=2.0)
+    r.set_noise(distance_noise=0.05, turning_noise=0.05, measurement_noise=measurement_noise)
     p.append(r)
 
 
@@ -133,17 +132,18 @@ for t in range(T):
     p2 = []
     for i in range(N):
         p2.append(p[i].move_in_circle())
-
     p = p2
 
     w = []
     for i in range(N):
-        w.append(p[i].measurement_prob(Z))
+        mp = measurement_prob( p[i].x, p[i].y, Z)
+        w.append(mp)
 
     p3 = []
     index = int(random.random() * N)
     beta = 0.0
     mw = max(w)
+
     for i in range(N):
         beta += random.random() * 2.0 * mw
         while beta > w[index]:

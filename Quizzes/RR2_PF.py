@@ -123,10 +123,9 @@ def move(x, y, turning, distance, heading, distance_noise, turning_noise, measur
 
 def particle_filter(targetMeasurementToLandmarks, p):
 
-    # PREDICT by moving particles
     N = len(p)
 
-    # PREDICT by moving
+    # PREDICT by moving particles
     p2 = []
     for i in range(N):
         newParticle = move(p[i].x, p[i].y, p[i].turning, p[i].distance, p[i].heading, p[i].distance_noise, p[i].turning_noise, p[i].measurement_noise)

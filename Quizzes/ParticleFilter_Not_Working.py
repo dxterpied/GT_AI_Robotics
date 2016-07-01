@@ -26,10 +26,13 @@ distance = 1.5
 distance_tolerance = 0.01 * distance
 N = 1000
 T = 1000
+measurement_noise = 5.0
 
-myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance =  distance)
-measurement_noise = 2.0
+
+myrobot = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance =  distance)
 myrobot.set_noise(new_t_noise=0.0, new_d_noise=0.0, new_m_noise=0.05 * myrobot.distance)
+particles = []
+
 
 
 def measurement_prob(particleX, particleY, targetMeasurement):
@@ -41,8 +44,8 @@ def measurement_prob(particleX, particleY, targetMeasurement):
     return prob
 
 
-# this sense is only used for target bot, hence no randomness
-def sense(targetX, targetY, measurement_noise):
+# this sense is only used for target bot
+def senseToLandmarks(targetX, targetY, measurement_noise):
     Z = []
     import random
     for i in range(len(landmarks)):
@@ -63,7 +66,7 @@ def get_position(p):
     for i in range(len(p)):
         x += p[i].x
         y += p[i].y
-    return [x / len(p), y / len(p)]
+    return [ x/len(p), y/len(p) ]
 
 
 def move(x, y, turning, distance, heading, distance_noise, turning_noise, measurement_noise):
@@ -90,42 +93,36 @@ def distance_between(point1, point2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-# create new particles
-p = []
-for i in range(N):
-    r = robot(random.random() * world_size,
-              random.random() * world_size,
-              random.random() * 2.0*pi, # noise in orientation
-              turning = turning,
-              distance = distance)
-    r.set_noise(new_t_noise = 0.05,
-                new_d_noise = 0.05,
-                new_m_noise = measurement_noise) # measurement noise is not used in particles
-
-    p.append(r)
 
 
-ctr = 1
-for t in range(T):
+def estimate_next_pos(target, measurement, OTHER = None):
+    global particles
 
-    myrobot.move_in_circle()
-    Z = sense(myrobot.x, myrobot.y, myrobot.measurement_noise)
+    #Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * myrobot.distance)
+    Z = senseToLandmarks(target.x, target.y, 0.05 * myrobot.distance)
 
-    target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
-    target_robot.stamp()
+    xy_estimate = particle_filter(Z)
+
+    OTHER = (None, None, None)
+
+    return xy_estimate, OTHER
+
+
+def particle_filter(targetMeasurementToLandmarks):
+    global particles
 
     # PREDICT by moving
     p2 = []
     for i in range(N):
-        newParticle = move(p[i].x, p[i].y, p[i].turning, p[i].distance, p[i].heading, p[i].distance_noise, p[i].turning_noise, p[i].measurement_noise)
+        newParticle = move(particles[i].x, particles[i].y, particles[i].turning, particles[i].distance, particles[i].heading, particles[i].distance_noise, particles[i].turning_noise, particles[i].measurement_noise)
         p2.append(newParticle)
-    p = p2
+    particles = p2
 
     # UPDATE by creating weights
     w = []
     for i in range(N):
-        particle = p[i]
-        mp = measurement_prob( particle.x, particle.y, Z)
+        particle = particles[i]
+        mp = measurement_prob( particle.x, particle.y, targetMeasurementToLandmarks)
         w.append(  mp )
 
     # RESAMPLING
@@ -138,19 +135,124 @@ for t in range(T):
         while beta > w[index]:
             beta -= w[index]
             index = (index + 1) % N
-        p3.append( p[index] )
-    p = p3
+        p3.append( particles[index] )
+    particles = p3
     # end resampling
 
-    predicted_position = get_position(p)
-    error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))
-    hunter_robot.goto(predicted_position[0] * size_multiplier, predicted_position[1] * size_multiplier - 200)
-    hunter_robot.stamp()
+    return get_position(particles)
 
-    if error <= distance_tolerance:
-        print "You got it right! It took you ", ctr, " steps to localize."
-        break
-    ctr += 1
+
+# create new particles
+for i in range(N):
+    r = robot(random.random() * world_size,
+              random.random() * world_size,
+              random.random() * 2.0*pi, # noise in orientation
+              turning = turning,
+              distance = distance)
+    r.set_noise(new_t_noise = 0.05,
+                new_d_noise = 0.05,
+                new_m_noise = measurement_noise) # measurement noise is not used in particles
+
+    particles.append(r)
+
+
+
+# ctr = 1
+# for t in range(T):
+#
+#     myrobot.move_in_circle()
+#     Z = senseToLandmarks(myrobot.x, myrobot.y, myrobot.measurement_noise)
+#
+#     target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
+#     target_robot.stamp()
+#
+#     # PREDICT by moving
+#     p2 = []
+#     for i in range(N):
+#         newParticle = move(particles[i].x, particles[i].y, particles[i].turning, particles[i].distance, particles[i].heading, particles[i].distance_noise, particles[i].turning_noise, particles[i].measurement_noise)
+#         p2.append(newParticle)
+#     particles = p2
+#
+#     # UPDATE by creating weights
+#     w = []
+#     for i in range(N):
+#         particle = particles[i]
+#         mp = measurement_prob( particle.x, particle.y, Z)
+#         w.append(  mp )
+#
+#     # RESAMPLING
+#     p3 = []
+#     index = int(random.random() * N)
+#     beta = 0.0
+#     mw = max(w)
+#     for i in range(N):
+#         beta += random.random() * 2.0 * mw
+#         while beta > w[index]:
+#             beta -= w[index]
+#             index = (index + 1) % N
+#         p3.append( particles[index] )
+#     particles = p3
+#     # end resampling
+#
+#     predicted_position = get_position(particles)
+#     error = distance_between( (predicted_position[0], predicted_position[1]), (myrobot.x, myrobot.y))
+#     hunter_robot.goto(predicted_position[0] * size_multiplier, predicted_position[1] * size_multiplier - 200)
+#     hunter_robot.stamp()
+#
+#     if error <= distance_tolerance:
+#         print "You got it right! It took you ", ctr, " steps to localize."
+#         break
+#     ctr += 1
+
+def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
+    distance_tolerance = 0.01 * target_bot.distance
+    ctr = 0
+
+    import turtle    #You need to run this locally to use the turtle module
+
+    broken_robot = turtle.Turtle()
+    broken_robot.shape('turtle')
+    broken_robot.color('green')
+    broken_robot.resizemode('user')
+    broken_robot.shapesize(0.2, 0.2, 0.2)
+    prediction = turtle.Turtle()
+    prediction.shape('circle')
+    prediction.color('blue')
+    prediction.resizemode('user')
+    prediction.shapesize(0.2, 0.2, 0.2)
+    prediction.penup()
+    broken_robot.penup()
+
+
+    while ctr <= 1000:
+        #time.sleep(1)
+        ctr += 1
+
+
+        target_bot.move_in_circle()
+        measurement = target_bot.sense()
+        #position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(target_bot, measurement, OTHER)
+
+
+        true_position = (target_bot.x, target_bot.y)
+        error = distance_between(position_guess, true_position)
+
+        if error <= distance_tolerance:
+            print "You got it right! It took you ", ctr, " steps to localize."
+            break
+        if ctr == 1000:
+            print "Sorry, it took you too many steps to localize the target."
+
+        broken_robot.goto( target_bot.x * size_multiplier, target_bot.y * size_multiplier-200)
+        broken_robot.stamp()
+        prediction.goto( position_guess[0] * size_multiplier, position_guess[1] * size_multiplier-200)
+        prediction.stamp()
+
+
+        #End of Visualization
+
+demo_grading_visual(estimate_next_pos, myrobot)
 
 turtle.getscreen()._root.mainloop()
 

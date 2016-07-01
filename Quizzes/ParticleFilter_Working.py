@@ -88,8 +88,8 @@ def distance_between(point1, point2):
     x2, y2 = point2
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
-
-def sense(targetX, targetY, measurement_noise):
+# this is only used by target robot
+def senseToLandmarks(targetX, targetY, measurement_noise):
     Z = []
     import random
     for i in range(len(landmarks)):
@@ -103,10 +103,6 @@ def sense(targetX, targetY, measurement_noise):
 myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance =  distance)
 measurement_noise = 2.0
 myrobot.set_noise(distance_noise=0.0, turning_noise=0.0, measurement_noise=0.05 * myrobot.distance)
-
-# myrobot  = robot(x=0.0, y=0.0, heading = 0.5, turning = turning, distance =  distance)
-# measurement_noise = 2.0
-# myrobot.set_noise(new_t_noise=0.0, new_d_noise=0.0, new_m_noise=0.05 * myrobot.distance)
 
 
 
@@ -128,7 +124,7 @@ ctr = 1
 for t in range(T):
 
     myrobot = myrobot.move_in_circle()
-    Z = sense(myrobot.x, myrobot.y, myrobot.measurement_noise)
+    Z = senseToLandmarks(myrobot.x, myrobot.y, myrobot.measurement_noise)
 
     target_robot.goto(myrobot.x * size_multiplier, myrobot.y * size_multiplier - 200)
     target_robot.stamp()

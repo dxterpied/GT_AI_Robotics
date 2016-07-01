@@ -43,6 +43,8 @@ class robot:
         # self.y += (sin(self.heading) * distance)
         # end of code from particle filter working
 
+
+
         turning = random.gauss(turning, self.turning_noise)
         distance = random.gauss(distance, self.distance_noise)
         # truncate to fit physical limitations

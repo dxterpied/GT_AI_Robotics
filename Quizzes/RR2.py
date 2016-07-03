@@ -82,13 +82,13 @@ def estimate_next_pos(measurement, OTHER = None):
 
             predictedAngle = headingAngle2 - headingAngle1
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-            #properAngle = mostLikelyAngle(predictedAngle)
 
             angles.append(abs(predictedTurnAngleAvg))
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
+            #properAngle = mostLikelyAngle(avgAngle)
 
             #print "avgDT:", avgDT, "avgAngle:", avgAngle, "headingAngle2:", headingAngle2
 

@@ -69,8 +69,10 @@ def estimate_next_pos(measurement, OTHER = None):
             point3 = measurement
 
             y1Delta = point2[1] - point1[1]
+            x1Delta = point2[0] - point1[0]
             hypotenuse1 = distance_between(point1, point2)
             headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+            headingAngle1 = atan2(y1Delta, x1Delta)
 
             y2Delta = point3[1] - point2[1]
             x2Delta = point3[0] - point2[0]
@@ -78,7 +80,10 @@ def estimate_next_pos(measurement, OTHER = None):
             headingAngle2 = atan2(y2Delta, x2Delta)
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
 
+            predictedAngle = headingAngle2 - headingAngle1
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+            #properAngle = mostLikelyAngle(predictedAngle)
+
             angles.append(abs(predictedTurnAngleAvg))
             distances.append(hypotenuse2)
 
@@ -97,6 +102,23 @@ def estimate_next_pos(measurement, OTHER = None):
     OTHER = (distances, angles, coords)
 
     return xy_estimate, OTHER
+
+
+def mostLikelyAngle(angle):
+
+    for i in range(30, 40):
+        properAngle = 2*pi / i
+        diff = abs(properAngle - angle)
+        # if difference less than or equal to 10% of properAngle
+        if diff <= 0.01 * properAngle:
+            print angle
+            print properAngle, i
+
+            #exit()
+            return properAngle
+
+    return angle
+
 
 
 # A helper function you may find useful.

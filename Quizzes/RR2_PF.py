@@ -5,19 +5,19 @@ import random
 from numpy import *
 import turtle
 
-window = turtle.Screen()
-window.screensize(800, 800)
-window.bgcolor('white')
-target_robot = turtle.Turtle()
-target_robot.shape('turtle')
-target_robot.color('green')
-target_robot.shapesize(0.1, 0.1, 0.1)
-target_robot.penup()
-hunter_robot = turtle.Turtle()
-hunter_robot.shape('arrow')
-hunter_robot.color('blue')
-hunter_robot.shapesize(0.1, 0.1, 0.1)
-hunter_robot.penup()
+# window = turtle.Screen()
+# window.screensize(800, 800)
+# window.bgcolor('white')
+# target_robot = turtle.Turtle()
+# target_robot.shape('turtle')
+# target_robot.color('green')
+# target_robot.shapesize(0.1, 0.1, 0.1)
+# target_robot.penup()
+# hunter_robot = turtle.Turtle()
+# hunter_robot.shape('arrow')
+# hunter_robot.color('blue')
+# hunter_robot.shapesize(0.1, 0.1, 0.1)
+# hunter_robot.penup()
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 world_size = 10.0
 size_multiplier= 15.0  #change Size of animation
@@ -30,7 +30,6 @@ measurement_noise = 5.0
 
 
 particles = []
-
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
@@ -204,6 +203,7 @@ def particle_filter(targetMeasurementToLandmarks):
 # information that you want.
 def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     localized = False
+
     distance_tolerance = 0.01 * target_bot.distance
     ctr = 0
     import sys
@@ -224,6 +224,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
             localized = True
         if ctr == 1000:
             print "Sorry, it took you too many steps to localize the target."
+            return 1000
     return localized
 
 
@@ -288,26 +289,43 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 # How the robot class behaves.
 
 
-demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
-# scores = []
-# for i in range(10000):
-#     scores.append(demo_grading(estimate_next_pos, test_target))
-#
-# print "average score: ", sum(scores)/len(scores)
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
 
-# stats:
-# Sorry, it took you too many steps to localize the target.
-# Sorry, it took you too many steps to localize the target.
-# Sorry, it took you too many steps to localize the target.
-# average score:  123
-# minimum score:  False
-# maximum score:  947
+scores = []
+fails = 0
+for i in range(10000):
+
+    particles = []
+    test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+    test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
 
-#print "actual turn angle: ", 2*pi / 34.0
+    # create new particles
+    for i in range(N):
+        r = robot(random.random() * world_size,
+                  random.random() * world_size,
+                  random.random() * 2.0*pi, # noise in orientation
+                  turning = turning,
+                  distance = distance)
+        r.set_noise(new_t_noise = 0.05,
+                    new_d_noise = 0.05,
+                    new_m_noise = measurement_noise) # measurement noise is not used in particles
+        particles.append(r)
+
+    score = demo_grading(estimate_next_pos, test_target)
+
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+
 
 
 

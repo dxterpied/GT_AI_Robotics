@@ -4,6 +4,7 @@ from matrix import * # Check the matrix.py tab to see how this works.
 import random
 from numpy import *
 import turtle
+from collections import Counter
 
 
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
@@ -12,7 +13,7 @@ size_multiplier= 15.0  #change Size of animation
 turning = 2*pi/34.0
 distance = 1.5
 distance_tolerance = 0.01 * distance
-N = 1500
+N = 1000
 measurement_noise = 5.0
 
 
@@ -24,8 +25,8 @@ test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 def createParticles(worldX, worldY):
     # create new particles
     for i in range(N):
-        r = robot(random.uniform(worldX - 5, worldX + 5),
-                  random.uniform(worldY - 5, worldY + 5),
+        r = robot(random.uniform(worldX - 2, worldX + 2),
+                  random.uniform(worldY - 2, worldY + 2),
                   random.random() * 2.0*pi, # noise in orientation
                   turning = turning,
                   distance = distance)
@@ -63,9 +64,22 @@ def Gaussian(mu, sigma, x):
 # returns the arithmetic means of x, y and orientation. It is already weighted.
 def get_position(p):
     x = y = 0.0
+
+    # for some reason averages work much better than most common
+    # countX = Counter([i.x for i in particles])
+    # x = countX.most_common()[0][0]
+    #
+    # countY = Counter([i.y for i in particles])
+    # y = countY.most_common()[0][0]
+    #
+    # return x, y
+
+
     for i in range(len(p)):
         x += p[i].x
         y += p[i].y
+
+
     return [ x/len(p), y/len(p) ]
 
 
@@ -136,8 +150,8 @@ def estimate_next_pos(measurement, OTHER = None):
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            #Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * test_target.distance)
-            #xy_estimate = particle_filter(Z)
+            Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * test_target.distance)
+            xy_estimate = particle_filter(Z)
 
             #print "avgAngle:", avgAngle
             newR = robot(xy_estimate[0], xy_estimate[1], headingAngle2, avgAngle, avgDT)
@@ -255,15 +269,33 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
+
         if error <= distance_tolerance:
+
+            # countX = Counter([i.x for i in particles])
+            # x = countX.most_common()[0][0]
+            # countY = Counter([i.y for i in particles])
+            # y = countY.most_common()[0][0]
+            # print "x, y", x, y
+            # print "true_position", true_position
+            # print "position_guess", position_guess
+
             print "You got it right! It took you ", ctr, " steps to localize."
+            prediction.color('red')
+            for i in range(N):
+                p = particles[i]
+                prediction.goto(p.x * size_multiplier, p.y  *size_multiplier-200)
+                prediction.stamp()
+
+
+            return ctr
             localized = True
         if ctr == 1000:
             print "Sorry, it took you too many steps to localize the target."
         #More Visualization
-        measured_broken_robot.setheading(target_bot.heading*180/pi)
-        measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
-        measured_broken_robot.stamp()
+        # measured_broken_robot.setheading(target_bot.heading*180/pi)
+        # measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
+        # measured_broken_robot.stamp()
         broken_robot.setheading(target_bot.heading*180/pi)
         broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-200)
         broken_robot.stamp()
@@ -313,6 +345,8 @@ demo_grading_visual(estimate_next_pos, test_target)
 # print "minimum score: ", min(scores)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
+
+turtle.getscreen()._root.mainloop()
 
 
 

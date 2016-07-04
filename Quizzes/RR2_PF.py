@@ -5,13 +5,14 @@ import random
 from numpy import *
 import turtle
 
+
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 world_size = 10.0
 size_multiplier= 15.0  #change Size of animation
 turning = 2*pi/34.0
 distance = 1.5
 distance_tolerance = 0.01 * distance
-N = 1000
+N = 1500
 measurement_noise = 5.0
 
 
@@ -93,9 +94,9 @@ def distance_between(point1, point2):
 
 
 def estimate_next_pos(measurement, OTHER = None):
-    headingAngle1 = 0.0
 
-    xy_estimate = (3.2, 9.1)
+    xy_estimate = measurement
+
     if OTHER is None:
         createParticles(measurement[0], measurement[1])
         distances = []
@@ -135,8 +136,8 @@ def estimate_next_pos(measurement, OTHER = None):
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * test_target.distance)
-            xy_estimate = particle_filter(Z)
+            #Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * test_target.distance)
+            #xy_estimate = particle_filter(Z)
 
             #print "avgAngle:", avgAngle
             newR = robot(xy_estimate[0], xy_estimate[1], headingAngle2, avgAngle, avgDT)

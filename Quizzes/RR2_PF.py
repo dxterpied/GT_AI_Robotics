@@ -13,7 +13,7 @@ size_multiplier= 15.0  #change Size of animation
 turning = 2*pi/34.0
 distance = 1.5
 distance_tolerance = 0.01 * distance
-N = 500
+N = 1000
 measurement_noise = 5.0
 
 
@@ -22,7 +22,7 @@ test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
 
-def createParticles(worldX, worldY):
+def createParticles(worldX, worldY, turning, distance):
     # create new particles
     for i in range(N):
         r = robot(random.uniform(worldX - 2, worldX + 2),
@@ -35,6 +35,7 @@ def createParticles(worldX, worldY):
                     new_m_noise = 0.0) # measurement noise is not used in particles
 
         particles.append(r)
+
 
 
 def measurement_prob(particleX, particleY, targetMeasurement):
@@ -112,7 +113,6 @@ def estimate_next_pos(measurement, OTHER = None):
     xy_estimate = measurement
 
     if OTHER is None:
-        createParticles(measurement[0], measurement[1])
         distances = []
         angles = []
         coords = []
@@ -150,8 +150,12 @@ def estimate_next_pos(measurement, OTHER = None):
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
+            # create particles only after approximate turning and distance are known
+            if len(particles) == 0:
+                createParticles(measurement[0], measurement[1], avgAngle, avgDT)
+
             Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * test_target.distance)
-            xy_estimate = particle_filter(Z)
+            xy_estimate = particle_filter(Z, avgAngle, avgDT)
 
             #print "avgAngle:", avgAngle
             newR = robot(xy_estimate[0], xy_estimate[1], headingAngle2, avgAngle, avgDT)
@@ -166,13 +170,13 @@ def estimate_next_pos(measurement, OTHER = None):
     return xy_estimate, OTHER
 
 
-def particle_filter(targetMeasurementToLandmarks):
+def particle_filter(targetMeasurementToLandmarks, averageTurning, averageDistance):
     global particles
 
     # PREDICT by moving
     p2 = []
     for i in range(N):
-        newParticle = move(particles[i].x, particles[i].y, particles[i].turning, particles[i].distance, particles[i].heading, particles[i].distance_noise, particles[i].turning_noise, particles[i].measurement_noise)
+        newParticle = move(particles[i].x, particles[i].y, averageTurning, averageDistance, particles[i].heading, particles[i].distance_noise, particles[i].turning_noise, particles[i].measurement_noise)
         p2.append(newParticle)
     particles = p2
 
@@ -281,11 +285,12 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
             # print "position_guess", position_guess
 
             print "You got it right! It took you ", ctr, " steps to localize."
-            prediction.color('red')
-            for i in range(N):
-                p = particles[i]
-                prediction.goto(p.x * size_multiplier, p.y  *size_multiplier-200)
-                prediction.stamp()
+
+            # prediction.color('red')
+            # for i in range(N):
+            #     p = particles[i]
+            #     prediction.goto(p.x * size_multiplier, p.y  *size_multiplier-200)
+            #     prediction.stamp()
 
 
             return ctr

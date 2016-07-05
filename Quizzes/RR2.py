@@ -41,12 +41,9 @@ from numpy import *
 
 
 def estimate_next_pos(measurement, OTHER = None):
-    """Estimate the next (x, y) position of the wandering Traxbot
-    based on noisy (x, y) measurements."""
-    headingAngle1 = 0.0
-    # You must return xy_estimate (x, y), and OTHER (even if it is None)
-    # in this order for grading purposes.
+
     xy_estimate = (3.2, 9.1)
+
     if OTHER is None:
         distances = []
         angles = []

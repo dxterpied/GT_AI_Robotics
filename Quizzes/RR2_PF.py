@@ -44,7 +44,7 @@ def calculateWeight(particleX, particleY, targetMeasurement):
 
 
 # this sense is only used for target bot
-def senseToLandmarks(targetX, targetY, measurement_noise):
+def senseToLandmarks(targetX, targetY):
     Z = []
     import random
     for i in range(len(landmarks)):
@@ -145,7 +145,7 @@ def estimate_next_pos(measurement, OTHER = None):
             if len(particles) == 0:
                 createParticles(measurement[0], measurement[1], avgAngle, avgDT)
 
-            Z = senseToLandmarks(measurement[0], measurement[1], 0.05 * test_target.distance)
+            Z = senseToLandmarks(measurement[0], measurement[1])
             xy_estimate = particle_filter(Z, avgAngle, avgDT)
 
             #print "avgAngle:", avgAngle

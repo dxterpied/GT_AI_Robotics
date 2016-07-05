@@ -6,15 +6,11 @@ from numpy import *
 import turtle
 from collections import Counter
 
-
+# it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
-world_size = 10.0
 size_multiplier= 15.0  #change Size of animation
-turning = 2*pi/34.0
-distance = 1.5
-distance_tolerance = 0.01 * distance
-N = 1000
-measurement_noise = 5.0
+N = 2000
+measurement_noise = 1.0
 
 
 particles = []
@@ -25,8 +21,8 @@ test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 def createParticles(worldX, worldY, turning, distance):
     # create new particles
     for i in range(N):
-        r = robot(random.uniform(worldX - 2, worldX + 2),
-                  random.uniform(worldY - 2, worldY + 2),
+        r = robot(random.uniform(worldX - 20, worldX + 20),
+                  random.uniform(worldY - 20, worldY + 20),
                   random.random() * 2.0*pi, # noise in orientation
                   turning = turning,
                   distance = distance)
@@ -38,7 +34,7 @@ def createParticles(worldX, worldY, turning, distance):
 
 
 
-def measurement_prob(particleX, particleY, targetMeasurement):
+def calculateWeight(particleX, particleY, targetMeasurement):
     # calculates how likely a measurement should be
     prob = 1.0;
     for i in range(len(landmarks)):
@@ -184,7 +180,7 @@ def particle_filter(targetMeasurementToLandmarks, averageTurning, averageDistanc
     w = []
     for i in range(N):
         particle = particles[i]
-        mp = measurement_prob( particle.x, particle.y, targetMeasurementToLandmarks)
+        mp = calculateWeight( particle.x, particle.y, targetMeasurementToLandmarks)
         w.append(  mp )
 
     # RESAMPLING
@@ -315,43 +311,31 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 # How the robot class behaves.
 
 
-demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
 
-# scores = []
-# fails = 0
-# for i in range(10000):
-#
-#     particles = []
-#     test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
-#     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
-#
-#
-#     # create new particles
-#     for i in range(N):
-#         r = robot(random.random() * world_size,
-#                   random.random() * world_size,
-#                   random.random() * 2.0*pi, # noise in orientation
-#                   turning = turning,
-#                   distance = distance)
-#         r.set_noise(new_t_noise = 0.05,
-#                     new_d_noise = 0.05,
-#                     new_m_noise = measurement_noise) # measurement noise is not used in particles
-#         particles.append(r)
-#
-#     score = demo_grading(estimate_next_pos, test_target)
-#
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(100):
 
-turtle.getscreen()._root.mainloop()
+    particles = []
+    test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+    test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+    particles = []
+    score = demo_grading(estimate_next_pos, test_target)
+
+
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+#turtle.getscreen()._root.mainloop()
 
 
 

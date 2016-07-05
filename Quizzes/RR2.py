@@ -55,12 +55,7 @@ def estimate_next_pos(measurement, OTHER = None):
         distances, angles, coords = OTHER
 
         if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = measurement
             hypotenuse1 = distance_between(coords[0], measurement)
-            y1Delta = y2 - y1
-            headingAngle1 = asin(y1Delta / hypotenuse1)
-            angles.append(headingAngle1)
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
@@ -72,7 +67,6 @@ def estimate_next_pos(measurement, OTHER = None):
             x1Delta = point2[0] - point1[0]
             hypotenuse1 = distance_between(point1, point2)
             headingAngleAvg1 = asin(y1Delta / hypotenuse1)
-            headingAngle1 = atan2(y1Delta, x1Delta)
 
             y2Delta = point3[1] - point2[1]
             x2Delta = point3[0] - point2[0]
@@ -80,7 +74,6 @@ def estimate_next_pos(measurement, OTHER = None):
             headingAngle2 = atan2(y2Delta, x2Delta)
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
 
-            predictedAngle = headingAngle2 - headingAngle1
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
             angles.append(abs(predictedTurnAngleAvg))
@@ -88,11 +81,8 @@ def estimate_next_pos(measurement, OTHER = None):
 
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
-            #properAngle = mostLikelyAngle(avgAngle)
 
-            #print "avgDT:", avgDT, "avgAngle:", avgAngle, "headingAngle2:", headingAngle2
 
-            #print "avgAngle:", avgAngle
             newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y

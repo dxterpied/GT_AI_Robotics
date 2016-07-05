@@ -116,12 +116,7 @@ def estimate_next_pos(measurement, OTHER = None):
         distances, angles, coords = OTHER
 
         if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = measurement
             hypotenuse1 = distance_between(coords[0], measurement)
-            y1Delta = y2 - y1
-            headingAngle1 = asin(y1Delta / hypotenuse1)
-            angles.append(headingAngle1)
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
@@ -311,29 +306,36 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 # How the robot class behaves.
 
 
-#demo_grading_visual(estimate_next_pos, test_target)
+demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
 
-scores = []
-fails = 0
-for i in range(100):
+# scores = []
+# fails = 0
+# for i in range(1000):
+#
+#     particles = []
+#     test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+#     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+#     particles = []
+#     score = demo_grading(estimate_next_pos, test_target)
+#
+#
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
-    particles = []
-    test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
-    test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
-    particles = []
-    score = demo_grading(estimate_next_pos, test_target)
+# 100 runs:
+# average score:  103.04
+# minimum score:  7
+# maximum score:  291
+# fails:  0
 
-
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
 
 #turtle.getscreen()._root.mainloop()
 

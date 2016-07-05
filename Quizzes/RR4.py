@@ -278,8 +278,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         distances, angles, coords, xy_estimate, steps = OTHER
 
         if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = target_measurement
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
@@ -350,26 +348,14 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps)
-
-
     if xy_estimate is None:
         xy_estimate = target_measurement
-
     heading_to_target = get_heading(hunter_position, xy_estimate)
     heading_to_target2 = get_heading(hunter_position, predictedPosition)
-
     turning = heading_to_target - hunter_heading # turn towards the target
     if abs(turning) > pi:
         turning = turning % pi
-
     turning2 = heading_to_target2 - hunter_heading # turn towards the target
-
-    # if heading_to_target < -2.0 and hunter_heading > 0:
-    #     print heading_to_target, hunter_heading, turning
-    #     time.sleep(2)
-
-
-    #print hunter_position, xy_estimate, heading_to_target, hunter_heading, turning
     distance = distance_between(hunter_position, xy_estimate)
     distance2 = distance_between(hunter_position, predictedPosition)
 
@@ -378,16 +364,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         distance = distance2
         OTHER = (distances, angles, coords, None, steps)
 
-
-    # if steps == 1 and distance2 < distance:
-    #      turning = turning2
-    #      distance = distance2
-
-    #turning = turning2
-    #distance = distance2
-
-
-    #print turning, distance
     return turning, distance, OTHER
 
 
@@ -656,12 +632,11 @@ def get_heading(hunter_position, target_position):
 target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
-
 hunter = robot(-10.0, -5.0, 0.0)
 
 
 #demo_grading(hunter, target, next_move_straight_line)
-demo_grading_visual(hunter, target, next_move_cut_angle)
+demo_grading_visual(hunter, target, next_move_straight_line)
 
 #print maxX, maxY, minX, minY
 

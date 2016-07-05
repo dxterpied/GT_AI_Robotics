@@ -11,14 +11,13 @@ landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 15.0  #change Size of animation
 N = 2000
 measurement_noise = 1.0
-
-
 particles = []
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
 
 def createParticles(worldX, worldY, turning, distance):
+    particles = []
     # create new particles
     for i in range(N):
         r = robot(random.uniform(worldX - 20, worldX + 20),
@@ -330,10 +329,10 @@ demo_grading_visual(estimate_next_pos, test_target)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
 
-# 100 runs:
-# average score:  103.04
-# minimum score:  7
-# maximum score:  291
+# 1000 runs:
+# average score:  84.057
+# minimum score:  3
+# maximum score:  388
 # fails:  0
 
 

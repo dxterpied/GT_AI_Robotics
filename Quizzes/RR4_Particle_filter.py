@@ -22,6 +22,13 @@ import random
 import turtle
 
 
+# it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
+landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
+size_multiplier= 15.0  #change Size of animation
+N = 2000
+measurement_noise = 1.0
+particles = []
+
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
@@ -38,8 +45,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         distances, angles, coords, xy_estimate, steps = OTHER
 
         if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = target_measurement
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
@@ -110,26 +115,14 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps)
-
-
     if xy_estimate is None:
         xy_estimate = target_measurement
-
     heading_to_target = get_heading(hunter_position, xy_estimate)
     heading_to_target2 = get_heading(hunter_position, predictedPosition)
-
     turning = heading_to_target - hunter_heading # turn towards the target
     if abs(turning) > pi:
         turning = turning % pi
-
     turning2 = heading_to_target2 - hunter_heading # turn towards the target
-
-    # if heading_to_target < -2.0 and hunter_heading > 0:
-    #     print heading_to_target, hunter_heading, turning
-    #     time.sleep(2)
-
-
-    #print hunter_position, xy_estimate, heading_to_target, hunter_heading, turning
     distance = distance_between(hunter_position, xy_estimate)
     distance2 = distance_between(hunter_position, predictedPosition)
 
@@ -138,23 +131,111 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         distance = distance2
         OTHER = (distances, angles, coords, None, steps)
 
-
-    # if steps == 1 and distance2 < distance:
-    #      turning = turning2
-    #      distance = distance2
-
-    #turning = turning2
-    #distance = distance2
-
-
-    #print turning, distance
     return turning, distance, OTHER
+
+
+def calculateWeight(particleX, particleY, targetMeasurement):
+    # calculates how likely a measurement should be
+    prob = 1.0;
+    for i in range(len(landmarks)):
+        dist = distance_between( (particleX, particleY),  (landmarks[i][0], landmarks[i][1]) )
+        prob *= Gaussian(dist, measurement_noise, targetMeasurement[i])
+    return prob
+
+
+# this sense is only used for target bot
+def senseToLandmarks(targetX, targetY):
+    Z = []
+    import random
+    for i in range(len(landmarks)):
+        dist = distance_between( (targetX, targetY),  (landmarks[i][0], landmarks[i][1]) )
+        Z.append(dist)
+    return Z
+
+
+def Gaussian(mu, sigma, x):
+    # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
+    return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
+
+# returns the arithmetic means of x, y and orientation. It is already weighted.
+def get_position(p):
+    x = y = 0.0
+
+    # for some reason averages work much better than most common
+    # countX = Counter([i.x for i in particles])
+    # x = countX.most_common()[0][0]
+    #
+    # countY = Counter([i.y for i in particles])
+    # y = countY.most_common()[0][0]
+    #
+    # return x, y
+
+
+    for i in range(len(p)):
+        x += p[i].x
+        y += p[i].y
+
+
+    return [ x/len(p), y/len(p) ]
+
+
+def move(x, y, turning, distance, heading, distance_noise, turning_noise, measurement_noise):
+    import random
+
+    newHeading = (heading + turning + random.gauss(0.0, turning_noise)) % (2*pi)
+    dist = distance + random.gauss(0.0, distance_noise)
+    newX = x + (cos(newHeading) * dist)
+    newY = y + (sin(newHeading) * dist)
+    # create new particle
+    newRobot = robot(newX, newY, newHeading, turning, distance)
+
+    newRobot.set_noise(new_t_noise = turning_noise,
+                new_d_noise = distance_noise,
+                new_m_noise = measurement_noise) # measurement noise is not used in particles
+
+    return newRobot
+
 
 def distance_between(point1, point2):
     """Computes distance between point1 and point2. Points are (x, y) pairs."""
     x1, y1 = point1
     x2, y2 = point2
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
+def particle_filter(targetMeasurementToLandmarks, averageTurning, averageDistance):
+    global particles
+
+    # PREDICT by moving
+    p2 = []
+    for i in range(N):
+        newParticle = move(particles[i].x, particles[i].y, averageTurning, averageDistance, particles[i].heading, particles[i].distance_noise, particles[i].turning_noise, particles[i].measurement_noise)
+        p2.append(newParticle)
+    particles = p2
+
+    # UPDATE by creating weights
+    w = []
+    for i in range(N):
+        particle = particles[i]
+        mp = calculateWeight( particle.x, particle.y, targetMeasurementToLandmarks)
+        w.append(  mp )
+
+    # RESAMPLING
+    p3 = []
+    index = int(random.random() * N)
+    beta = 0.0
+    mw = max(w)
+    for i in range(N):
+        beta += random.random() * 2.0 * mw
+        while beta > w[index]:
+            beta -= w[index]
+            index = (index + 1) % N
+        p3.append( particles[index] )
+    particles = p3
+    # end resampling
+
+    return get_position(particles)
+
 
 def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     """Returns True if your next_move_fcn successfully guides the hunter_bot
@@ -174,6 +255,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
+            return ctr
             caught = True
 
         # The target broadcasts its noisy measurement
@@ -195,6 +277,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         ctr += 1
         if ctr >= 1000:
             print "It took too many steps to catch the target."
+            return 1000
     return caught
 
 
@@ -213,6 +296,20 @@ def get_heading(hunter_position, target_position):
     heading = angle_trunc(heading)
     return heading
 
+def createParticles(worldX, worldY, turning, distance):
+    # create new particles
+    for i in range(N):
+        r = robot(random.uniform(worldX - 20, worldX + 20),
+                  random.uniform(worldY - 20, worldY + 20),
+                  random.random() * 2.0*pi, # noise in orientation
+                  turning = turning,
+                  distance = distance)
+        r.set_noise(new_t_noise = 0.05,
+                    new_d_noise = 0.05,
+                    new_m_noise = 0.0) # measurement noise is not used in particles
+
+        particles.append(r)
+
 def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     """Returns True if your next_move_fcn successfully guides the hunter_bot
     to the target_bot. This function is here to help you understand how we
@@ -229,8 +326,6 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
     #turtle.setup(800, 800)
 
-    #window = turtle.Screen()
-    #window.bgcolor('white')
     size_multiplier= 20.0  #change Size of animation
     broken_robot = turtle.Turtle()
     broken_robot.shape('turtle')
@@ -249,11 +344,6 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     # We will use your next_move_fcn until we catch the target or time expires.
     while not caught and ctr < 1000:
 
-        # if ctr >= 43:
-        #     #time.sleep(0.5)
-        #     prediction.color('red')
-        #     broken_robot.color('black')
-
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
         target_position = (target_bot.x, target_bot.y)
@@ -261,6 +351,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
+            return ctr
             caught = True
 
         # The target broadcasts its noisy measurement
@@ -291,43 +382,21 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         ctr += 1
         if ctr >= 1000:
             print "It took too many steps to catch the target."
+            return 1000
 
 
 
     return caught
 
-target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
+hunter = robot(-10.0, -5.0, 0.0)
 
-hunter = robot(-10.0, -10.0, 0.0)
-particles = []
+demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading(estimate_next_pos, test_target)
 
-turtle.setup(800, 800)
-
-window = turtle.Screen()
-window.bgcolor('white')
-size_multiplier= 20.0  #change Size of animation
-
-broken_robot = turtle.Turtle()
-broken_robot.shape('turtle')
-broken_robot.color('red')
-broken_robot.resizemode('user')
-broken_robot.shapesize(0.2, 0.2, 0.2)
-broken_robot.penup()
-
-
-#create particles for the state space
-for x in range(-10, 10):
-    for y in range(0, 30):
-        r = robot(x, y, 0.0, 2*pi / 30, 1.5)
-        r.set_noise(0.05, 0.05, 5.0)
-        particles.append(r)
-        #broken_robot.goto(x * size_multiplier, y * size_multiplier - 200)
-        #broken_robot.stamp()
-
-print particles
-#demo_grading_visual(hunter, target, next_move_straight_line)
+#turtle.getscreen()._root.mainloop()
 
 
 

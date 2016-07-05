@@ -133,8 +133,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         distances, angles, coords, xy_estimate, steps = OTHER
 
         if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = target_measurement
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
@@ -168,8 +166,11 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
             xy_PF = particle_filter(Z, avgAngle, avgDT)
 
+            #xy_estimate = particle_filter(Z, avgAngle, avgDT)
 
-            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            #newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(xy_PF[0], xy_PF[1], headingAngle2, avgAngle, avgDT)
+
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
 
@@ -373,6 +374,13 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
             caught = True
+
+            prediction.color('red')
+            for i in range(N):
+                p = particles[i]
+                prediction.goto(p.x * size_multiplier, p.y  *size_multiplier-200)
+                prediction.stamp()
+
 
         # The target broadcasts its noisy measurement
         target_measurement = target_bot.sense()

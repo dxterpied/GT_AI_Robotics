@@ -13,7 +13,7 @@ size_multiplier= 15.0  #change Size of animation
 turning = 2*pi/34.0
 distance = 1.5
 distance_tolerance = 0.01 * distance
-N = 1000
+N = 500
 measurement_noise = 5.0
 
 

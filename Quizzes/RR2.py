@@ -80,6 +80,14 @@ def estimate_next_pos(measurement, OTHER = None):
             avgAngle = sum(angles)/len(angles)
 
             headingAngle2 = atan2(y2Delta, x2Delta)
+
+            # if headingAngle2 != headingAngleAvg2:
+            #     print headingAngle2
+            #     print headingAngleAvg2, point2, point3, x2Delta, y2Delta
+            #     exit(-1)
+            print headingAngle2, headingAngleAvg2, point2, point3, x2Delta, y2Delta, hypotenuse2
+
+
             newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
@@ -210,26 +218,26 @@ test_target.set_noise(0.0, 0.0, measurement_noise)
 
 
 #demo_grading_visual(estimate_next_pos, test_target)
-#demo_grading(estimate_next_pos, test_target)
+demo_grading(estimate_next_pos, test_target)
 
-scores = []
-fails = 0
-for i in range(10000):
-    print i
-    test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
-    test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
-
-    score = demo_grading(estimate_next_pos, test_target)
-
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(10000):
+#     print i
+#     test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+#     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+#
+#     score = demo_grading(estimate_next_pos, test_target)
+#
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
 # average score:  119.483693477
 # minimum score:  3

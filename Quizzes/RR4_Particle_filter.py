@@ -1,19 +1,3 @@
-# ----------
-# Part Four
-#
-# Again, you'll track down and recover the runaway Traxbot.
-# But this time, your speed will be about the same as the runaway bot.
-# This may require more careful planning than you used last time.
-#
-# ----------
-# YOUR JOB
-#
-# Complete the next_move function, similar to how you did last time.
-#
-# ----------
-# GRADING
-#
-# Same as part 3. Again, try to catch the target in as few steps as possible.
 
 from robot import *
 from math import *
@@ -26,9 +10,14 @@ import time
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 15.0  #change Size of animation
-N = 2000
+N = 1000
 measurement_noise = 1.0
 particles = []
+
+bumblebee = turtle.Turtle()
+bumblebee.shape('square')
+bumblebee.color('yellow')
+bumblebee.shapesize(0.2, 0.2, 0.2)
 
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
@@ -85,68 +74,55 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
 
-            bumblebee = turtle.Turtle()
-            bumblebee.shape('square')
-            bumblebee.color('yellow')
-            bumblebee.shapesize(0.2, 0.2, 0.2)
-
-            bumblebee.goto(predictedPosition[0] * size_multiplier, predictedPosition[1] * size_multiplier - 200)
+            bumblebee.goto(xy_estimate[0] * size_multiplier, xy_estimate[1] * size_multiplier - 200)
             bumblebee.stamp()
 
 
-            if xy_estimate is None:
-                steps = 1
-                xy_estimate = predictedPosition
-
-                broken_robot = turtle.Turtle()
-                broken_robot.shape('turtle')
-                broken_robot.color('red')
-                broken_robot.shapesize(0.2, 0.2, 0.2)
-
-
-                while True:
-                    time.sleep(0.5)
-                    distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
-                    # check how many steps it will take to get there for Hunter
-                    projectedDistance = steps * max_distance
-
-                    broken_robot.goto(newR.x * size_multiplier, newR.y * size_multiplier - 200)
-                    broken_robot.stamp()
-
-                    if projectedDistance >= distanceBetweenHunterAndRobot:
-                        #print xy_estimate, steps
-                        break
-
-                    steps += 1
-                    if steps > 50:
-                        break
-                    # move target one more step
-                    newR.move_in_circle()
-                    xy_estimate = newR.x, newR.y
-
-            else:
-                steps -= 1
-                #print "decrement steps", steps
-                if steps <= 0:
-                    xy_estimate = None
+            # if xy_estimate is None:
+            #     steps = 1
+            #     xy_estimate = predictedPosition
+            #
+            #     broken_robot = turtle.Turtle()
+            #     broken_robot.shape('turtle')
+            #     broken_robot.color('red')
+            #     broken_robot.shapesize(0.2, 0.2, 0.2)
+            #
+            #
+            #     while True:
+            #         time.sleep(0.5)
+            #         distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
+            #         # check how many steps it will take to get there for Hunter
+            #         projectedDistance = steps * max_distance
+            #
+            #         broken_robot.goto(newR.x * size_multiplier, newR.y * size_multiplier - 200)
+            #         broken_robot.stamp()
+            #
+            #         if projectedDistance >= distanceBetweenHunterAndRobot:
+            #             #print xy_estimate, steps
+            #             break
+            #
+            #         steps += 1
+            #         if steps > 50:
+            #             break
+            #         # move target one more step
+            #         newR.move_in_circle()
+            #         xy_estimate = newR.x, newR.y
+            #
+            # else:
+            #     steps -= 1
+            #     #print "decrement steps", steps
+            #     if steps <= 0:
+            #         xy_estimate = None
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps)
+
     if xy_estimate is None:
         xy_estimate = target_measurement
-    heading_to_target = get_heading(hunter_position, xy_estimate)
-    heading_to_target2 = get_heading(hunter_position, predictedPosition)
-    turning = heading_to_target - hunter_heading # turn towards the target
-    if abs(turning) > pi:
-        turning = turning % pi
-    turning2 = heading_to_target2 - hunter_heading # turn towards the target
-    distance = distance_between(hunter_position, xy_estimate)
-    distance2 = distance_between(hunter_position, predictedPosition)
 
-    if distance2 <= max_distance:
-        turning = turning2
-        distance = distance2
-        OTHER = (distances, angles, coords, None, steps)
+    heading_to_target = get_heading(hunter_position, xy_estimate)
+    turning = angle_trunc(heading_to_target - hunter_heading) # turn towards the target
+    distance = distance_between(hunter_position, xy_estimate)
 
     return turning, distance, OTHER
 
@@ -343,7 +319,6 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
     #turtle.setup(800, 800)
 
-    size_multiplier= 20.0  #change Size of animation
     broken_robot = turtle.Turtle()
     broken_robot.shape('turtle')
     broken_robot.color('green')

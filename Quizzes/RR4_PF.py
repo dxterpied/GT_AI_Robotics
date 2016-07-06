@@ -26,6 +26,12 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -10.0, 0.0)
 
 
+pf_robot = turtle.Turtle()
+pf_robot.shape('circle')
+pf_robot.color('black')
+pf_robot.penup()
+
+
 def next_move_cut_angle(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     #time.sleep(0.5)
     xy_estimate = target_measurement
@@ -166,6 +172,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             # create particles only after approximate turning and distance are known
             if len(particles) == 0:
+                print "creating particles"
                 createParticles(target_measurement[0], target_measurement[1], avgAngle, avgDT)
 
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
@@ -176,15 +183,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             #newR = robot(xy_estimate[0], xy_estimate[1], headingAngle2, avgAngle, avgDT)
             newR = robot(xy_PF[0], xy_PF[1], headingAngle2, avgAngle, avgDT)
 
-            broken_robot = turtle.Turtle()
-            broken_robot.shape('circle')
-            broken_robot.color('black')
-            broken_robot.penup()
-            broken_robot.shapesize(0.4, 0.4, 0.2)
-
-            broken_robot.goto(xy_PF[0] * size_multiplier, xy_PF[1] * size_multiplier - 200)
-            broken_robot.stamp()
-
+            pf_robot.shapesize(0.2, 0.2, 0.2)
+            pf_robot.goto(xy_PF[0] * size_multiplier, xy_PF[1] * size_multiplier - 200)
+            pf_robot.stamp()
 
             #newR.move_in_circle()
             #predictedPosition = newR.x, newR.y

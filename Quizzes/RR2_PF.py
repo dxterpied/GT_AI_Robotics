@@ -17,7 +17,6 @@ test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
 
 def createParticles(worldX, worldY, turning, distance):
-    particles = []
     # create new particles
     for i in range(N):
         r = robot(random.uniform(worldX - 20, worldX + 20),

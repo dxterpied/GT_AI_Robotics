@@ -14,13 +14,89 @@ N = 1000
 measurement_noise = 1.0
 particles = []
 
+target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
+measurement_noise = .05*target.distance
+target.set_noise(0.0, 0.0, 0.05 * target.distance)
+hunter = robot(-10.0, -5.0, 0.0)
+
+
 bumblebee = turtle.Turtle()
 bumblebee.shape('square')
 bumblebee.color('yellow')
 bumblebee.shapesize(0.2, 0.2, 0.2)
 
 
+
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
+
+    xy_estimate = target_measurement
+
+    if OTHER is None:
+        distances = []
+        angles = []
+        coords = []
+        xy_estimate = target_measurement
+        steps = 0
+    else:
+        distances, angles, coords, xy_estimate, steps = OTHER
+
+        if len(coords) == 1:
+            hypotenuse1 = distance_between(coords[0], target_measurement)
+            distances.append(hypotenuse1)
+
+        elif len(coords) >= 2:
+            point1 = coords[len(coords) - 2]
+            point2 = coords[len(coords) - 1]
+            point3 = target_measurement
+
+            y1Delta = point2[1] - point1[1]
+            hypotenuse1 = distance_between(point1, point2)
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+
+            y2Delta = point3[1] - point2[1]
+            x2Delta = point3[0] - point2[0]
+            hypotenuse2 = distance_between(point2, point3)
+            headingAngle2 = atan2(y2Delta, x2Delta)
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+
+            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+            angles.append(abs(predictedTurnAngleAvg))
+            distances.append(hypotenuse2)
+
+            avgDT = sum(distances)/len(distances)
+            avgAngle = sum(angles)/len(angles)
+
+            # create particles only after approximate turning and distance are known
+            if len(particles) == 0:
+                createParticles(target_measurement[0], target_measurement[1], avgAngle, avgDT)
+
+            Z = senseToLandmarks(target_measurement[0], target_measurement[1])
+            xy_estimate = particle_filter(Z, avgAngle, avgDT)
+
+            bumblebee.goto(xy_estimate[0] * size_multiplier, xy_estimate[1] * size_multiplier - 200)
+            bumblebee.stamp()
+
+            # #print "avgAngle:", avgAngle
+            # newR = robot(xy_estimate[0], xy_estimate[1], headingAngle2, avgAngle, avgDT)
+            # newR.move_in_circle()
+            # xy_estimate = newR.x, newR.y
+
+    coords.append(target_measurement)
+    OTHER = (distances, angles, coords, xy_estimate, steps)
+
+    if xy_estimate is None:
+        xy_estimate = target_measurement
+
+    heading_to_target = get_heading(hunter_position, xy_estimate)
+    turning = angle_trunc(heading_to_target - hunter_heading) # turn towards the target
+    distance = distance_between(hunter_position, xy_estimate)
+
+    return turning, distance, OTHER
+
+
+
+def next_move_straight_line_old(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     predictedPosition = [0, 0]
     xy_estimate = None
@@ -380,10 +456,6 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
     return caught
 
-target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
-measurement_noise = .05*target.distance
-target.set_noise(0.0, 0.0, measurement_noise)
-hunter = robot(-10.0, -5.0, 0.0)
 
 demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(estimate_next_pos, test_target)

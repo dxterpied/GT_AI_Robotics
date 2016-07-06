@@ -17,10 +17,10 @@ target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, .05*target.distance)
 hunter = robot(-10.0, -10.0, 0.0)
 
-bumblebee = turtle.Turtle()
-bumblebee.shape('square')
-bumblebee.color('yellow')
-bumblebee.shapesize(0.2, 0.2, 0.2)
+# bumblebee = turtle.Turtle()
+# bumblebee.shape('square')
+# bumblebee.color('yellow')
+# bumblebee.shapesize(0.2, 0.2, 0.2)
 
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
@@ -71,8 +71,8 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
             xy_pf = particle_filter(Z, avgAngle, avgDT)
 
-            bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
-            bumblebee.stamp()
+            # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
+            # bumblebee.stamp()
 
             #newR = robot(target_measurement[0], target_measurement[1], headingAngle2, avgAngle, avgDT)
             newR = robot(xy_pf[0], xy_pf[1], headingAngle2, avgAngle, avgDT)
@@ -80,13 +80,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             predictedPosition = newR.x, newR.y
 
             if xy_estimate is None:
-
-                # broken_robot = turtle.Turtle()
-                # broken_robot.shape('turtle')
-                # broken_robot.color('red')
-                # #broken_robot.resizemode('user')
-                # broken_robot.shapesize(0.2, 0.2, 0.2)
-
                 steps = 1
 
                 while True:
@@ -123,10 +116,10 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         xy_estimate = target_measurement
     heading_to_target = get_heading(hunter_position, xy_estimate)
     heading_to_target2 = get_heading(hunter_position, predictedPosition)
-    turning = heading_to_target - hunter_heading # turn towards the target
+    turning = angle_trunc(heading_to_target - hunter_heading) # turn towards the target
     if abs(turning) > pi:
         turning = turning % pi
-    turning2 = heading_to_target2 - hunter_heading # turn towards the target
+    turning2 = angle_trunc(heading_to_target2 - hunter_heading) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
     distance2 = distance_between(hunter_position, predictedPosition)
 
@@ -331,37 +324,6 @@ def particle_filter(targetMeasurementToLandmarks, averageTurning, averageDistanc
     return get_position(particles)
 
 
-
-# This is here to give you a sense for how we will be running and grading
-# your code. Note that the OTHER variable allows you to store any
-# information that you want.
-def demo_grading_pf(estimate_next_pos_fcn, target_bot, OTHER = None):
-    localized = False
-
-    distance_tolerance = 0.01 * target_bot.distance
-    ctr = 0
-    import sys
-    # if you haven't localized the target bot, make a guess about the next
-    # position, then we move the bot and compare your guess to the true
-    # next position. When you are close enough, we stop checking.
-    while not localized and ctr <= 1000:
-        ctr += 1
-        measurement = target_bot.sense()
-        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
-        target_bot.move_in_circle()
-        true_position = (target_bot.x, target_bot.y)
-        error = distance_between(position_guess, true_position)
-
-        if error <= distance_tolerance:
-            print "You got it right! It took you ", ctr, " steps to localize."
-            return ctr
-            localized = True
-        if ctr == 1000:
-            print "Sorry, it took you too many steps to localize the target."
-            return 1000
-    return localized
-
-
 def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     """Returns True if your next_move_fcn successfully guides the hunter_bot
     to the target_bot. This function is here to help you understand how we
@@ -444,91 +406,54 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
     return caught
 
+def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
-def demo_grading_visual_pf(estimate_next_pos_fcn, target_bot, OTHER = None):
-    localized = False
-    distance_tolerance = 0.01 * target_bot.distance
+    """Returns True if your next_move_fcn successfully guides the hunter_bot
+    to the target_bot. This function is here to help you understand how we
+    will grade your submission."""
+    max_distance = 0.98 * target_bot.distance # 0.98 is an example. It will change.
+    separation_tolerance = 0.02 * target_bot.distance # hunter must be within 0.02 step size to catch target
+    caught = False
     ctr = 0
-    # if you haven't localized the target bot, make a guess about the next
-    # position, then we move the bot and compare your guess to the true
-    # next position. When you are close enough, we stop checking.
-    #For Visualization
-    import turtle    #You need to run this locally to use the turtle module
-    window = turtle.Screen()
-    window.bgcolor('white')
-    broken_robot = turtle.Turtle()
-    broken_robot.shape('turtle')
-    broken_robot.color('green')
-    broken_robot.resizemode('user')
-    broken_robot.shapesize(0.2, 0.2, 0.2)
-    measured_broken_robot = turtle.Turtle()
-    measured_broken_robot.shape('circle')
-    measured_broken_robot.color('red')
-    measured_broken_robot.resizemode('user')
-    measured_broken_robot.shapesize(0.1, 0.1, 0.1)
-    prediction = turtle.Turtle()
-    prediction.shape('arrow')
-    prediction.color('blue')
-    prediction.resizemode('user')
-    prediction.shapesize(0.2, 0.2, 0.2)
-    prediction.penup()
-    broken_robot.penup()
-    measured_broken_robot.penup()
-    #End of Visualization
-    while not localized and ctr <= 1000:
-        ctr += 1
-        measurement = target_bot.sense()
-        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
-        target_bot.move_in_circle()
-        true_position = (target_bot.x, target_bot.y)
-        error = distance_between(position_guess, true_position)
 
-        if error <= distance_tolerance:
+    # We will use your next_move_fcn until we catch the target or time expires.
+    while not caught and ctr < 1000:
 
-            # countX = Counter([i.x for i in particles])
-            # x = countX.most_common()[0][0]
-            # countY = Counter([i.y for i in particles])
-            # y = countY.most_common()[0][0]
-            # print "x, y", x, y
-            # print "true_position", true_position
-            # print "position_guess", position_guess
+        # Check to see if the hunter has caught the target.
+        hunter_position = (hunter_bot.x, hunter_bot.y)
+        target_position = (target_bot.x, target_bot.y)
 
-            print "You got it right! It took you ", ctr, " steps to localize."
-
-            # prediction.color('red')
-            # for i in range(N):
-            #     p = particles[i]
-            #     prediction.goto(p.x * size_multiplier, p.y  *size_multiplier-200)
-            #     prediction.stamp()
-
-
+        separation = distance_between(hunter_position, target_position)
+        if separation < separation_tolerance:
+            print "You got it right! It took you ", ctr, " steps to catch the target."
             return ctr
-            localized = True
-        if ctr == 1000:
-            print "Sorry, it took you too many steps to localize the target."
-        #More Visualization
-        # measured_broken_robot.setheading(target_bot.heading*180/pi)
-        # measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
-        # measured_broken_robot.stamp()
-        broken_robot.setheading(target_bot.heading*180/pi)
-        broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-200)
-        broken_robot.stamp()
-        prediction.setheading(target_bot.heading*180/pi)
-        prediction.goto(position_guess[0]*size_multiplier, position_guess[1]*size_multiplier-200)
-        prediction.stamp()
-        #End of Visualization
-    return localized
+            caught = True
 
+        # The target broadcasts its noisy measurement
+        target_measurement = target_bot.sense()
 
-# This is how we create a target bot. Check the robot.py file to understand
-# How the robot class behaves.
+        # This is where YOUR function will be called.
+        turning, distance, OTHER = next_move_fcn(hunter_position, hunter_bot.heading, target_measurement, max_distance, OTHER)
+
+        # Don't try to move faster than allowed!
+        if distance > max_distance:
+            distance = max_distance
+
+        # We move the hunter according to your instructions
+        hunter_bot.move(turning, distance)
+
+        # The target continues its (nearly) circular motion.
+        target_bot.move_in_circle()
+
+        ctr += 1
+        if ctr >= 1000:
+            print "It took too many steps to catch the target."
+            return 1000
+    return caught
 
 
 demo_grading_visual(hunter, target, next_move_straight_line)
-
-#demo_grading_visual_pf(estimate_next_pos, target)
-#demo_grading(estimate_next_pos, test_target)
-
+#demo_grading(hunter, target, next_move_straight_line)
 # scores = []
 # fails = 0
 # for i in range(1000):

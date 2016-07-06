@@ -20,6 +20,7 @@ from math import *
 from matrix import *
 import random
 import turtle
+import time
 
 
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
@@ -71,31 +72,46 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            # create particles only after approximate turning and distance are known
+            if len(particles) == 0:
+                createParticles(target_measurement[0], target_measurement[1], avgAngle, avgDT)
+
+            Z = senseToLandmarks(target_measurement[0], target_measurement[1])
+            x_y = particle_filter(Z, avgAngle, avgDT)
+
+            xy_estimate = x_y
+
+            newR = robot(x_y[0], x_y[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
 
+            bumblebee = turtle.Turtle()
+            bumblebee.shape('square')
+            bumblebee.color('yellow')
+            bumblebee.shapesize(0.2, 0.2, 0.2)
+
+            bumblebee.goto(predictedPosition[0] * size_multiplier, predictedPosition[1] * size_multiplier - 200)
+            bumblebee.stamp()
+
+
             if xy_estimate is None:
-
-                # broken_robot = turtle.Turtle()
-                # broken_robot.shape('turtle')
-                # broken_robot.color('red')
-                # #broken_robot.resizemode('user')
-                # broken_robot.shapesize(0.2, 0.2, 0.2)
-
                 steps = 1
+                xy_estimate = predictedPosition
+
+                broken_robot = turtle.Turtle()
+                broken_robot.shape('turtle')
+                broken_robot.color('red')
+                broken_robot.shapesize(0.2, 0.2, 0.2)
+
 
                 while True:
-                    #time.sleep(0.1)
-                    xy_estimate = newR.x, newR.y
-                    headingAngle2 = newR.heading
+                    time.sleep(0.5)
                     distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
                     # check how many steps it will take to get there for Hunter
                     projectedDistance = steps * max_distance
 
-                    # broken_robot.setheading(headingAngle2 * 180/pi)
-                    # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
-                    # broken_robot.stamp()
+                    broken_robot.goto(newR.x * size_multiplier, newR.y * size_multiplier - 200)
+                    broken_robot.stamp()
 
                     if projectedDistance >= distanceBetweenHunterAndRobot:
                         #print xy_estimate, steps
@@ -104,8 +120,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                     steps += 1
                     if steps > 50:
                         break
-
+                    # move target one more step
                     newR.move_in_circle()
+                    xy_estimate = newR.x, newR.y
 
             else:
                 steps -= 1

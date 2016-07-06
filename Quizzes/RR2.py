@@ -56,6 +56,7 @@ def estimate_next_pos(measurement, OTHER = None):
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
+
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement
@@ -68,7 +69,6 @@ def estimate_next_pos(measurement, OTHER = None):
             y2Delta = point3[1] - point2[1]
             x2Delta = point3[0] - point2[0]
             hypotenuse2 = distance_between(point2, point3)
-            headingAngle2 = atan2(y2Delta, x2Delta)
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
 
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
@@ -79,7 +79,7 @@ def estimate_next_pos(measurement, OTHER = None):
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-
+            headingAngle2 = atan2(y2Delta, x2Delta)
             newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
@@ -140,6 +140,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
             localized = True
         if ctr == 1000:
             print "Sorry, it took you too many steps to localize the target."
+            return 1000
     return localized
 
 
@@ -208,99 +209,39 @@ test_target.set_noise(0.0, 0.0, measurement_noise)
 
 
 
-
-def test2():
-    angles = []
-    distances = []
-    coords = []
-
-    ctr = 0
-    # if you haven't localized the target bot, make a guess about the next
-    # position, then we move the bot and compare your guess to the true
-    # next position. When you are close enough, we stop checking.
-    while ctr <= 500:
-        ctr += 1
-        measurement = test_target.sense()
-        test_target.move_in_circle()
-
-        if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = measurement
-            hypotenuse1 = distance_between(coords[0], measurement)
-            y1Delta = y2 - y1
-            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
-            angles.append(headingAngleAvg1)
-            distances.append(hypotenuse1)
-        elif len(coords) == 2:
-            point1 = coords[0]
-            point2 = coords[1]
-            point3 = measurement
-            y1Delta = point2[1] - point1[1]
-            x1Delta = point2[0] - point1[0]
-            hypotenuse1 = distance_between(point1, point2)
-            headingAngle1 = atan2(y1Delta, x1Delta)
-            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
-            y2Delta = point3[1] - point2[1]
-            x2Delta = point3[0] - point2[0]
-            hypotenuse2 = distance_between(point2, point3)
-            headingAngle2 = atan2(y2Delta, x2Delta)
-            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
-            predictedTurnAngle = headingAngle2 - headingAngle1
-            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-            angles.append(abs(predictedTurnAngleAvg))
-            distances.append(hypotenuse2)
-        elif len(coords) > 2:
-            point1 = coords[len(coords) - 2]
-            point2 = coords[len(coords) - 1]
-            point3 = measurement
-            y1Delta = point2[1] - point1[1]
-            x1Delta = point2[0] - point1[0]
-            hypotenuse1 = distance_between(point1, point2)
-            headingAngle1 = atan2(y1Delta, x1Delta)
-            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
-            y2Delta = point3[1] - point2[1]
-            x2Delta = point3[0] - point2[0]
-            hypotenuse2 = distance_between(point2, point3)
-            headingAngle2 = atan2(y2Delta, x2Delta)
-            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
-            predictedTurnAngle = headingAngle2 - headingAngle1
-            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-            angles.append(abs(predictedTurnAngleAvg))
-            distances.append(hypotenuse2)
-        coords.append(measurement)
-
-    avgDT = sum(distances)/len(distances)
-    avgAngle = sum(angles)/len(angles)
-    print angles
-
-    #print "avgDT: ", avgDT
-    #print "actual distance: ", 1.5
-    print "avgAngle: ", avgAngle
-    #print "actual turn angle: ", 2*pi / 34.0
-
-
-
-
-demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
-# scores = []
-# for i in range(10000):
-#     scores.append(demo_grading(estimate_next_pos, test_target))
-#
-# print "average score: ", sum(scores)/len(scores)
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
 
-# stats:
-# Sorry, it took you too many steps to localize the target.
-# Sorry, it took you too many steps to localize the target.
-# Sorry, it took you too many steps to localize the target.
-# average score:  123
-# minimum score:  False
-# maximum score:  947
+scores = []
+fails = 0
+for i in range(10000):
+    print i
+    test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+    test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+
+    score = demo_grading(estimate_next_pos, test_target)
+
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+# average score:  119.483693477
+# minimum score:  3
+# maximum score:  982
+# fails:  4
+
+# average score:  120.4889
+# minimum score:  3
+# maximum score:  979
+# fails:  0
 
 
-#print "actual turn angle: ", 2*pi / 34.0
 
 
 

@@ -118,6 +118,7 @@ def estimate_next_pos(measurement, OTHER = None):
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
+
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement

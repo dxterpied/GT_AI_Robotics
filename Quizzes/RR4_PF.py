@@ -459,6 +459,8 @@ scores = []
 fails = 0
 for i in range(1000):
 
+    print i
+
     particles = []
     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
     target.set_noise(0.0, 0.0, .05*target.distance)

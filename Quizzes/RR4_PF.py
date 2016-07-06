@@ -69,12 +69,13 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 createParticles(target_measurement[0], target_measurement[1], avgAngle, avgDT)
 
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
-            xy_estimate = particle_filter(Z, avgAngle, avgDT)
+            xy_pf = particle_filter(Z, avgAngle, avgDT)
 
-            bumblebee.goto(xy_estimate[0] * size_multiplier, xy_estimate[1] * size_multiplier - 200)
+            bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
             bumblebee.stamp()
 
-            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            #newR = robot(target_measurement[0], target_measurement[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(xy_pf[0], xy_pf[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
 
@@ -524,6 +525,7 @@ def demo_grading_visual_pf(estimate_next_pos_fcn, target_bot, OTHER = None):
 
 
 demo_grading_visual(hunter, target, next_move_straight_line)
+
 #demo_grading_visual_pf(estimate_next_pos, target)
 #demo_grading(estimate_next_pos, test_target)
 
@@ -555,7 +557,7 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 # fails:  0
 
 
-#turtle.getscreen()._root.mainloop()
+turtle.getscreen()._root.mainloop()
 
 
 

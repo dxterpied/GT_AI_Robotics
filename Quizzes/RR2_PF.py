@@ -305,13 +305,13 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 # How the robot class behaves.
 
 
-demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
 
 # scores = []
 # fails = 0
 # for i in range(1000):
-#
+#     print i
 #     particles = []
 #     test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 #     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)

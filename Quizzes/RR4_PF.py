@@ -8,7 +8,7 @@ from collections import Counter
 
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
-size_multiplier= 15.0  #change Size of animation
+size_multiplier= 20.0  #change Size of animation
 N = 2000
 measurement_noise = 1.0
 particles = []
@@ -17,10 +17,10 @@ target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, .05*target.distance)
 hunter = robot(-10.0, -10.0, 0.0)
 
-# bumblebee = turtle.Turtle()
-# bumblebee.shape('square')
-# bumblebee.color('yellow')
-# bumblebee.shapesize(0.2, 0.2, 0.2)
+bumblebee = turtle.Turtle()
+bumblebee.shape('square')
+bumblebee.color('yellow')
+bumblebee.shapesize(0.2, 0.2, 0.2)
 
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
@@ -71,10 +71,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
             xy_pf = particle_filter(Z, avgAngle, avgDT)
 
-            # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
-            # bumblebee.stamp()
+            bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
+            bumblebee.stamp()
 
-            #newR = robot(target_measurement[0], target_measurement[1], headingAngle2, avgAngle, avgDT)
             newR = robot(xy_pf[0], xy_pf[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
@@ -117,12 +116,12 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     heading_to_target = get_heading(hunter_position, xy_estimate)
     heading_to_target2 = get_heading(hunter_position, predictedPosition)
     turning = angle_trunc(heading_to_target - hunter_heading) # turn towards the target
-    if abs(turning) > pi:
-        turning = turning % pi
+    # if abs(turning) > pi:
+    #     turning = turning % pi
     turning2 = angle_trunc(heading_to_target2 - hunter_heading) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
     distance2 = distance_between(hunter_position, predictedPosition)
-
+    # if distance to the next predicted step is less than max distance, jump there
     if distance2 <= max_distance:
         turning = turning2
         distance = distance2
@@ -458,16 +457,12 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 # scores = []
 # fails = 0
 # for i in range(1000):
-#
 #     print i
-#
 #     particles = []
 #     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
 #     target.set_noise(0.0, 0.0, .05*target.distance)
 #     hunter = robot(-10.0, -10.0, 0.0)
-#
 #     score = demo_grading(hunter, target, next_move_straight_line)
-#
 #     if score == 1000:
 #         fails += 1
 #     else:
@@ -478,11 +473,6 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
 
-# 1000 runs:
-# average score:  84.057
-# minimum score:  3
-# maximum score:  388
-# fails:  0
 
 
 #turtle.getscreen()._root.mainloop()

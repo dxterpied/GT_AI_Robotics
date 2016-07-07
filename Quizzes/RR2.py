@@ -32,30 +32,31 @@ from matrix import * # Check the matrix.py tab to see how this works.
 import random
 from numpy import *
 
-# This is the function you have to write. Note that measurement is a
-# single (x, y) point. This function will have to be called multiple
-# times before you have enough information to accurately predict the
-# next position. The OTHER variable that your function returns will be
-# passed back to your function the next time it is called. You can use
-# this to keep track of important information over time.
-
 
 def estimate_next_pos(measurement, OTHER = None):
 
-    xy_estimate = (3.2, 9.1)
+    xy_estimate = measurement
 
     if OTHER is None:
         distances = []
         angles = []
         coords = []
+        turnAngle = 0.0
     else:
-        distances, angles, coords = OTHER
+        distances, angles, coords, turnAngle = OTHER
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], measurement)
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
+
+            if turnAngle == 0.0:
+                avgDT = sum(distances)/len(distances)
+                if distance_between(measurement, coords[0]) <= 0.8 * avgDT:
+                    turnAngle = 2*pi / len(coords)
+                    print len(coords)
+
 
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
@@ -81,12 +82,9 @@ def estimate_next_pos(measurement, OTHER = None):
 
             headingAngle2 = atan2(y2Delta, x2Delta)
 
-            # if headingAngle2 != headingAngleAvg2:
-            #     print headingAngle2
-            #     print headingAngleAvg2, point2, point3, x2Delta, y2Delta
-            #     exit(-1)
-            print headingAngle2, headingAngleAvg2, point2, point3, x2Delta, y2Delta, hypotenuse2
-
+            if turnAngle > 0.0:
+                print turnAngle, avgAngle
+                avgAngle = turnAngle
 
             newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
@@ -94,25 +92,9 @@ def estimate_next_pos(measurement, OTHER = None):
         #print "headingAngle1", headingAngle1
 
     coords.append(measurement)
-    OTHER = (distances, angles, coords)
+    OTHER = (distances, angles, coords, turnAngle)
 
     return xy_estimate, OTHER
-
-
-def mostLikelyAngle(angle):
-
-    for i in range(30, 40):
-        properAngle = 2*pi / i
-        diff = abs(properAngle - angle)
-        # if difference less than or equal to 10% of properAngle
-        if diff <= 0.01 * properAngle:
-            print angle
-            print properAngle, i
-
-            #exit()
-            return properAngle
-
-    return angle
 
 
 
@@ -217,8 +199,8 @@ test_target.set_noise(0.0, 0.0, measurement_noise)
 
 
 
-#demo_grading_visual(estimate_next_pos, test_target)
-demo_grading(estimate_next_pos, test_target)
+demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading(estimate_next_pos, test_target)
 
 # scores = []
 # fails = 0

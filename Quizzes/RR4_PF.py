@@ -14,7 +14,7 @@ measurement_noise = 1.0
 particles = []
 
 target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-target.set_noise(0.0, 0.0, .05*target.distance)
+target.set_noise(0.0, 0.0, .05 * target.distance)
 hunter = robot(-10.0, -10.0, 0.0)
 
 bumblebee = turtle.Turtle()
@@ -34,8 +34,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         coords = []
         xy_estimate = target_measurement
         steps = 0
+        xy_pf = (0, 0)
     else:
-        distances, angles, coords, xy_estimate, steps = OTHER
+        distances, angles, coords, xy_estimate, steps, xy_pf = OTHER
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
@@ -110,7 +111,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                     xy_estimate = None
 
     coords.append(target_measurement)
-    OTHER = (distances, angles, coords, xy_estimate, steps)
+    OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf)
     if xy_estimate is None:
         xy_estimate = target_measurement
     heading_to_target = get_heading(hunter_position, xy_estimate)
@@ -125,7 +126,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     if distance2 <= max_distance:
         turning = turning2
         distance = distance2
-        OTHER = (distances, angles, coords, None, steps)
+        OTHER = (distances, angles, coords, None, steps, xy_pf)
 
     return turning, distance, OTHER
 
@@ -377,6 +378,9 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
         # This is where YOUR function will be called.
         turning, distance, OTHER = next_move_fcn(hunter_position, hunter_bot.heading, target_measurement, max_distance, OTHER)
+        # predictedPosition = OTHER[5]
+        # print "predicted distance to target: ", distance_between(predictedPosition, target_position)
+        # print "measured distance to target:  ", distance_between(target_measurement, target_position)
 
         # Don't try to move faster than allowed!
         if distance > max_distance:

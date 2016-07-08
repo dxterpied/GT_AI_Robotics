@@ -487,11 +487,17 @@ print "minimum score: ", min(scores)
 print "maximum score: ", max(scores)
 print "fails: ", fails
 #
-#
+# with predicted angle:
 # average score:  165.305
 # minimum score:  21
 # maximum score:  848
 # fails:  0
+
+# without predicted angle:
+# average score:  161.693079238
+# minimum score:  21
+# maximum score:  856
+# fails:  3
 
 
 #turtle.getscreen()._root.mainloop()

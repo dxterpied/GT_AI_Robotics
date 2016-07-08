@@ -59,14 +59,14 @@ kf = UnscentedKalmanFilter(
 
 states = [[0., 0.], [2. ,2.], [5., 5.]]
 observations = [[0.1, 0.2], [2.1 ,2.2], [5.0,5.1]]
-states, observations = kf.sample(50, initial_state_mean)
+#states, observations = kf.sample(50, initial_state_mean)
 
 #print states, observations
 
 # estimate state with filtering and smoothing
 filtered_state_estimates = kf.filter(observations)[0]
 
-print filtered_state_estimates
+#print filtered_state_estimates
 
 # draw estimates
 pl.figure()
@@ -79,4 +79,4 @@ pl.legend((lines_true[0], lines_filt[0]),
           loc='lower left')
 
 
-pl.show()
+#pl.show()

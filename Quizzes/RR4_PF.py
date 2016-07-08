@@ -82,8 +82,8 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
             # bumblebee.stamp()
 
-            if turnAngle > 0.0:
-                avgAngle = turnAngle
+            # if turnAngle > 0.0:
+            #     avgAngle = turnAngle
 
             newR = robot(xy_pf[0], xy_pf[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
@@ -486,7 +486,12 @@ print "average score: ", sum(scores)/ float(len(scores))
 print "minimum score: ", min(scores)
 print "maximum score: ", max(scores)
 print "fails: ", fails
-
+#
+#
+# average score:  165.305
+# minimum score:  21
+# maximum score:  848
+# fails:  0
 
 
 #turtle.getscreen()._root.mainloop()

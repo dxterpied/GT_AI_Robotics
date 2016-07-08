@@ -55,7 +55,6 @@ def estimate_next_pos(measurement, OTHER = None):
                 avgDT = sum(distances)/len(distances)
                 if distance_between(measurement, coords[0]) <= 0.8 * avgDT:
                     turnAngle = 2*pi / len(coords)
-                    print len(coords)
 
 
             point1 = coords[len(coords) - 2]
@@ -83,7 +82,6 @@ def estimate_next_pos(measurement, OTHER = None):
             headingAngle2 = atan2(y2Delta, x2Delta)
 
             if turnAngle > 0.0:
-                print turnAngle, avgAngle
                 avgAngle = turnAngle
 
             newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)

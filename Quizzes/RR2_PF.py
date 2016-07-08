@@ -24,8 +24,8 @@ def createParticles(worldX, worldY, turning, distance):
                   random.random() * 2.0*pi, # noise in orientation
                   turning = turning,
                   distance = distance)
-        r.set_noise(new_t_noise = 0.05,
-                    new_d_noise = 0.05,
+        r.set_noise(new_t_noise = 0.07,
+                    new_d_noise = 0.07,
                     new_m_noise = 0.0) # measurement noise is not used in particles
 
         particles.append(r)
@@ -305,7 +305,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 # How the robot class behaves.
 
 
-#demo_grading_visual(estimate_next_pos, test_target)
+demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
 
 # scores = []

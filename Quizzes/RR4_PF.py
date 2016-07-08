@@ -9,7 +9,7 @@ from collections import Counter
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 20.0  #change Size of animation
-N = 2000
+N = 1000
 measurement_noise = 1.0
 particles = []
 
@@ -17,10 +17,10 @@ target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, .05 * target.distance)
 hunter = robot(-10.0, -10.0, 0.0)
 
-bumblebee = turtle.Turtle()
-bumblebee.shape('square')
-bumblebee.color('yellow')
-bumblebee.shapesize(0.2, 0.2, 0.2)
+# bumblebee = turtle.Turtle()
+# bumblebee.shape('square')
+# bumblebee.color('yellow')
+# bumblebee.shapesize(0.2, 0.2, 0.2)
 
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
@@ -35,8 +35,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         xy_estimate = target_measurement
         steps = 0
         xy_pf = (0, 0)
+        turnAngle = 0.0
     else:
-        distances, angles, coords, xy_estimate, steps, xy_pf = OTHER
+        distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle = OTHER
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
@@ -44,6 +45,12 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             xy_estimate = target_measurement
 
         elif len(coords) >= 2:
+
+            if turnAngle == 0.0:
+                avgDT = sum(distances)/len(distances)
+                if distance_between(target_measurement, coords[0]) <= 0.8 * avgDT:
+                    turnAngle = 2*pi / len(coords)
+
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = target_measurement
@@ -72,8 +79,11 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
             xy_pf = particle_filter(Z, avgAngle, avgDT)
 
-            bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
-            bumblebee.stamp()
+            # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
+            # bumblebee.stamp()
+
+            if turnAngle > 0.0:
+                avgAngle = turnAngle
 
             newR = robot(xy_pf[0], xy_pf[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
@@ -111,7 +121,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                     xy_estimate = None
 
     coords.append(target_measurement)
-    OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf)
+    OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle)
     if xy_estimate is None:
         xy_estimate = target_measurement
     heading_to_target = get_heading(hunter_position, xy_estimate)
@@ -126,7 +136,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     if distance2 <= max_distance:
         turning = turning2
         distance = distance2
-        OTHER = (distances, angles, coords, None, steps, xy_pf)
+        OTHER = (distances, angles, coords, None, steps, xy_pf, turnAngle)
 
     return turning, distance, OTHER
 
@@ -455,27 +465,27 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-# scores = []
-# fails = 0
-# for i in range(1000):
-#     print i
-#     particles = []
-#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-#     target.set_noise(0.0, 0.0, .05*target.distance)
-#     hunter = robot(-10.0, -10.0, 0.0)
-#     score = demo_grading(hunter, target, next_move_straight_line)
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    particles = []
+    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, .05*target.distance)
+    hunter = robot(-10.0, -10.0, 0.0)
+    score = demo_grading(hunter, target, next_move_straight_line)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
 
 
 

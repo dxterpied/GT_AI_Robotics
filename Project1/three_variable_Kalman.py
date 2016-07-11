@@ -220,47 +220,44 @@ def kalman_filter(x, P, measurement):
 
     return x,P
 
+# state variables are in this order: x, y, x_prime, y_prime
+deltaT = 1.0 # time interval; in this case it's arbitrary because we are not measuring real time
 
-deltaT = 1.0 # time interval
-x = matrix([[0.],
-            [0.],
-            [0.],
-            [0.]]) # initial state
-
+# initial state
+x = matrix([[0.], # x
+            [0.], # y
+            [0.], # x prime
+            [0.]]) # y prime
 P = matrix([
             [1000., 0., 0., 0.],
             [0., 1000., 0., 0.],
             [0., 0., 1000., 0.],
-            [0., 0., 0., 1000.] ]) # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
-
-u = matrix([[0.], [0.], [0.], [0.]]) # external motion
-
+            [0., 0., 0., 1000.] ]) # initial uncertainty
 F = matrix([
-        [1., 0., deltaT, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
-        [0., 1., 0., deltaT], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
-        [0., 0., 1., 0.], # this is to update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
-        [0., 0., 0., 1.]  # this is to update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
-    ]) # next state function: generalize the 2d version to 4d
+        [1., 0., deltaT, 0.], # update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT * x_prime
+        [0., 1., 0., deltaT], # update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
+        [0., 0., 1., 0.],     # update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
+        [0., 0., 0., 1.]      # update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
+    ]) # next state function
 
 H = matrix([ [1., 0., 0., 0.],
             [0., 1., 0., 0.]]) # measurement function: reflect the fact that we observe x and y but not the two velocities
-R = matrix([
-    [0.1, 0.],
-    [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
+R = matrix([[0.1, 0.],
+            [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
 I = matrix([ [1., 0., 0., 0.],
             [0., 1., 0., 0.],
             [0., 0., 1., 0.],
             [0., 0., 0., 1.]  ]) # 4d identity matrix
 
 
-target = robot(-0.0, -0.0, 0.0, 2*pi / 30, 1)
+target = robot(-10.0, -0.0, 0.0, 2*pi / 30, 1)
 target.set_noise(0.0, 0.0, 0.2)
 
 
 new_x = x
 P_matrix = P
 
-for i in range(10):
+for i in range(25):
 
     target.moveStraight()
     measurements = target.sense()
@@ -272,12 +269,8 @@ for i in range(10):
     predictedX = new_x.value[0][0]
     predictedY = new_x.value[1][0]
 
-
     predicted_robot.goto(predictedX * size_multiplier, predictedY * size_multiplier)
     predicted_robot.stamp()
-
-    print new_x
-    print target.x, target.y
 
     broken_robot.goto(measurements[0] * size_multiplier, measurements[1] * size_multiplier)
     broken_robot.stamp()

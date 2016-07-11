@@ -154,7 +154,7 @@ def kalman_filter(x, P):
 
         # PREDICTION  (based on theory). Uses total probability and convolution
         x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4
-        P = F * P * F.transpose() # + Q  the Q matrix (process noise) is not present here
+        P = F * P * F.transpose() # + Q  the Q matrix (process noise covariance matrix) is not present here
 
     return x,P
 

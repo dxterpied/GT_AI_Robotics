@@ -139,8 +139,10 @@ class matrix:
 ########################################
 
 # Implement the filter function below
-
+# returns updated state (x) and updated process covariance matrix (P)
 def kalman_filter(x, P):
+
+    # for each measurement, perform measurement update and prediction
     for n in range(len(measurements)):
 
         # MEASUREMENT UPDATE   # in Michel van Biezen it's y1 = C * x1 + z1: https://www.youtube.com/watch?v=fojH-viOxI4
@@ -152,6 +154,9 @@ def kalman_filter(x, P):
         x = x + (K * y)
         P = (I - (K * H)) * P
 
+        print "x:", x, "P:", P
+
+
         # PREDICTION  (based on theory). Uses total probability and convolution
         x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4
         P = F * P * F.transpose() # + Q  the Q matrix (process noise covariance matrix) is not present here
@@ -162,7 +167,7 @@ def kalman_filter(x, P):
 ### use the code below to test your filter!
 ############################################
 
-measurements = [1, 2, 3]
+measurements = [1, 2, 3, 5, 6, 10]
 
 x = matrix([[0.], [0.]]) # state matrix (location and velocity)
 P = matrix([[1000., 0.],
@@ -179,7 +184,7 @@ R = matrix([[1.]]) # measurement noise
 
 I = matrix([[1., 0.], [0., 1.]]) # identity matrix
 
-print kalman_filter(x, P)
+kalman_filter(x, P)
 # output should be:
 # x: [[3.9996664447958645], [0.9999998335552873]]
 # P: [[2.3318904241194827, 0.9991676099921091], [0.9991676099921067, 0.49950058263974184]]

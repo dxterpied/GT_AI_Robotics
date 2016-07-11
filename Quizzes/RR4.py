@@ -528,7 +528,6 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     #For Visualization
 
     turtle.setup(800, 800)
-
     window = turtle.Screen()
     window.bgcolor('white')
     size_multiplier= 20.0  #change Size of animation

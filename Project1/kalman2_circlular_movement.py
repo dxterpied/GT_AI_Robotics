@@ -28,6 +28,12 @@ predicted_robot.color('blue')
 predicted_robot.shapesize(0.2, 0.2, 0.2)
 
 
+def angle_trunc(a):
+    while a < 0.0:
+        a += pi * 2
+    return ((a + pi) % (pi * 2)) - pi
+
+
 # Implements a linear Kalman filter.
 class KalmanFilterLinear:
   def __init__(self,_A, _B, _H, _x, _P, _Q, _R):
@@ -66,7 +72,7 @@ class Cannon:
   #--------------------------------VARIABLES----------------------------------
   angle = 2*pi/6 # The angle from the ground to point the cannon.
   muzzle_velocity = 100 # Muzzle velocity of the cannon.
-  gravity = [0., 0.] # gravity = [0,-9.81] # A vector containing gravitational acceleration.
+  gravity = [0, -9.81] # A vector containing gravitational acceleration.
   # The initial velocity of the cannonball
   velocity = [muzzle_velocity * cos(angle), muzzle_velocity * sin(angle)]
   loc = [-200,-200] # The initial location of the cannonball.
@@ -75,6 +81,8 @@ class Cannon:
   def __init__(self,_timeslice,_noiselevel):
     self.timeslice = _timeslice
     self.noiselevel = _noiselevel
+    self.heading = 0.0
+    self.turning = 2*pi/30
 
   def add(self,x,y):
     return x + y
@@ -103,14 +111,11 @@ class Cannon:
   # Increment through the next timeslice of the simulation.
   def Step(self):
 
-
     # We're gonna use this vector to timeslice everything.
     timeslicevec = [self.timeslice,  self.timeslice]
 
     # Break gravitational force into a smaller time slice.
     sliced_gravity = map(self.mult, self.gravity, timeslicevec)
-    print sliced_gravity
-    exit()
 
     # The only force on the cannonball is gravity.
     sliced_acceleration = sliced_gravity
@@ -121,8 +126,17 @@ class Cannon:
 
     sliced_velocity = map(self.mult, self.velocity, timeslicevec )
 
+        # self.x += distance * cos(self.heading)
+        # self.y += distance * sin(self.heading)
+
+
     # Apply the velocity to location.
-    self.loc = map(self.add, self.loc, sliced_velocity)
+    # self.loc = map(self.add, self.loc, sliced_velocity)
+
+    self.heading += self.turning # update the angle to create a new angle
+    self.heading = angle_trunc(self.heading)
+
+    self.loc = map(self.add, self.loc, [30. * cos(self.heading), 30. * sin(self.heading)])
 
     # # Cannonballs shouldn't go into the ground.
     # if self.loc[1] < 0:
@@ -231,7 +245,15 @@ for i in range(iterations):
     c.Step()
     kx.append(kf.GetCurrentState()[0,0])
     ky.append(kf.GetCurrentState()[2,0])
-    kf.Step(control_vector,numpy.matrix([[newestX],[c.GetXVelocity()],[newestY],[c.GetYVelocity()]]))
+
+
+
+    control_vector = numpy.matrix( [[0],
+                               [0],
+                               [30. * cos(c.heading)],
+                               [30. * sin(c.heading)]] )
+
+    kf.Step(control_vector, numpy.matrix([[newestX], [c.GetXVelocity()], [newestY], [c.GetYVelocity()]]))
 
     predicted_robot.goto(kf.GetCurrentState()[0,0] , kf.GetCurrentState()[2,0])
     predicted_robot.stamp()

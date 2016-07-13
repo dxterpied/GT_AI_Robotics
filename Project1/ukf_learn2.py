@@ -165,6 +165,8 @@ def main():
     print "\t\t\t", "x\t\t\t", "y\t\t\t", "V\t\t\t", "phi"
     print 0, ",", np.array2string(state, formatter={'float_kind': lambda x: ",\t{:>8.3f}".format(x)})
     u = np.array([0., 0.])
+
+
     for i in range(100):
         u += controls.get(i, np.array([0., 0.])) * dt
         state, cov = UKF(state, cov, u, h(state[:, np.newaxis]), g, h, R, Q)

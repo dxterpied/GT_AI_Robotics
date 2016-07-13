@@ -27,7 +27,7 @@ class KalmanFilterLinear:
 
   def Step(self,control_vector,measurement_vector):
     #---------------------------Prediction step-----------------------------
-    predicted_state_estimate = self.A * self.current_state_estimate + self.B * control_vector
+    predicted_state_estimate = self.A * self.current_state_estimate + numpy.dot(self.B, control_vector)
     predicted_prob_estimate = (self.A * self.current_prob_estimate) * numpy.transpose(self.A) + self.Q
     #--------------------------Observation step-----------------------------
     innovation = measurement_vector - self.H*predicted_state_estimate

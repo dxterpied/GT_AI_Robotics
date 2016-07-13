@@ -14,6 +14,12 @@ print B
 
 print "dot product (matrix multiplication): "
 print np.dot(A, B)
+# [[19 22]
+#  [43 50]]
 
 print "arithmetic multiplication: "
 print A * B
+# [[ 5 12]
+#  [21 32]]
+
+# if you do np.matrix(), you can multiply using *

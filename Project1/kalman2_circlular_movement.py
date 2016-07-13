@@ -33,37 +33,33 @@ def angle_trunc(a):
         a += pi * 2
     return ((a + pi) % (pi * 2)) - pi
 
-
 # Implements a linear Kalman filter.
 class KalmanFilterLinear:
-  def __init__(self,_A, _B, _H, _x, _P, _Q, _R):
-    self.A = _A                      # State transition matrix.
-    self.B = _B                      # Control matrix.
-    self.H = _H                      # Observation matrix.
-    self.current_state_estimate = _x # Initial state estimate.
-    self.current_prob_estimate = _P  # Initial covariance estimate.
-    self.Q = _Q                      # Estimated error in process.
-    self.R = _R                      # Estimated error in measurements.
+  def __init__(self,_F, _B, _H, _x, _P, _R):
+    self.F = _F     # State transition matrix.
+    self.B = _B     # Control matrix.
+    self.H = _H     # Observation matrix.
+    self.x = _x     # Initial state estimate.
+    self.P = _P     # Initial covariance estimate.
+    self.R = _R     # Estimated error in measurements.
 
   def GetCurrentState(self):
-    return self.current_state_estimate
+    return self.x
 
-  def Step(self, control_vector, measurement_vector):
-    #---------------------------Prediction step-----------------------------
-    x = self.A * self.current_state_estimate + self.B * control_vector
-    P = (self.A * self.current_prob_estimate) * numpy.transpose(self.A) + self.Q
+  def Step(self, u, Z):
+    #--- Prediction -----------------------------
+    x = (self.F * self.x) + (self.B * u)
+    P = (self.F * self.P) * numpy.transpose(self.F)
 
-    #--------------------------Observation step-----------------------------
-    innovation = measurement_vector - self.H * x
-    innovation_covariance = self.H * P * numpy.transpose(self.H) + self.R
+    #--- Observation -----------------------------
+    y = Z - self.H * x
+    S = self.H * P * numpy.transpose(self.H) + self.R # innovation covariance
 
-    #-----------------------------Update step-------------------------------
-    K = P * numpy.transpose(self.H) * numpy.linalg.inv(innovation_covariance)
-    self.current_state_estimate = x + K * innovation
-    # We need the size of the matrix so we can make an identity matrix.
-    size = self.current_prob_estimate.shape[0]
-    # eye(n) = nxn identity matrix.
-    self.current_prob_estimate = (numpy.eye(size)- K * self.H) * P
+    #---- Update -------------------------------
+    K = P * numpy.transpose(self.H) * numpy.linalg.inv(S)
+    self.x = x + (K * y)
+    I = numpy.eye(self.P.shape[0]) # We need the size of the matrix so we can make an identity matrix.
+    self.P = (I - K * self.H) * P
 
 # Simulates the classic physics problem of a cannon shooting a ball in a
 # parabolic arc.  In addition to giving "true" values back, you can also ask
@@ -83,6 +79,9 @@ class Cannon:
     self.noiselevel = _noiselevel
     self.heading = 0.0
     self.turning = 2*pi/30
+    self.distance = 10
+    self.x = -200
+    self.y = -200
 
   def add(self,x,y):
     return x + y
@@ -91,10 +90,10 @@ class Cannon:
     return x * y
 
   def GetX(self):
-    return self.loc[0]
+    return self.x
 
   def GetY(self):
-    return self.loc[1]
+    return self.y
 
   def GetXWithNoise(self):
     return random.gauss(self.GetX(),self.noiselevel)
@@ -112,35 +111,31 @@ class Cannon:
   def Step(self):
 
     # We're gonna use this vector to timeslice everything.
-    timeslicevec = [self.timeslice,  self.timeslice]
-
+    #timeslicevec = [self.timeslice,  self.timeslice]
     # Break gravitational force into a smaller time slice.
-    sliced_gravity = map(self.mult, self.gravity, timeslicevec)
-
+    #sliced_gravity = map(self.mult, self.gravity, timeslicevec)
     # The only force on the cannonball is gravity.
-    sliced_acceleration = sliced_gravity
-
+    #sliced_acceleration = sliced_gravity
     # Apply the acceleration to velocity.
-
-    self.velocity = map(self.add, self.velocity, sliced_acceleration)
-
-    sliced_velocity = map(self.mult, self.velocity, timeslicevec )
-
-        # self.x += distance * cos(self.heading)
-        # self.y += distance * sin(self.heading)
-
-
+    # self.velocity = map(self.add, self.velocity, sliced_acceleration)
+    # sliced_velocity = map(self.mult, self.velocity, timeslicevec )
     # Apply the velocity to location.
     # self.loc = map(self.add, self.loc, sliced_velocity)
 
     self.heading += self.turning # update the angle to create a new angle
     self.heading = angle_trunc(self.heading)
 
-    self.loc = map(self.add, self.loc, [30. * cos(self.heading), 30. * sin(self.heading)])
+    #self.loc = map(self.add, self.loc, [30. * cos(self.heading), 30. * sin(self.heading)])
+
+    #self.x += self.distance * cos(self.heading)
+    self.x += self.distance
+    self.y += self.distance * sin(self.heading)
 
     # # Cannonballs shouldn't go into the ground.
     # if self.loc[1] < 0:
     #   self.loc[1] = 0
+
+
 
 #=============================REAL PROGRAM START================================
 # Let's go over the physics behind the cannon shot, just to make sure it's
@@ -152,120 +147,75 @@ class Cannon:
 # 14.416 seconds for full journey
 # distance = 70.710 m/s * 14.416 sec = 1019.36796 m
 
-timeslice = 0.1 # How many seconds should elapse per iteration?
-iterations = 100 # How many iterations should the simulation run for?
-# (notice that the full journey takes 14.416 seconds, so 145 iterations will
-# cover the whole thing when timeslice = 0.10)
-noiselevel = 30  # How much noise should we add to the noisy measurements?
 muzzle_velocity = 100 # How fast should the cannonball come out?
+deltaT = 1
 angle = 90 # Angle from the ground.
-
-# These are arrays to store the data points we want to plot at the end.
-x = []
-y = []
-nx = []
-ny = []
-kx = []
-ky = []
-
-# Let's make a cannon simulation.
-c = Cannon(timeslice,noiselevel)
-
 speedX = muzzle_velocity * cos(angle * pi/180)
 speedY = muzzle_velocity * sin(angle * pi/180)
 
 # This is the state transition vector, which represents part of the kinematics.
-# 1, ts, 0,  0  =>  x(n+1) = x(n) + vx(n)
+# 1, ts, 0,  0  =>  x(n+1) = x(n) + vs
 # 0,  1, 0,  0  => vx(n+1) =        vx(n)
-# 0,  0, 1, ts  =>  y(n+1) =              y(n) + vy(n)
+# 0,  0, 1, ts  =>  y(n+1) =              y(n) + vs * sin(self.heading)
 # 0,  0, 0,  1  => vy(n+1) =                     vy(n)
 # Remember, acceleration gets added to these at the control vector.
-
-state_transition = numpy.matrix([
-    [1,timeslice,0,0],
+F = numpy.matrix([
+    [1,1,0,0],
     [0,1,0,0],
-    [0,0,1,timeslice],
+    [0,0,1,1],
     [0,0,0,1]])
 
-control_matrix = numpy.matrix([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]])
-# The control vector, which adds acceleration to the kinematic equations.
-# 0          =>  x(n+1) =  x(n+1)
-# 0          => vx(n+1) = vx(n+1)
-# -9.81*ts^2 =>  y(n+1) =  y(n+1) + 0.5*-9.81*ts^2
-# -9.81*ts   => vy(n+1) = vy(n+1) + -9.81*ts
+B = numpy.matrix([[0,0,0,0],
+                  [0,0,0,0],
+                  [0,0,1,0],
+                  [0,0,0,0]])
 
+# The control vector, which adds acceleration to the kinematic equations.
 # control_vector = numpy.matrix( [[0],
 #                                [0],
 #                                [0.5 * -9.81 * timeslice * timeslice],
 #                                [-9.81*timeslice]] )
 
-control_vector = numpy.matrix( [[0],
-                               [0],
-                               [0.],
-                               [0.]] )
-
-
-
 # After state transition and control, here are the equations:
 #  x(n+1) = x(n) + vx(n)
 # vx(n+1) = vx(n)
-#  y(n+1) = y(n) + vy(n) - 0.5*9.81*ts^2
-# vy(n+1) = vy(n) + -9.81*ts
-# Which, if you recall, are the equations of motion for a parabola.  Perfect.
+#  y(n+1) = y(n) + vy(n) * sin(self.heading)
+# vy(n+1) = vy(n)
 
 # Observation matrix is the identity matrix, since we can get direct
 # measurements of all values in our example.
-observation_matrix = numpy.eye(4)
-
+H = numpy.eye(4)
 # This is our guess of the initial state.  I intentionally set the Y value
 # wrong to illustrate how fast the Kalman filter will pick up on that.
-initial_state = numpy.matrix([[0],[speedX],[500],[speedY]])
+x = numpy.matrix([[0], [0] , [100], [0] ])
+P = numpy.eye(4)
+R = numpy.eye(4)*0.2
 
-initial_probability = numpy.eye(4)
-
-process_covariance = numpy.zeros(4)
-measurement_covariance = numpy.eye(4)*0.2
-
-kf = KalmanFilterLinear(state_transition, control_matrix, observation_matrix, initial_state, initial_probability,
-                        process_covariance, measurement_covariance)
+kf = KalmanFilterLinear(F, B, H, x, P, R)
+# Let's make a cannon simulation.
+c = Cannon(_timeslice = deltaT, _noiselevel = 30)
 
 # Iterate through the simulation.
-for i in range(iterations):
-    x.append(c.GetX())
-    y.append(c.GetY())
-
+for i in range(100):
     target_robot.goto(c.GetX(), c.GetY())
     target_robot.stamp()
 
     newestX = c.GetXWithNoise()
     newestY = c.GetYWithNoise()
-    nx.append(newestX)
-    ny.append(newestY)
+    Z = numpy.matrix([[newestX], [c.GetXVelocity()], [newestY], [c.GetYVelocity()]])
+
     # Iterate the cannon simulation to the next timeslice.
     c.Step()
-    kx.append(kf.GetCurrentState()[0,0])
-    ky.append(kf.GetCurrentState()[2,0])
 
+    u = numpy.matrix( [[0],
+                        [0],
+                        [c.distance + 10. * cos(c.heading)],
+                        [0]] )
 
-
-    control_vector = numpy.matrix( [[0],
-                               [0],
-                               [30. * cos(c.heading)],
-                               [30. * sin(c.heading)]] )
-
-    kf.Step(control_vector, numpy.matrix([[newestX], [c.GetXVelocity()], [newestY], [c.GetYVelocity()]]))
+    kf.Step(u, Z)
 
     predicted_robot.goto(kf.GetCurrentState()[0,0] , kf.GetCurrentState()[2,0])
     predicted_robot.stamp()
 
-
-
-# Plot all the results we got.
-# pylab.plot(x,y,'-',nx,ny,':',kx,ky,'--')
-# pylab.xlabel('X position')
-# pylab.ylabel('Y position')
-# pylab.title('Measurement of a Cannonball in Flight')
-# pylab.legend(('true','measured','kalman'))
-# pylab.show()
 
 turtle.getscreen()._root.mainloop()

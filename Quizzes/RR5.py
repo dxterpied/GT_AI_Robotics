@@ -17,10 +17,11 @@ target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, 2.0 * target.distance)
 hunter = robot(-10.0, -10.0, 0.0)
 
-# bumblebee = turtle.Turtle()
-# bumblebee.shape('square')
-# bumblebee.color('yellow')
-# bumblebee.shapesize(0.2, 0.2, 0.2)
+bumblebee = turtle.Turtle()
+bumblebee.shape('square')
+bumblebee.color('red')
+bumblebee.penup()
+bumblebee.shapesize(0.2, 0.2, 0.2)
 
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
@@ -79,7 +80,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
             xy_pf = particle_filter(Z, avgAngle, avgDT)
 
-            # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
+            # bumblebee.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
             # bumblebee.stamp()
 
             # if turnAngle > 0.0:
@@ -386,11 +387,11 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # The target broadcasts its noisy measurement
         target_measurement = target_bot.sense()
 
+        bumblebee.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
+        bumblebee.stamp()
+
         # This is where YOUR function will be called.
         turning, distance, OTHER = next_move_fcn(hunter_position, hunter_bot.heading, target_measurement, max_distance, OTHER)
-        # predictedPosition = OTHER[5]
-        # print "predicted distance to target: ", distance_between(predictedPosition, target_position)
-        # print "measured distance to target:  ", distance_between(target_measurement, target_position)
 
         # Don't try to move faster than allowed!
         if distance > max_distance:
@@ -407,6 +408,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         broken_robot.setheading(target_bot.heading*180/pi)
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
         broken_robot.stamp()
+
         prediction.setheading(target_bot.heading*180/pi)
         prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
         prediction.stamp()
@@ -465,27 +467,27 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    particles = []
-    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-    target.set_noise(0.0, 0.0, 2.0 * target.distance)
-    hunter = robot(-10.0, -10.0, 0.0)
-    score = demo_grading(hunter, target, next_move_straight_line)
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     particles = []
+#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+#     target.set_noise(0.0, 0.0, 2.0 * target.distance)
+#     hunter = robot(-10.0, -10.0, 0.0)
+#     score = demo_grading(hunter, target, next_move_straight_line)
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 #
 # with predicted angle:
 # average score:  165.305

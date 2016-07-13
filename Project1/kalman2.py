@@ -49,7 +49,7 @@ class Cannon:
   muzzle_velocity = 100 # Muzzle velocity of the cannon.
   gravity = [0,-9.81] # A vector containing gravitational acceleration.
   # The initial velocity of the cannonball
-  velocity = [muzzle_velocity*math.cos(angle*math.pi/180), muzzle_velocity*math.sin(angle*math.pi/180)]
+  velocity = [muzzle_velocity * math.cos(angle * math.pi/180), muzzle_velocity * math.sin(angle * math.pi/180)]
   loc = [0,0] # The initial location of the cannonball.
   acceleration = [0,0] # The initial acceleration of the cannonball.
   #---------------------------------METHODS-----------------------------------
@@ -78,6 +78,7 @@ class Cannon:
     timeslicevec = [self.timeslice,self.timeslice]
     # Break gravitational force into a smaller time slice.
     sliced_gravity = map(self.mult,self.gravity,timeslicevec)
+
     # The only force on the cannonball is gravity.
     sliced_acceleration = sliced_gravity
     # Apply the acceleration to velocity.

@@ -86,7 +86,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # if turnAngle > 0.0:
             #     avgAngle = turnAngle
 
-            newR = robot(xy_pf[0], xy_pf[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(target_measurement[0], target_measurement[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
 
@@ -134,10 +134,10 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     distance = distance_between(hunter_position, xy_estimate)
     distance2 = distance_between(hunter_position, predictedPosition)
     # if distance to the next predicted step is less than max distance, jump there
-    if distance2 <= max_distance:
-        turning = turning2
-        distance = distance2
-        OTHER = (distances, angles, coords, None, steps, xy_pf, turnAngle)
+    # if distance2 <= max_distance:
+    #     turning = turning2
+    #     distance = distance2
+    #     OTHER = (distances, angles, coords, None, steps, xy_pf, turnAngle)
 
     return turning, distance, OTHER
 

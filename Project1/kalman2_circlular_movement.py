@@ -6,7 +6,8 @@
 # Note: This code is part of a larger tutorial "Kalman Filters for Undergrads"
 # located at http://greg.czerniak.info/node/5.
 
-import pylab
+import matplotlib
+matplotlib.use('TkAgg')
 from math import *
 import random
 import numpy
@@ -35,9 +36,8 @@ def angle_trunc(a):
 
 # Implements a linear Kalman filter.
 class KalmanFilterLinear:
-  def __init__(self,_F, _B, _H, _x, _P, _R):
+  def __init__(self,_F, _H, _x, _P, _R):
     self.F = _F     # State transition matrix.
-    self.B = _B     # Control matrix.
     self.H = _H     # Observation matrix.
     self.x = _x     # Initial state estimate.
     self.P = _P     # Initial covariance estimate.
@@ -46,9 +46,10 @@ class KalmanFilterLinear:
   def GetCurrentState(self):
     return self.x
 
-  def Step(self, u, Z):
+  def Step(self, Z, _F):
+    self.F = _F
     #--- Prediction -----------------------------
-    x = (self.F * self.x) + (self.B * u)
+    x = (self.F * self.x)
     P = (self.F * self.P) * numpy.transpose(self.F)
 
     #--- Observation -----------------------------
@@ -159,16 +160,12 @@ speedY = muzzle_velocity * sin(angle * pi/180)
 # 0,  0, 1, ts  =>  y(n+1) =              y(n) + vs * sin(self.heading)
 # 0,  0, 0,  1  => vy(n+1) =                     vy(n)
 # Remember, acceleration gets added to these at the control vector.
+
 F = numpy.matrix([
     [1,1,0,0],
     [0,1,0,0],
     [0,0,1,1],
     [0,0,0,1]])
-
-B = numpy.matrix([[0,0,0,0],
-                  [0,0,0,0],
-                  [0,0,1,0],
-                  [0,0,0,0]])
 
 # The control vector, which adds acceleration to the kinematic equations.
 # control_vector = numpy.matrix( [[0],
@@ -191,7 +188,7 @@ x = numpy.matrix([[0], [0] , [100], [0] ])
 P = numpy.eye(4)
 R = numpy.eye(4)*0.2
 
-kf = KalmanFilterLinear(F, B, H, x, P, R)
+kf = KalmanFilterLinear(F, H, x, P, R)
 # Let's make a cannon simulation.
 c = Cannon(_timeslice = deltaT, _noiselevel = 30)
 
@@ -207,12 +204,14 @@ for i in range(100):
     # Iterate the cannon simulation to the next timeslice.
     c.Step()
 
-    u = numpy.matrix( [[0],
-                        [0],
-                        [c.distance + 10. * cos(c.heading)],
-                        [0]] )
+    F = numpy.matrix([
+        [1,1,0,0],
+        [0,1,0,0],
+        [0, 0, 1, 10. * cos(c.heading)],
+        [0,0,0,1]])
 
-    kf.Step(u, Z)
+
+    kf.Step(Z, F)
 
     predicted_robot.goto(kf.GetCurrentState()[0,0] , kf.GetCurrentState()[2,0])
     predicted_robot.stamp()

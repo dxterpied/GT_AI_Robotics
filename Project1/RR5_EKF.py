@@ -7,14 +7,12 @@
 
 from robot import *
 from math import *
-#from matrix import *
-from copy import deepcopy
 import turtle
-import random
-import time
 import matplotlib
 matplotlib.use('TkAgg')
-#import EKF
+from numpy import zeros, eye, diag, sin, cos, linalg, pi, matrix
+import pylab
+
 
 def next_move(hunter_position, hunter_heading, target_measurement,
               max_distance, OTHER = None):
@@ -64,11 +62,6 @@ def next_move(hunter_position, hunter_heading, target_measurement,
     # the progress of the hunt (or maybe some localization information). Your return format
     # must be as follows in order to be graded properly.
     return turning, distance, OTHER
-
-
-
-from numpy import zeros, eye, diag, sin, cos, linalg, pi, matrix
-import pylab
 
 def EKF_Motion(X = None, P = None, dt = 0.):
     # Extended Kalman Filter Motion Estimate for nonlinear X state
@@ -148,6 +141,7 @@ def EKF_Motion(X = None, P = None, dt = 0.):
 
     return estimate_xy, X, P
 
+
 def EKF_Measurement(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
     # Extended Kalman Filter Measurement Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
@@ -219,6 +213,7 @@ def EKF_Measurement(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
 
     return estimate_xy, X, P
 
+
 def EKF_Example():
     # Just an example of EKF in work
     import random
@@ -252,11 +247,13 @@ def EKF_Example():
     print 'Blue circles are state estimates post measurement update'
     print 'Red plus signs are state estimates post motion update'
 
+
 def angle_trunc(a):
     """This maps all angles to a domain of [-pi, pi]"""
     while a < 0.0:
         a += pi * 2
     return ((a + pi) % (pi * 2)) - pi
+
 
 def get_heading(from_position, to_position):
     """Returns the angle, in radians, between the target and hunter positions"""
@@ -266,11 +263,13 @@ def get_heading(from_position, to_position):
     heading = angle_trunc(heading)
     return heading
 
+
 def distance_between(point1, point2):
     """Computes distance between point1 and point2. Points are (x, y) pairs."""
     x1, y1 = point1
     x2, y2 = point2
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
 
 def turtle_demo(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     """Returns True if your next_move_fcn successfully guides the hunter_bot
@@ -413,7 +412,6 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = 2.0*target.distance # VERY NOISY!!
 target.set_noise(0.0, 0.0, measurement_noise)
-
 hunter = robot(-10.0, -10.0, 0.0)
 
 print demo_grading(hunter, target, next_move)

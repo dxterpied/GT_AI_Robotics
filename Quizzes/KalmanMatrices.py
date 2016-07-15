@@ -151,10 +151,14 @@ def kalman_filter(x, P):
         y = Z - (H * x)                # Innovation or measurement residual
         S = H * P * H.transpose() + R
         K = P * H.transpose() * S.inverse() # Kalman gain
+
+        #print "y", y, "K", K
+        #print "x, (K * y)", x, (K * y)
+
         x = x + (K * y)
         P = (I - (K * H)) * P
 
-        print "x:", x, "P:", P
+        #print "x:", x, "P:", P
 
         # PREDICTION  (based on theory). Uses total probability and convolution
         x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4

@@ -80,7 +80,7 @@ class Cannon:
     self.noiselevel = _noiselevel
     self.heading = 0.0
     self.turning = 2*pi/30
-    self.distance = 10
+    self.distance = 30
     self.x = -200
     self.y = -200
 
@@ -102,11 +102,6 @@ class Cannon:
   def GetYWithNoise(self):
     return random.gauss(self.GetY(),self.noiselevel)
 
-  def GetXVelocity(self):
-    return self.velocity[0]
-
-  def GetYVelocity(self):
-    return self.velocity[1]
 
   # Increment through the next timeslice of the simulation.
   def Step(self):
@@ -128,8 +123,8 @@ class Cannon:
 
     #self.loc = map(self.add, self.loc, [30. * cos(self.heading), 30. * sin(self.heading)])
 
-    #self.x += self.distance * cos(self.heading)
-    self.x += self.distance
+    self.x += self.distance * cos(self.heading)
+    #self.x += self.distance
     self.y += self.distance * sin(self.heading)
 
     # # Cannonballs shouldn't go into the ground.
@@ -151,8 +146,6 @@ class Cannon:
 muzzle_velocity = 100 # How fast should the cannonball come out?
 deltaT = 1
 angle = 90 # Angle from the ground.
-speedX = muzzle_velocity * cos(angle * pi/180)
-speedY = muzzle_velocity * sin(angle * pi/180)
 
 # This is the state transition vector, which represents part of the kinematics.
 # 1, ts, 0,  0  =>  x(n+1) = x(n) + vs
@@ -184,7 +177,7 @@ F = numpy.matrix([
 H = numpy.eye(4)
 # This is our guess of the initial state.  I intentionally set the Y value
 # wrong to illustrate how fast the Kalman filter will pick up on that.
-x = numpy.matrix([[0], [0] , [100], [0] ])
+x = numpy.matrix([[0], [0] , [0], [0] ])
 P = numpy.eye(4)
 R = numpy.eye(4)*0.2
 
@@ -193,26 +186,26 @@ kf = KalmanFilterLinear(F, H, x, P, R)
 c = Cannon(_timeslice = deltaT, _noiselevel = 30)
 
 # Iterate through the simulation.
-for i in range(100):
+for i in range(10):
     target_robot.goto(c.GetX(), c.GetY())
     target_robot.stamp()
 
     newestX = c.GetXWithNoise()
     newestY = c.GetYWithNoise()
-    Z = numpy.matrix([[newestX], [c.GetXVelocity()], [newestY], [c.GetYVelocity()]])
+    Z = numpy.matrix([[newestX], [0], [newestY], [0]])
 
     # Iterate the cannon simulation to the next timeslice.
     c.Step()
 
     F = numpy.matrix([
-        [1,1,0,0],
+        [1,  30. * sin(c.heading),0,0],
         [0,1,0,0],
-        [0, 0, 1, 10. * cos(c.heading)],
+        [0, 0, 1,  30. * cos(c.heading)],
         [0,0,0,1]])
 
 
     kf.Step(Z, F)
-
+    print kf.x
     predicted_robot.goto(kf.GetCurrentState()[0,0] , kf.GetCurrentState()[2,0])
     predicted_robot.stamp()
 

@@ -1,6 +1,5 @@
 # taken from https://github.com/lhaberke/AI_Robotics_FinalProject/StudentMain.py
 
-
 # ----------
 # Part Four
 #
@@ -10,10 +9,9 @@ from robot import *
 from matrix import *
 import turtle
 from numpy import zeros, eye, diag, sin, cos, linalg, pi, matrix
-import pylab
 
 
-def EKF_Motion(X = None, P = None, dt = 0.):
+def EKF_Predict(X = None, P = None, dt = 0.):
     # Extended Kalman Filter Motion Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
 
@@ -23,8 +21,8 @@ def EKF_Motion(X = None, P = None, dt = 0.):
     max_turn_rate = pi/4 # max of 45deg/sec
 
     # Various motion noise for Q
-    x_var = y_var = max_speed*dt    # set for max speed
-    theta_var = max_turn_rate*dt    # Assuming max turn in a step
+    x_var = y_var = max_speed * dt    # set for max speed
+    theta_var = max_turn_rate * dt    # Assuming max turn in a step
     v_var = max_speed               # set for max speed
     d_theta_var = max_turn_rate     # assuming low acceleration
 
@@ -52,11 +50,11 @@ def EKF_Motion(X = None, P = None, dt = 0.):
             # x = x + integral(v*cos(theta + d_theta*dt) - v*cos(theta))
             # y = y + integral(v*sin(theta + d_theta*dt) - v*sin(theta))
             # theta = theta + d_theta*dt
-        FX = matrix([[x + v/d_theta * ( sin(theta + d_theta*dt) - sin(theta))],
-                    [ y + v/d_theta * (-cos(theta + d_theta*dt) + cos(theta))],
-                    [                   theta + d_theta*dt                   ],
-                    [                           v                            ],
-                    [                       d_theta                         ]])
+        FX = matrix([[x + v/d_theta * ( sin(theta + d_theta * dt) - sin(theta))],
+                    [ y + v/d_theta * (-cos(theta + d_theta * dt) + cos(theta))],
+                    [                   theta + d_theta * dt                   ],
+                    [                           v                             ],
+                    [                       d_theta                           ]])
 
     # Since X = F(X), we can just set X = FX
     X = FX
@@ -70,14 +68,14 @@ def EKF_Motion(X = None, P = None, dt = 0.):
     #        |  dF(X[0])/dX[n]  ...  dF(X[n])/dX[n]  |
     # Notice diagonals will all be 1 and lower triangle has no correlation (=0)
     JF = eye(5)
-    JF[0,2] =   v/d_theta * (cos(theta + d_theta*dt) - cos(theta))
-    JF[0,3] =  1./d_theta * (sin(theta + d_theta*dt) - sin(theta))
-    JF[0,4] = - v/(d_theta**2) * (sin(theta + d_theta*dt) - sin(theta)) \
-               + v/d_theta * dt * cos(theta + d_theta*dt)
-    JF[1,2] =   v/d_theta * (sin(theta + d_theta*dt) - sin(theta))
-    JF[1,3] =  1./d_theta * (-cos(theta + d_theta*dt) + cos(theta))
-    JF[1,4] = - v/(d_theta**2) * (-cos(theta + d_theta*dt) + cos(theta)) \
-               + v/d_theta * dt * sin(theta + d_theta*dt)
+    JF[0,2] =   v/d_theta * (cos(theta + d_theta * dt) - cos(theta))
+    JF[0,3] =  1./d_theta * (sin(theta + d_theta * dt) - sin(theta))
+    JF[0,4] = - v/(d_theta**2) * (sin(theta + d_theta * dt) - sin(theta)) \
+               + v/d_theta * dt * cos(theta + d_theta * dt)
+    JF[1,2] =   v/d_theta * (sin(theta + d_theta * dt) - sin(theta))
+    JF[1,3] =  1./d_theta * (-cos(theta + d_theta * dt) + cos(theta))
+    JF[1,4] = - v/(d_theta**2) * (-cos(theta + d_theta * dt) + cos(theta)) \
+               + v/d_theta * dt * sin(theta + d_theta * dt)
     JF[2,4] = dt
 
     # Q is the Motion Uncertainty Matrix, I'll use max step changes for now.
@@ -92,7 +90,7 @@ def EKF_Motion(X = None, P = None, dt = 0.):
     return estimate_xy, X, P
 
 
-def EKF_Measurement(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
+def EKF_Update(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
     # Extended Kalman Filter Measurement Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
 
@@ -164,86 +162,37 @@ def EKF_Measurement(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
     return estimate_xy, X, P
 
 
-def EKF_Example():
-    # Just an example of EKF in work
-    import random
-    from math import sqrt
-
-    print 'Running an EKF on a rover running along y=2x.'
-    meas_sigma = float(input('What measurement variance do you want?: '))
-    noise_est = float(input('What measurement noise factor do you want?: '))
-
-    X = None
-    P = None
-    xmot = []
-    ymot = []
-    xmeas = []
-    ymeas = []
-    sum_error = 0
-    for i in range(100):
-        measurement = [random.gauss(float(i), meas_sigma),
-                       random.gauss(float(2*i), meas_sigma)]
-        estimate, X, P = EKF_Measurement(measurement, X, P, 1., noise_est)
-        xmot.append(estimate[0])
-        ymot.append(estimate[1])
-        estimate, X, P = EKF_Motion(X, P, 1.)
-        xmeas.append(estimate[0])
-        ymeas.append(estimate[1])
-        sum_error += sqrt((float(i)-estimate[0])**2+(float(2*i)-estimate[1])**2)
-    pylab.figure()
-    pylab.plot(xmot, ymot, 'bo')
-    pylab.plot(xmeas,ymeas,'r+')
-    print 'Sum_error = ', sum_error
-    print 'Blue circles are state estimates post measurement update'
-    print 'Red plus signs are state estimates post motion update'
-
-
 def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     # This function will be called after each time the target moves.
-
-    # ************************* My Code Start *******************
-
     # Measurement filter needed since it is noisy.   Using None as:
     # [target_measurements, hunter_positions, hunter_headings, P]
     # where P is our uncertainty matrix
 
     noise_est = 4. # should be 2x-4x noise variance
-    if not OTHER: # first time calling this function, set up my OTHER variables.
-        last_est_xy = target_measurement[:]
+    if not OTHER:
+        last_est_xy = target_measurement
         X = None
         P = None
         OTHER = [last_est_xy, X, P]
-    else: # not the first time, update my history
-        last_est_xy, X, P = OTHER[:]
+    else:
+        last_est_xy, X, P = OTHER
 
-    est_target_xy, X, P = \
-            EKF_Measurement(target_measurement, X, P, 1., noise_est)
+    est_target_xy, X, P = EKF_Update(target_measurement, X, P, 1., noise_est)
     # Best guess as to true target coordinates now
-    #print 'est: ', est_target_xy, ', meas: ', target_measurement
-    #next_est_target_xy, X, P = \
-    #        kalman_motion(est_target_xy, X, P)
-    next_est_target_xy, X, P = EKF_Motion(X, P, dt=1.)
+    next_est_target_xy, X, P = EKF_Predict(X, P, dt = 1.)
     # Uses new estimate to predict the next estimated target location
-
     hunter_to_xy = next_est_target_xy # works if target will be within range
     dist_to_target = distance_between(next_est_target_xy, hunter_position)
     X_next, P_next = X.copy(), P.copy()
 
-    for D in range(int(dist_to_target / (max_distance))):
-        # to catch target, look ahead D moves and go that way
-        # Don't update P since we have no real information to update with
-        #hunter_to_xy, X_next, _ = kalman_motion(hunter_to_xy, X_next,P_next)
-        hunter_to_xy, X_next, _ = EKF_Motion(X_next, P_next, 1.)
-    #print hunter_to_xy
+    for D in range( int( dist_to_target / max_distance ) ):
+        # look ahead D moves and go that way
+        hunter_to_xy, X_next, _ = EKF_Predict(X_next, P_next, 1.)
+
     turning = angle_trunc(get_heading(hunter_position, hunter_to_xy) - hunter_heading)
     distance = min(dist_to_target, max_distance)
     OTHER = [next_est_target_xy, X, P]
-    # ************************** My Code End ********************
 
-
-    # The OTHER variable is a place for you to store any historical information about
-    # the progress of the hunt (or maybe some localization information). Your return format
-    # must be as follows in order to be graded properly.
     return turning, distance, OTHER
 
 

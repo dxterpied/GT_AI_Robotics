@@ -1,10 +1,4 @@
-# kalman2.py
-# written by Greg Czerniak (email is greg {aT] czerniak [dOt} info )
-#
-# Implements a multi-variable linear Kalman filter.
-#
-# Note: This code is part of a larger tutorial "Kalman Filters for Undergrads"
-# located at http://greg.czerniak.info/node/5.
+# this shit does not work................. Can't use KF with sin/cos
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -46,168 +40,88 @@ class KalmanFilterLinear:
   def GetCurrentState(self):
     return self.x
 
-  def Step(self, Z, _F):
+  def Step(self, Z, _F, B, u):
     self.F = _F
-    #--- Prediction -----------------------------
-    x = (self.F * self.x)
+    #--- Prediction ---
+    x = (self.F * self.x) + B * u
     P = (self.F * self.P) * numpy.transpose(self.F)
 
-    #--- Observation -----------------------------
+    #--- Observation ----
     y = Z - self.H * x
     S = self.H * P * numpy.transpose(self.H) + self.R # innovation covariance
 
-    #---- Update -------------------------------
+    #---- Update ------
     K = P * numpy.transpose(self.H) * numpy.linalg.inv(S)
     self.x = x + (K * y)
     I = numpy.eye(self.P.shape[0]) # We need the size of the matrix so we can make an identity matrix.
     self.P = (I - K * self.H) * P
     return self.x
 
-# Simulates the classic physics problem of a cannon shooting a ball in a
-# parabolic arc.  In addition to giving "true" values back, you can also ask
-# for noisy values back to test Kalman filters.
 class Cannon:
-  #--------------------------------VARIABLES----------------------------------
-  angle = 2*pi/6 # The angle from the ground to point the cannon.
-  muzzle_velocity = 100 # Muzzle velocity of the cannon.
-  gravity = [0, -9.81] # A vector containing gravitational acceleration.
-  # The initial velocity of the cannonball
-  velocity = [muzzle_velocity * cos(angle), muzzle_velocity * sin(angle)]
-  loc = [-200,-200] # The initial location of the cannonball.
-  acceleration = [0,0] # The initial acceleration of the cannonball.
-  #---------------------------------METHODS-----------------------------------
-  def __init__(self,_timeslice,_noiselevel):
-    self.timeslice = _timeslice
+  def __init__(self, _noiselevel, _distance):
     self.noiselevel = _noiselevel
     self.heading = 0.0
     self.turning = 2*pi/30
-    self.distance = 30
+    self.distance = _distance
     self.x = -200
     self.y = -200
 
-  def add(self,x,y):
-    return x + y
-
-  def mult(self,x,y):
-    return x * y
-
-  def GetX(self):
-    return self.x
-
-  def GetY(self):
-    return self.y
 
   def GetXWithNoise(self):
-    return random.gauss(self.GetX(),self.noiselevel)
+    return random.gauss( self.x, self.noiselevel)
 
   def GetYWithNoise(self):
-    return random.gauss(self.GetY(),self.noiselevel)
-
+    return random.gauss( self.y, self.noiselevel)
 
   # Increment through the next timeslice of the simulation.
   def Step(self):
-
-    # We're gonna use this vector to timeslice everything.
-    #timeslicevec = [self.timeslice,  self.timeslice]
-    # Break gravitational force into a smaller time slice.
-    #sliced_gravity = map(self.mult, self.gravity, timeslicevec)
-    # The only force on the cannonball is gravity.
-    #sliced_acceleration = sliced_gravity
-    # Apply the acceleration to velocity.
-    # self.velocity = map(self.add, self.velocity, sliced_acceleration)
-    # sliced_velocity = map(self.mult, self.velocity, timeslicevec )
-    # Apply the velocity to location.
-    # self.loc = map(self.add, self.loc, sliced_velocity)
-
     self.heading += self.turning # update the angle to create a new angle
     self.heading = angle_trunc(self.heading)
-
-    #self.loc = map(self.add, self.loc, [30. * cos(self.heading), 30. * sin(self.heading)])
-
     self.x += self.distance * cos(self.heading)
-    #self.x += self.distance
     self.y += self.distance * sin(self.heading)
 
-    # # Cannonballs shouldn't go into the ground.
-    # if self.loc[1] < 0:
-    #   self.loc[1] = 0
-
-
-
 #=============================REAL PROGRAM START================================
-# Let's go over the physics behind the cannon shot, just to make sure it's
-# correct:
-# sin(45)*100 = 70.710 and cos(45)*100 = 70.710
-# vf = vo + at
-# 0 = 70.710 + (-9.81)t
-# t = 70.710/9.81 = 7.208 seconds for half
-# 14.416 seconds for full journey
-# distance = 70.710 m/s * 14.416 sec = 1019.36796 m
 
-muzzle_velocity = 100 # How fast should the cannonball come out?
-deltaT = 1
-angle = 90 # Angle from the ground.
+distance = 30.
+# After state transition and control, here are the equations:
+#  x(n+1) = x(n) + distance * cos(self.heading)
+#  y(n+1) = y(n) + distance * sin(self.heading)
 
-# This is the state transition vector, which represents part of the kinematics.
-# 1, ts, 0,  0  =>  x(n+1) = x(n) + vs
-# 0,  1, 0,  0  => vx(n+1) =        vx(n)
-# 0,  0, 1, ts  =>  y(n+1) =              y(n) + vs * sin(self.heading)
-# 0,  0, 0,  1  => vy(n+1) =                     vy(n)
-# Remember, acceleration gets added to these at the control vector.
-
+# transition matrix
 F = numpy.matrix([
     [1,0],
     [0,1]])
+# Observation matrix is the identity matrix, since we can get direct measurements of all values in our example.
+H = numpy.matrix([[1., 0.], [0. , 1.]])
+x = numpy.matrix([[0.], [0.]]) # initial state vector
+P = numpy.matrix([[1000., 0    ],
+                  [0,     1000.]])
+R = numpy.matrix([[1., 0.], [0. , 1.]]) # measurement noise
+B = numpy.matrix([[1., 0.], [0. , 1.]]) # control matrix
 
-# The control vector, which adds acceleration to the kinematic equations.
-# control_vector = numpy.matrix( [[0],
-#                                [0],
-#                                [0.5 * -9.81 * timeslice**2],
-#                                [-9.81 * timeslice]] )
-
-# After state transition and control, here are the equations:
-#  x(n+1) = x(n) + vx(n) * cos(self.heading)
-#  y(n+1) = y(n) + vy(n) * sin(self.heading)
-
-
-# Observation matrix is the identity matrix, since we can get direct
-# measurements of all values in our example.
-H = numpy.eye(2)
-# This is our guess of the initial state.  I intentionally set the Y value
-# wrong to illustrate how fast the Kalman filter will pick up on that.
-x = numpy.matrix([[0], [0]])
-P = numpy.eye(2)
-R = numpy.eye(2) * 0.2
 
 kf = KalmanFilterLinear(F, H, x, P, R)
+
 # Let's make a cannon simulation.
-c = Cannon(_timeslice = deltaT, _noiselevel = 30)
+c = Cannon(_noiselevel = 0.01, _distance = distance)
 
 # Iterate through the simulation.
-for i in range(20):
-    target_robot.goto(c.GetX(), c.GetY())
-    target_robot.stamp()
-
-    newestX = c.GetXWithNoise()
-    newestY = c.GetYWithNoise()
-    Z = numpy.matrix([[newestX], [newestY] ])
-
+for i in range(100):
     # Iterate the cannon simulation to the next timeslice.
     c.Step()
 
-    F = numpy.matrix([
-        # [ x, y]
-        [1,  30. * sin(c.heading)],
-        [1,  30. * cos(c.heading)]
-    ])
+    newestX = c.GetXWithNoise()
+    newestY = c.GetYWithNoise()
 
+    Z = numpy.matrix([[newestX], [newestY]])
+    u = numpy.matrix([[c.distance * cos(c.heading), 0.                         ],
+                      [0.,                         c.distance * sin(c.heading) ]]) # control matrix
 
-    newState = kf.Step(Z, F)
-    # print newState
-    # print newState.item(0)
-    # print newState.item(1)
-    # exit()
-    predicted_robot.goto( newState.item(0), kf.GetCurrentState().item(1))
+    newState = kf.Step(Z, F, B, u)
+
+    target_robot.goto(c.x, c.y)
+    target_robot.stamp()
+    predicted_robot.goto( newState.item(0), newState.item(1))
     predicted_robot.stamp()
 
 

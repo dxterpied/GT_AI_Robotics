@@ -27,7 +27,7 @@ class KalmanFilterLinear:
 
   def Step(self,control_vector,measurement_vector):
     #---------------------------Prediction step-----------------------------
-    predicted_state_estimate = self.A * self.current_state_estimate + numpy.dot(self.B, control_vector)
+    predicted_state_estimate = self.A * self.current_state_estimate + self.B * control_vector
     predicted_prob_estimate = (self.A * self.current_prob_estimate) * numpy.transpose(self.A) + self.Q
     #--------------------------Observation step-----------------------------
     innovation = measurement_vector - self.H*predicted_state_estimate
@@ -141,13 +141,13 @@ control_matrix = numpy.matrix([[0,0,0,0],[0,0,0,0],[0,0,1,0],[0,0,0,1]])
 # 0          => vx(n+1) = vx(n+1)
 # -9.81*ts^2 =>  y(n+1) =  y(n+1) + 0.5*-9.81*ts^2
 # -9.81*ts   => vy(n+1) = vy(n+1) + -9.81*ts
-control_vector = numpy.matrix([[0],[0],[0.5*-9.81*timeslice*timeslice],[-9.81*timeslice]])
+control_vector = numpy.matrix([[0],[0],[0.5 * -9.81 * timeslice * timeslice],[-9.81 * timeslice]])
 
 # After state transition and control, here are the equations:
 #  x(n+1) = x(n) + vx(n)
 # vx(n+1) = vx(n)
-#  y(n+1) = y(n) + vy(n) - 0.5*9.81*ts^2
-# vy(n+1) = vy(n) + -9.81*ts
+#  y(n+1) = y(n) + vy(n) - 0.5 * 9.81 * ts^2
+# vy(n+1) = vy(n) + -9.81 * ts
 # Which, if you recall, are the equations of motion for a parabola.  Perfect.
 
 # Observation matrix is the identity matrix, since we can get direct

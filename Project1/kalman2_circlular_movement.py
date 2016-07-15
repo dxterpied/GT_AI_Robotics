@@ -47,12 +47,11 @@ class KalmanFilterLinear:
     P = (self.F * self.P) * numpy.transpose(self.F)
 
     #--- Observation ----
-    y = Z - self.H * x
     S = self.H * P * numpy.transpose(self.H) + self.R # innovation covariance
 
     #---- Update ------
-    K = P * numpy.transpose(self.H) * numpy.linalg.inv(S)
-    self.x = x + (K * y)
+    K = P * numpy.transpose(self.H) * numpy.linalg.inv(S) # S inverse is like reciprocal or 1/S
+    self.x = x + K * (Z - self.H * x)
     I = numpy.eye(self.P.shape[0]) # We need the size of the matrix so we can make an identity matrix.
     self.P = (I - K * self.H) * P
     return self.x
@@ -121,7 +120,7 @@ for i in range(100):
 
     target_robot.goto(c.x, c.y)
     target_robot.stamp()
-    predicted_robot.goto( newState.item(0), newState.item(1))
+    predicted_robot.goto( newState.item(0), newState.item(3))
     predicted_robot.stamp()
 
 

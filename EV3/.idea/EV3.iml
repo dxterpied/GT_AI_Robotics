@@ -2,7 +2,12 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 2.7.10 (C:\Python27\python.exe)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 2.7.11 (/Library/Frameworks/Python.framework/Versions/2.7/bin/python2.7)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="Quizzes" />
+    <orderEntry type="module" module-name="ProblemSets" />
+    <orderEntry type="module" module-name="code" />
+    <orderEntry type="module" module-name="Project1" />
+    <orderEntry type="module" module-name="pykalman" />
   </component>
 </module>

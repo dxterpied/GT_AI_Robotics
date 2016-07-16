@@ -1,125 +1,66 @@
-# ----------
-# Part Three
-#
-# Now you'll actually track down and recover the runaway Traxbot.
-# In this step, your speed will be about twice as fast the runaway bot,
-# which means that your bot's distance parameter will be about twice that
-# of the runaway. You can move less than this parameter if you'd
-# like to slow down your bot near the end of the chase.
-#
-# ----------
-# YOUR JOB
-#
-# Complete the next_move function. This function will give you access to
-# the position and heading of your bot (the hunter); the most recent
-# measurement received from the runaway bot (the target), the max distance
-# your bot can move in a given timestep, and another variable, called
-# OTHER, which you can use to keep track of information.
-#
-# Your function will return the amount you want your bot to turn, the
-# distance you want your bot to move, and the OTHER variable, with any
-# information you want to keep track of.
-#
-# ----------
-# GRADING
-#
-# We will make repeated calls to your next_move function. After
-# each call, we will move the hunter bot according to your instructions
-# and compare its position to the target bot's true position
-# As soon as the hunter is within 0.01 stepsizes of the target,
-# you will be marked correct and we will tell you how many steps it took
-# before your function successfully located the target bot.
-#
-# As an added challenge, try to get to the target bot as quickly as
-# possible.
 
 from robot import *
 from math import *
 from matrix import *
 import random
 import time
+import numpy
+
+# this Kalman filter works amazingly well here with the default measurement noise:
+
+# 10,000 runs:
+# average score:  39.5241
+# minimum score:  14
+# maximum score:  379
+# fails:  0
 
 
-deltaT = 1.0
-x = matrix([[0.],
-            [0.],
-            [0.],
-            [0.]]) # initial state
-u = matrix([[0.], [0.], [0.], [0.]]) # external motion
+# straight Kalman filter
+class KalmanFilter:
+  def __init__(self, F, H, x, P, R, I):
+    self.F = F
+    self.H = H
+    self.x = x
+    self.P = P
+    self.R = R
+    self.I = I
 
-F = matrix([
-        [1., 0., deltaT, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
-        [0., 1., 0., deltaT], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
-        [0., 0., 1., 0.], # this is to update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
-        [0., 0., 0., 1.]  # this is to update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
-    ]) # next state function: generalize the 2d version to 4d
+  def filter(self, Z, u):
+    # Prediction
+    self.x = (self.F * self.x) + B * u
+    self.P = (self.F * self.P) * numpy.transpose(self.F)
 
-H = matrix([ [1., 0., 0., 0.],
-            [0., 1., 0., 0.]]) # measurement function: reflect the fact that we observe x and y but not the two velocities
-R = matrix([
-    [0.1, 0.],
-    [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
-I = matrix([ [1., 0., 0., 0.],
-            [0., 1., 0., 0.],
-            [0., 0., 1., 0.],
-            [0., 0., 0., 1.]  ]) # 4d identity matrix
+    # Update
+    S = self.H * self.P * numpy.transpose(self.H) + self.R
+    K = self.P * numpy.transpose(self.H) * numpy.linalg.inv(S) # Kalman gain
+    self.x = self.x + K * (Z - self.H * self.x)
+    self.P = (I - K * self.H) * self.P
+    return self.x
 
+
+
+# These are the equations used for prediction:
+#  x(n+1) = x(n) + distance * cos(self.heading)
+#  y(n+1) = y(n) + distance * sin(self.heading)
+
+# state transition matrix
+F = numpy.matrix([
+    [1,0], # x
+    [0,1]]) # y
+
+H = numpy.matrix([[1., 0.], [0. , 1.]])
+x = numpy.matrix([[0.], [0.]]) # initial state vector
+P = numpy.matrix([[1000., 0    ],
+                  [0,     1000.]])
+R = numpy.matrix([[1., 0.], [0. , 1.]]) # measurement uncertainty
+B = numpy.matrix([[1., 0.], [0. , 1.]]) # control matrix
+I = numpy.matrix([[1., 0.], [0. , 1.]]) # identity
+
+
+kf = KalmanFilter(F, H, x, P, R, I)
 
 def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
-
-    #time.sleep(0.5)
-    xy_estimate = None
-
-    if OTHER is None:
-        P_matrix = matrix([
-            [0., 0., 0., 0.],
-            [0., 0., 0., 0.],
-            [0., 0., 1000., 0.],
-            [0., 0., 0., 1000.] ]) # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
-        measurements = [(0.0, 0.0)]
-        prevAngle = 0.
-    else:
-        measurements, P_matrix, prevAngle = OTHER
-
-    print "faulty target", target_measurement
-    x = matrix([[target_measurement[0]], [target_measurement[1]], [0.], [0.]])
-    new_x, P_matrix = kalman_filter(x, P_matrix, measurements[-1:]) # take last n items in measurements
-    adjustedTarget = (new_x.value[0][0], new_x.value[1][0]) # get new x and y from new_x matrix
-    print "adjusted target", adjustedTarget
-
-    prevCoord = measurements[len(measurements) - 1]
-    x1Delta = adjustedTarget[0] - prevCoord[0]
-    y1Delta = adjustedTarget[1] - prevCoord[1]
-    heading = atan2(y1Delta, x1Delta)
-    turning = heading - prevAngle
-    distance = distance_between(prevCoord, adjustedTarget)
-
-    newR = robot(adjustedTarget[0], adjustedTarget[1], heading, turning, distance)
-    newR.move_in_circle()
-    xy_estimate = newR.x, newR.y
-
-    prevAngle = heading
-    measurements.append(adjustedTarget)
-    OTHER = (measurements, P_matrix, prevAngle)
-
-
-    heading_to_target = get_heading(hunter_position, xy_estimate)
-    heading_difference = heading_to_target - hunter_heading
-    turning = heading_difference # turn towards the target
-    distance = distance_between(hunter_position, xy_estimate)
-
-    return turning, distance, OTHER
-
-
-def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
-
-    """This strategy always tries to steer the hunter directly towards where the target last
-    said it was and then moves forwards at full speed. This strategy also keeps track of all
-    the target measurements, hunter positions, and hunter headings over time, but it doesn't
-    do anything with that information."""
-
-    #time.sleep(0.5)
-    xy_estimate = None
+    xy_estimate = target_measurement
 
     if OTHER is None:
         distances = []
@@ -129,12 +70,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         distances, angles, coords = OTHER
 
         if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = target_measurement
             hypotenuse1 = distance_between(coords[0], target_measurement)
-            y1Delta = y2 - y1
-            headingAngle1 = asin(y1Delta / hypotenuse1)
-            #angles.append(headingAngle1)
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
@@ -159,22 +95,33 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            Z = numpy.matrix([[target_measurement[0]], [target_measurement[1]]])
+            u = numpy.matrix([[avgDT * cos(headingAngle2), 0.],
+                              [0., avgDT * sin(headingAngle2) ]]) # control matrix
+            newState = kf.filter(Z, u)
+
+
+            newR = robot(newState.item(0), newState.item(3), headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
+            # replace target_measurement with estimated measurement to be used later for average calculations
+            # this technique greatly improved the scor
+            target_measurement = (newState.item(0), newState.item(3))
+
+
     coords.append(target_measurement)
+
+
     OTHER = (distances, angles, coords)
 
-    if xy_estimate is None:
-        xy_estimate = target_measurement
-
-    heading_to_target = get_heading(hunter_position, xy_estimate)
+    heading_to_target = angle_trunc(get_heading(hunter_position, xy_estimate))
     heading_difference = heading_to_target - hunter_heading
-    turning = heading_difference # turn towards the target
+    turning = angle_trunc(heading_difference) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
 
     return turning, distance, OTHER
+
 
 
 def distance_between(point1, point2):
@@ -199,7 +146,6 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
         target_position = (target_bot.x, target_bot.y)
-        print "actual target position", target_position
 
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
@@ -226,6 +172,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         ctr += 1
         if ctr >= 1000:
             print "It took too many steps to catch the target."
+            return 1000
     return caught
 
 
@@ -319,50 +266,39 @@ def get_heading(hunter_position, target_position):
     return heading
 
 
-def kalman_filter(x, P, measurements):
-    for n in range(len(measurements)):
-
-        # PREDICTION  (based on theory). Uses total probability and convolution
-        x = (F * x) + u              # in Michel van Biezen it's x1 = F * x0 + B * u1 + w1: https://www.youtube.com/watch?v=mRf-cL2mjo4
-        P = F * P * F.transpose() # + Q  the Q matrix (process noise) is not present here
-
-        # MEASUREMENT UPDATE
-        Z = matrix([measurements[n]])
-        y = Z.transpose() - (H * x)  # Innovation or measurement residual
-        S = H * P * H.transpose() + R
-        K = P * H.transpose() * S.inverse() # Kalman gain
-        x = x + (K * y)
-        P = (I - (K * H)) * P
-
-
-    return x,P
-
-
-
 target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
-measurement_noise = .05*target.distance
+measurement_noise = .05 * target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
-
 hunter = robot(-10.0, -20.0, 0.0)
 
-demo_grading(hunter, target, next_move)
+demo_grading(hunter, target, next_move_KF)
 #demo_grading_visual(hunter, target, next_move_KF)
 
 # scores = []
+# fails = 0
 # for i in range(10000):
+#     print i
+#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+#     measurement_noise = .05 * target.distance
+#     target.set_noise(0.0, 0.0, measurement_noise)
 #     hunter = robot(-10.0, -20.0, 0.0)
-#     scores.append(demo_grading(hunter, target, next_move))
-# print "average score: ", sum(scores)/len(scores)
+#     kf = KalmanFilter(F, H, x, P, R, I)
+#
+#     score = demo_grading(hunter, target, next_move_KF)
+#
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
 # print "minimum score: ", min(scores)
 # print "maximum score: ", max(scores)
-#
-# stats:
-# average score:  48
-# minimum score:  8
-# maximum score:  374
+# print "fails: ", fails
 
-# stats with KF:
-#
-# average score:  169
-# minimum score:  False
-# maximum score:  998
+
+# 10,000 runs:
+# average score:  39.5241
+# minimum score:  14
+# maximum score:  379
+# fails:  0

@@ -40,77 +40,6 @@ import random
 import time
 
 
-deltaT = 1.0
-x = matrix([[0.],
-            [0.],
-            [0.],
-            [0.]]) # initial state
-u = matrix([[0.], [0.], [0.], [0.]]) # external motion
-
-F = matrix([
-        [1., 0., deltaT, 0.], # this is to update x = 1 * x + 0 * y + deltaT * x_prime + 0 * y_prime = x + deltaT*x_prime
-        [0., 1., 0., deltaT], # this is to update y = 0 * x + 1 * y + 0 * x_prime + deltaT * y_prime = y + deltaT * y_prime
-        [0., 0., 1., 0.], # this is to update x_prime = 0 * x + 0 * y + 1 * x_prime + 0 * y_prime = x_prime
-        [0., 0., 0., 1.]  # this is to update y_prime = 0 * x + 0 * y + 0 * x_prime + 1 * y_prime = y_prime
-    ]) # next state function: generalize the 2d version to 4d
-
-H = matrix([ [1., 0., 0., 0.],
-            [0., 1., 0., 0.]]) # measurement function: reflect the fact that we observe x and y but not the two velocities
-R = matrix([
-    [0.1, 0.],
-    [0., 0.1]]) # measurement uncertainty: use 2x2 matrix with 0.1 as main diagonal
-I = matrix([ [1., 0., 0., 0.],
-            [0., 1., 0., 0.],
-            [0., 0., 1., 0.],
-            [0., 0., 0., 1.]  ]) # 4d identity matrix
-
-
-def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
-
-    #time.sleep(0.5)
-    xy_estimate = None
-
-    if OTHER is None:
-        P_matrix = matrix([
-            [0., 0., 0., 0.],
-            [0., 0., 0., 0.],
-            [0., 0., 1000., 0.],
-            [0., 0., 0., 1000.] ]) # initial uncertainty: 0 for positions x and y, 1000 for the two velocities
-        measurements = [(0.0, 0.0)]
-        prevAngle = 0.
-    else:
-        measurements, P_matrix, prevAngle = OTHER
-
-    print "faulty target", target_measurement
-    x = matrix([[target_measurement[0]], [target_measurement[1]], [0.], [0.]])
-    new_x, P_matrix = kalman_filter(x, P_matrix, measurements[-1:]) # take last n items in measurements
-    adjustedTarget = (new_x.value[0][0], new_x.value[1][0]) # get new x and y from new_x matrix
-    print "adjusted target", adjustedTarget
-
-    prevCoord = measurements[len(measurements) - 1]
-    x1Delta = adjustedTarget[0] - prevCoord[0]
-    y1Delta = adjustedTarget[1] - prevCoord[1]
-    heading = atan2(y1Delta, x1Delta)
-    turning = heading - prevAngle
-    distance = distance_between(prevCoord, adjustedTarget)
-
-    newR = robot(adjustedTarget[0], adjustedTarget[1], heading, turning, distance)
-    newR.move_in_circle()
-    xy_estimate = newR.x, newR.y
-
-    prevAngle = heading
-    measurements.append(adjustedTarget)
-    OTHER = (measurements, P_matrix, prevAngle)
-
-
-    heading_to_target = get_heading(hunter_position, xy_estimate)
-    heading_difference = heading_to_target - hunter_heading
-    turning = heading_difference # turn towards the target
-    distance = distance_between(hunter_position, xy_estimate)
-
-    return turning, distance, OTHER
-
-
 def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     """This strategy always tries to steer the hunter directly towards where the target last
@@ -118,8 +47,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     the target measurements, hunter positions, and hunter headings over time, but it doesn't
     do anything with that information."""
 
-    #time.sleep(0.5)
-    xy_estimate = None
+    xy_estimate = target_measurement
 
     if OTHER is None:
         distances = []
@@ -129,12 +57,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         distances, angles, coords = OTHER
 
         if len(coords) == 1:
-            x1, y1 = coords[0]
-            x2, y2 = target_measurement
             hypotenuse1 = distance_between(coords[0], target_measurement)
-            y1Delta = y2 - y1
-            headingAngle1 = asin(y1Delta / hypotenuse1)
-            #angles.append(headingAngle1)
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
@@ -159,19 +82,16 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(target_measurement[0], target_measurement[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords)
 
-    if xy_estimate is None:
-        xy_estimate = target_measurement
-
-    heading_to_target = get_heading(hunter_position, xy_estimate)
+    heading_to_target = angle_trunc(get_heading(hunter_position, xy_estimate))
     heading_difference = heading_to_target - hunter_heading
-    turning = heading_difference # turn towards the target
+    turning = angle_trunc(heading_difference) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
 
     return turning, distance, OTHER
@@ -199,7 +119,6 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
         target_position = (target_bot.x, target_bot.y)
-        print "actual target position", target_position
 
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
@@ -226,6 +145,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         ctr += 1
         if ctr >= 1000:
             print "It took too many steps to catch the target."
+            return 1000
     return caught
 
 
@@ -345,24 +265,35 @@ target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -20.0, 0.0)
 
-demo_grading(hunter, target, next_move)
-#demo_grading_visual(hunter, target, next_move_KF)
+#demo_grading(hunter, target, next_move)
+demo_grading_visual(hunter, target, next_move)
 
 # scores = []
+# fails = 0
 # for i in range(10000):
+#     print i
+#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+#     measurement_noise = .05 * target.distance
+#     target.set_noise(0.0, 0.0, measurement_noise)
 #     hunter = robot(-10.0, -20.0, 0.0)
-#     scores.append(demo_grading(hunter, target, next_move))
-# print "average score: ", sum(scores)/len(scores)
+#
+#     score = demo_grading(hunter, target, next_move)
+#
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
 # print "minimum score: ", min(scores)
 # print "maximum score: ", max(scores)
-#
-# stats:
-# average score:  48
-# minimum score:  8
-# maximum score:  374
+# print "fails: ", fails
 
-# stats with KF:
-#
-# average score:  169
-# minimum score:  False
-# maximum score:  998
+# stats using running averages:
+# average score:  41.14
+# minimum score:  14
+# maximum score:  246
+# fails:  0
+
+
+

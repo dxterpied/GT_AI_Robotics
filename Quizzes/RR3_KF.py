@@ -45,13 +45,16 @@ class KalmanFilter:
 
 # state transition matrix
 F = numpy.matrix([
-    [1,0], # x
-    [0,1]]) # y
+    [1., 0.],
+    [0., 1.]
+    ])
 
-H = numpy.matrix([[1., 0.], [0. , 1.]])
-x = numpy.matrix([[0.], [0.]]) # initial state vector
-P = numpy.matrix([[1000., 0    ],
-                  [0,     1000.]])
+H = numpy.matrix([[1., 0.], [0., 1.]])
+x = numpy.matrix([[0.], # x
+                  [0.]  # y
+                  ]) # initial state vector
+P = numpy.matrix([[1000., 0.    ],
+                  [0.,     1000.]])
 R = numpy.matrix([[1., 0.], [0. , 1.]]) # measurement uncertainty
 B = numpy.matrix([[1., 0.], [0. , 1.]]) # control matrix
 I = numpy.matrix([[1., 0.], [0. , 1.]]) # identity
@@ -95,13 +98,15 @@ def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distan
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            Z = numpy.matrix([[target_measurement[0]], [target_measurement[1]]])
+            Z = numpy.matrix([
+                        [ target_measurement[0] ],
+                        [target_measurement[1] ]])
             u = numpy.matrix([[avgDT * cos(headingAngle2), 0.],
-                              [0., avgDT * sin(headingAngle2) ]]) # control matrix
+                              [0., avgDT * sin(headingAngle2)]]) # control matrix
             newState = kf.filter(Z, u)
 
 
-            newR = robot(newState.item(0), newState.item(3), headingAngle2, avgAngle, avgDT)
+            newR = robot(newState[0,0], newState[1,1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
@@ -271,8 +276,8 @@ measurement_noise = .05 * target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -20.0, 0.0)
 
-demo_grading(hunter, target, next_move_KF)
-#demo_grading_visual(hunter, target, next_move_KF)
+#demo_grading(hunter, target, next_move_KF)
+demo_grading_visual(hunter, target, next_move_KF)
 
 # scores = []
 # fails = 0

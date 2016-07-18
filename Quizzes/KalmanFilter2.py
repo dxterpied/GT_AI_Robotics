@@ -10,37 +10,43 @@ from math import *
 
 
 # update is used for sensing
-def update(oldMean, oldVariance, newMean, measurement_sig):
-    new_mean = ( measurement_sig * oldMean + oldVariance * newMean ) / (oldVariance + measurement_sig)
-    new_var = 1./ ( 1./oldVariance + 1./measurement_sig  )
+def update(oldMean, oldVariance, newMean, newVariance):
+    new_mean = ( newVariance * oldMean + oldVariance * newMean ) / (oldVariance + newVariance)
+
+    new_var = 1./ ( 1./oldVariance + 1./newVariance  )
+
     return [new_mean, new_var]
 
 # this is used for motion prediction
-def predict(oldMean, oldVariance, newMean, motion_sig):
+def predict(oldMean, oldVariance, newMean, newVariance):
     new_mean = oldMean + newMean
-    new_var = oldVariance + motion_sig
+    new_var = oldVariance + newVariance
     return [new_mean, new_var]
 
 
 measurements = [5., 6., 7., 9., 10.]
 motion = [1., 1., 2., 1., 1.]
 
-measurement_sig = 4.
-motion_sig = 2.
+measurementVariance = 4.
+motionVariance = 2.
 mu = 0. # initial value that will be updated
-sig = 10000. # initial value that will be updated
+sigma = 10000. # initial value that will be updated
 
 # Kalman filter
 for i in range(len(measurements)):
-    [mu, sig] = update(mu, sig, measurements[i], measurement_sig)
-    #print 'update ', [mu, sig]
 
-    [mu, sig] = predict(mu, sig, motion[i], motion_sig)
-    #print 'predict ', [mu, sig]
+    # predict
+    [mu, sigma] = predict(mu, sigma, motion[i], motionVariance)
+    print 'predict ', [mu, sigma]
+
+    # update
+    [mu, sigma] = update(mu, sigma, measurements[i], measurementVariance)
+    print 'update ', [mu, sigma]
 
 
 
-print [mu, sig]
+print "Final result:"
+print [mu, sigma]
 
 
 

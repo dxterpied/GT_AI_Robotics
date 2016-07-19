@@ -465,27 +465,27 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    particles = []
-    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-    target.set_noise(0.0, 0.0, .05*target.distance)
-    hunter = robot(-10.0, -10.0, 0.0)
-    score = demo_grading(hunter, target, next_move_straight_line)
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     particles = []
+#     target = robot(0.0, 10.0, 0.0, -2*pi / 30, 1.5)
+#     target.set_noise(0.0, 0.0, .05*target.distance)
+#     hunter = robot(-10.0, -10.0, 0.0)
+#     score = demo_grading(hunter, target, next_move_straight_line)
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 #
 # with predicted angle:
 # average score:  165.305

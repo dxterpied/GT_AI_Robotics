@@ -76,7 +76,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
-            angles.append(abs(predictedTurnAngleAvg))
+            angles.append(predictedTurnAngleAvg)
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
@@ -259,41 +259,45 @@ def kalman_filter(x, P, measurements):
 
 
 
-target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -20.0, 0.0)
 
 #demo_grading(hunter, target, next_move)
-demo_grading_visual(hunter, target, next_move)
+#demo_grading_visual(hunter, target, next_move)
 
-# scores = []
-# fails = 0
-# for i in range(10000):
-#     print i
-#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
-#     measurement_noise = .05 * target.distance
-#     target.set_noise(0.0, 0.0, measurement_noise)
-#     hunter = robot(-10.0, -20.0, 0.0)
-#
-#     score = demo_grading(hunter, target, next_move)
-#
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
+    measurement_noise = .05 * target.distance
+    target.set_noise(0.0, 0.0, measurement_noise)
+    hunter = robot(-10.0, -20.0, 0.0)
 
-# stats using running averages:
-# average score:  41.14
+    score = demo_grading(hunter, target, next_move)
+
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+# 1000 runs with positive angle (counterclockwise)
+# average score:  171.352705411
 # minimum score:  14
-# maximum score:  246
-# fails:  0
+# maximum score:  831
+# fails:  2
 
-
+# 1000 runs with negative angle (clockwise)
+# average score:  169.475426279
+# minimum score:  8
+# maximum score:  979
+# fails:  3
 

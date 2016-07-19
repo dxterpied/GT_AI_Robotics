@@ -51,12 +51,6 @@ def estimate_next_pos(measurement, OTHER = None):
 
         elif len(coords) >= 2:
 
-            if turnAngle == 0.0:
-                avgDT = sum(distances)/len(distances)
-                if distance_between(measurement, coords[0]) <= 0.8 * avgDT:
-                    turnAngle = 2*pi / len(coords)
-
-
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement
@@ -73,7 +67,7 @@ def estimate_next_pos(measurement, OTHER = None):
 
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
-            angles.append(abs(predictedTurnAngleAvg))
+            angles.append(predictedTurnAngleAvg)
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
@@ -81,13 +75,9 @@ def estimate_next_pos(measurement, OTHER = None):
 
             headingAngle2 = atan2(y2Delta, x2Delta)
 
-            if turnAngle > 0.0:
-                avgAngle = turnAngle
-
             newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
-        #print "headingAngle1", headingAngle1
 
     coords.append(measurement)
     OTHER = (distances, angles, coords, turnAngle)
@@ -159,7 +149,7 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
-    prediction.penup()
+    #prediction.penup()
     broken_robot.penup()
     measured_broken_robot.penup()
     #End of Visualization
@@ -176,9 +166,9 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
         if ctr == 1000:
             print "Sorry, it took you too many steps to localize the target."
         #More Visualization
-        measured_broken_robot.setheading(target_bot.heading*180/pi)
-        measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
-        measured_broken_robot.stamp()
+        # measured_broken_robot.setheading(target_bot.heading*180/pi)
+        # measured_broken_robot.goto(measurement[0]*size_multiplier, measurement[1]*size_multiplier-200)
+        # measured_broken_robot.stamp()
         broken_robot.setheading(target_bot.heading*180/pi)
         broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-200)
         broken_robot.stamp()
@@ -191,43 +181,41 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 
 # This is how we create a target bot. Check the robot.py file to understand
 # How the robot class behaves.
-test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+test_target = robot(2.1, 4.3, 0.5, -2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
 
 
-demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
 
-# scores = []
-# fails = 0
-# for i in range(10000):
-#     print i
-#     test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
-#     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
-#
-#     score = demo_grading(estimate_next_pos, test_target)
-#
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    test_target = robot(2.1, 4.3, 0.5, -2*pi / 34.0, 1.5)
+    test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
-# average score:  119.483693477
-# minimum score:  3
-# maximum score:  982
-# fails:  4
+    score = demo_grading(estimate_next_pos, test_target)
 
-# average score:  120.4889
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+# removed abs from             angles.append(abs(predictedTurnAngleAvg)) because it did not work with negative turning angle
+# 1000 runs with negative turning angle -2*pi/34.0
+# average score:  283.616759777
 # minimum score:  3
-# maximum score:  979
-# fails:  0
+# maximum score:  999
+# fails:  105
+
 
 
 

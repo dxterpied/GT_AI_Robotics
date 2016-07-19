@@ -1,3 +1,6 @@
+
+# does not work !!! needs tuning
+
 from robot import *  # Check the robot.py tab to see how this works.
 from math import *
 from matrix import * # Check the matrix.py tab to see how this works.
@@ -12,7 +15,7 @@ size_multiplier= 15.0  #change Size of animation
 N = 2000
 measurement_noise = 1.0
 particles = []
-test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+test_target = robot(2.1, 4.3, 0.5, 2*pi/34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
 
 
@@ -134,7 +137,7 @@ def estimate_next_pos(measurement, OTHER = None):
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
 
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-            angles.append(abs(predictedTurnAngleAvg))
+            angles.append(predictedTurnAngleAvg)
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
@@ -313,11 +316,9 @@ demo_grading_visual(estimate_next_pos, test_target)
 # for i in range(1000):
 #     print i
 #     particles = []
-#     test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+#     test_target = robot(2.1, 4.3, 0.5, -2*pi / 34.0, 1.5)
 #     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
-#     particles = []
 #     score = demo_grading(estimate_next_pos, test_target)
-#
 #
 #     if score == 1000:
 #         fails += 1
@@ -328,12 +329,6 @@ demo_grading_visual(estimate_next_pos, test_target)
 # print "minimum score: ", min(scores)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
-
-# 1000 runs:
-# average score:  84.057
-# minimum score:  3
-# maximum score:  388
-# fails:  0
 
 
 #turtle.getscreen()._root.mainloop()

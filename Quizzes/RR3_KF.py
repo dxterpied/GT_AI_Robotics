@@ -92,7 +92,7 @@ def next_move_KF(hunter_position, hunter_heading, target_measurement, max_distan
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
-            angles.append(abs(predictedTurnAngleAvg))
+            angles.append(predictedTurnAngleAvg)
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
@@ -271,39 +271,45 @@ def get_heading(hunter_position, target_position):
     return heading
 
 
-target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
 measurement_noise = .05 * target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -20.0, 0.0)
 
 #demo_grading(hunter, target, next_move_KF)
-demo_grading_visual(hunter, target, next_move_KF)
+#demo_grading_visual(hunter, target, next_move_KF)
 
-# scores = []
-# fails = 0
-# for i in range(10000):
-#     print i
-#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
-#     measurement_noise = .05 * target.distance
-#     target.set_noise(0.0, 0.0, measurement_noise)
-#     hunter = robot(-10.0, -20.0, 0.0)
-#     kf = KalmanFilter(F, H, x, P, R, I)
-#
-#     score = demo_grading(hunter, target, next_move_KF)
-#
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
+    measurement_noise = .05 * target.distance
+    target.set_noise(0.0, 0.0, measurement_noise)
+    hunter = robot(-10.0, -20.0, 0.0)
+    kf = KalmanFilter(F, H, x, P, R, I)
+
+    score = demo_grading(hunter, target, next_move_KF)
+
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
 
 
-# 10,000 runs:
-# average score:  39.5241
+# 1000 runs with positive angle (counterclockwise):
+# average score:  159.391173521
 # minimum score:  14
-# maximum score:  379
+# maximum score:  914
+# fails:  3
+
+# 1000 runs with negative angle (clockwise):
+# average score:  130.364
+# minimum score:  8
+# maximum score:  928
 # fails:  0

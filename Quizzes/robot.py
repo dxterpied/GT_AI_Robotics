@@ -90,4 +90,4 @@ class robot:
         """This allows us to print a robot's position"""
         return '[%.5f, %.5f]'  % (self.x, self.y)
 
-
+#print angle_trunc(3.26)

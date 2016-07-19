@@ -33,6 +33,23 @@ import random
 from numpy import *
 
 
+# cross product
+def calculateRotationDirection(Ax, Ay, Bx, By, Cx, Cy):
+    return ((Bx - Ax) * (Cy - By)) - ((By - Ay) * (Cx - Bx))
+
+
+def getRotationSign(rotationAngles):
+    # some will be negative; some positive; count which one has more elements
+    positive = [i for i in rotationAngles if i > 0.0]
+    negative = [i for i in rotationAngles if i < 0.0]
+
+    if len(positive) > len(negative):
+        return 1
+    else:
+        return -1
+
+
+
 def estimate_next_pos(measurement, OTHER = None):
 
     xy_estimate = measurement
@@ -41,7 +58,7 @@ def estimate_next_pos(measurement, OTHER = None):
         distances = []
         angles = []
         coords = []
-        turnAngle = 0.0
+        turnAngle = []
     else:
         distances, angles, coords, turnAngle = OTHER
 
@@ -50,32 +67,41 @@ def estimate_next_pos(measurement, OTHER = None):
             distances.append(hypotenuse1)
 
         elif len(coords) >= 2:
-
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = measurement
 
+            turnAngle.append(calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1]))
+            rotationSign = getRotationSign(turnAngle)
+
             y1Delta = point2[1] - point1[1]
-            x1Delta = point2[0] - point1[0]
             hypotenuse1 = distance_between(point1, point2)
+
+            # try:
+            #     headingAngleAvg1 = asin(y1Delta / avgDT)
+            # except:
+            #     #print "avgDT", avgDT
             headingAngleAvg1 = asin(y1Delta / hypotenuse1)
 
             y2Delta = point3[1] - point2[1]
             x2Delta = point3[0] - point2[0]
             hypotenuse2 = distance_between(point2, point3)
-            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
 
+            # try:
+            #     headingAngleAvg2 = asin(y2Delta / avgDT)
+            # except:
+            #     #print "avgDT", avgDT
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+            headingAngle2 = atan2(y2Delta, x2Delta)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
-            angles.append(predictedTurnAngleAvg)
+            angles.append(abs(predictedTurnAngleAvg))
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            headingAngle2 = atan2(y2Delta, x2Delta)
-
-            newR = robot(point3[0], point3[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(point3[0], point3[1], headingAngle2, rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
@@ -112,6 +138,9 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
 
+        #print "target_bot.heading", target_bot.heading
+        # if ctr >= 34:
+        #     exit()
         if error <= distance_tolerance:
             print "You got it right! It took you ", ctr, " steps to localize."
             return ctr
@@ -185,36 +214,39 @@ test_target = robot(2.1, 4.3, 0.5, -2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
-
-
-#demo_grading_visual(estimate_next_pos, test_target)
+demo_grading_visual(estimate_next_pos, test_target)
 #demo_grading(estimate_next_pos, test_target)
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    test_target = robot(2.1, 4.3, 0.5, -2*pi / 34.0, 1.5)
-    test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     test_target = robot(2.1, 4.3, 0.5, -2*pi / 34.0, 1.5)
+#     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+#
+#     score = demo_grading(estimate_next_pos, test_target)
+#
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
-    score = demo_grading(estimate_next_pos, test_target)
-
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
-
-# removed abs from             angles.append(abs(predictedTurnAngleAvg)) because it did not work with negative turning angle
 # 1000 runs with negative turning angle -2*pi/34.0
-# average score:  283.616759777
+# average score:  116.105
 # minimum score:  3
-# maximum score:  999
-# fails:  105
+# maximum score:  773
+# fails:  0
+
+# 1000 runs with positive turning angle
+# average score:  115.136
+# minimum score:  3
+# maximum score:  660
+# fails:  0
 
 
 

@@ -178,9 +178,14 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     est_target_xy, X, P = EKF_Update(target_measurement, X, P, 1., noise_est)
     # Best guess as to true target coordinates now
     next_est_target_xy, X, P = EKF_Predict(X, P, dt = 1.)
+
     # Uses new estimate to predict the next estimated target location
     hunter_to_xy = next_est_target_xy # works if target will be within range
+
+    # distance from hunter to predicted target position
     dist_to_target = distance_between(next_est_target_xy, hunter_position)
+
+
     X_next, P_next = X.copy(), P.copy()
 
     for D in range( int( dist_to_target / max_distance ) ):
@@ -346,8 +351,8 @@ measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -10.0, 0.0)
 
-demo_grading(hunter, target, next_move)
-#turtle_demo(hunter, target, next_move)#, None)
+#demo_grading(hunter, target, next_move)
+turtle_demo(hunter, target, next_move)#, None)
 
 # scores = []
 # fails = 0
@@ -367,4 +372,9 @@ demo_grading(hunter, target, next_move)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
 
+# 1000 runs, works both CW and CCW
+# average score:  136.978
+# minimum score:  21
+# maximum score:  904
+# fails:  0
 

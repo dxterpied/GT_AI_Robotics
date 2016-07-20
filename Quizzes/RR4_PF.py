@@ -6,6 +6,8 @@ from numpy import *
 import turtle
 from collections import Counter
 
+# fails to work clockwise... needs work
+
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 20.0  #change Size of animation
@@ -13,7 +15,7 @@ N = 1000
 measurement_noise = 1.0
 particles = []
 
-target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+target = robot(0.0, 10.0, 0.0, -2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, .05 * target.distance)
 hunter = robot(-10.0, -10.0, 0.0)
 
@@ -21,6 +23,22 @@ hunter = robot(-10.0, -10.0, 0.0)
 # bumblebee.shape('square')
 # bumblebee.color('yellow')
 # bumblebee.shapesize(0.2, 0.2, 0.2)
+
+
+# cross product
+def calculateRotationDirection(Ax, Ay, Bx, By, Cx, Cy):
+    return ((Bx - Ax) * (Cy - By)) - ((By - Ay) * (Cx - Bx))
+
+
+def getRotationSign(rotationAngles):
+    # some will be negative; some positive; count which one has more elements
+    positive = [i for i in rotationAngles if i > 0.0]
+    negative = [i for i in rotationAngles if i < 0.0]
+
+    if len(positive) > len(negative):
+        return 1
+    else:
+        return -1
 
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
@@ -35,7 +53,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         xy_estimate = target_measurement
         steps = 0
         xy_pf = (0, 0)
-        turnAngle = 0.0
+        turnAngle = []
     else:
         distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle = OTHER
 
@@ -46,14 +64,16 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
         elif len(coords) >= 2:
 
-            if turnAngle == 0.0:
-                avgDT = sum(distances)/len(distances)
-                if distance_between(target_measurement, coords[0]) <= 0.8 * avgDT:
-                    turnAngle = 2*pi / len(coords)
+            # if turnAngle == 0.0:
+            #     avgDT = sum(distances)/len(distances)
+            #     if distance_between(target_measurement, coords[0]) <= 0.8 * avgDT:
+            #         turnAngle = 2*pi / len(coords)
 
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = target_measurement
+            turnAngle.append(calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1]))
+            rotationSign = getRotationSign(turnAngle)
 
             y1Delta = point2[1] - point1[1]
             hypotenuse1 = distance_between(point1, point2)
@@ -74,10 +94,10 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             # create particles only after approximate turning and distance are known
             if len(particles) == 0:
-                createParticles(target_measurement[0], target_measurement[1], avgAngle, avgDT)
+                createParticles(target_measurement[0], target_measurement[1], rotationSign * avgAngle, avgDT)
 
             Z = senseToLandmarks(target_measurement[0], target_measurement[1])
-            xy_pf = particle_filter(Z, avgAngle, avgDT)
+            xy_pf = particle_filter(Z, rotationSign * avgAngle, avgDT)
 
             # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
             # bumblebee.stamp()
@@ -85,58 +105,66 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # if turnAngle > 0.0:
             #     avgAngle = turnAngle
 
-            newR = robot(xy_pf[0], xy_pf[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(xy_pf[0], xy_pf[1], headingAngle2, rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
 
-            if xy_estimate is None:
-                steps = 1
+            # distance from hunter to predicted target position
+            dist_to_target = distance_between(predictedPosition, hunter_position)
 
-                while True:
-                    #time.sleep(0.1)
-                    xy_estimate = newR.x, newR.y
-                    headingAngle2 = newR.heading
-                    distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
-                    # check how many steps it will take to get there for Hunter
-                    projectedDistance = steps * max_distance
+            for d in range( int( dist_to_target / max_distance ) ):
+                # look ahead d moves and go that way
+                newR.move_in_circle()
+                xy_estimate = newR.x, newR.y
 
-                    # broken_robot.setheading(headingAngle2 * 180/pi)
-                    # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
-                    # broken_robot.stamp()
 
-                    if projectedDistance >= distanceBetweenHunterAndRobot:
-                        #print xy_estimate, steps
-                        break
-
-                    steps += 1
-                    if steps > 50:
-                        break
-
-                    newR.move_in_circle()
-
-            else:
-                steps -= 1
-                #print "decrement steps", steps
-                if steps <= 0:
-                    xy_estimate = None
+            # if xy_estimate is None:
+            #     steps = 1
+            #
+            #     while True:
+            #         #time.sleep(0.1)
+            #         xy_estimate = newR.x, newR.y
+            #         headingAngle2 = newR.heading
+            #         distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
+            #         # check how many steps it will take to get there for Hunter
+            #         projectedDistance = steps * max_distance
+            #
+            #         # broken_robot.setheading(headingAngle2 * 180/pi)
+            #         # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
+            #         # broken_robot.stamp()
+            #
+            #         if projectedDistance >= distanceBetweenHunterAndRobot:
+            #             #print xy_estimate, steps
+            #             break
+            #
+            #         steps += 1
+            #         if steps > 50:
+            #             break
+            #
+            #         newR.move_in_circle()
+            #
+            # else:
+            #     steps -= 1
+            #     #print "decrement steps", steps
+            #     if steps <= 0:
+            #         xy_estimate = None
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle)
     if xy_estimate is None:
         xy_estimate = target_measurement
-    heading_to_target = get_heading(hunter_position, xy_estimate)
-    heading_to_target2 = get_heading(hunter_position, predictedPosition)
-    turning = angle_trunc(heading_to_target - hunter_heading) # turn towards the target
-    # if abs(turning) > pi:
-    #     turning = turning % pi
-    turning2 = angle_trunc(heading_to_target2 - hunter_heading) # turn towards the target
-    distance = distance_between(hunter_position, xy_estimate)
+
     distance2 = distance_between(hunter_position, predictedPosition)
+
     # if distance to the next predicted step is less than max distance, jump there
     if distance2 <= max_distance:
-        turning = turning2
+        turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
         distance = distance2
         OTHER = (distances, angles, coords, None, steps, xy_pf, turnAngle)
+    else:
+        turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
+        distance = distance_between(hunter_position, xy_estimate)
+
 
     return turning, distance, OTHER
 
@@ -465,39 +493,41 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-# scores = []
-# fails = 0
-# for i in range(1000):
-#     print i
-#     particles = []
-#     target = robot(0.0, 10.0, 0.0, -2*pi / 30, 1.5)
-#     target.set_noise(0.0, 0.0, .05*target.distance)
-#     hunter = robot(-10.0, -10.0, 0.0)
-#     score = demo_grading(hunter, target, next_move_straight_line)
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
-#
-# with predicted angle:
-# average score:  165.305
-# minimum score:  21
-# maximum score:  848
-# fails:  0
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    particles = []
+    target = robot(0.0, 10.0, 0.0, -2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, .05*target.distance)
+    hunter = robot(-10.0, -10.0, 0.0)
+    score = demo_grading(hunter, target, next_move_straight_line)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
 
-# without predicted angle:
-# average score:  161.693079238
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+
+# 1000 runs counterclockwise:
+# average score:  162.731731732
 # minimum score:  21
-# maximum score:  856
-# fails:  3
+# maximum score:  837
+# fails:  1
+
+# 1000 runs clockwise
+# average score:  153.249498998
+# minimum score:  12
+# maximum score:  926
+# fails:  2
+
 
 
 #turtle.getscreen()._root.mainloop()

@@ -40,12 +40,23 @@ import random
 import time
 
 
-def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+# cross product
+def calculateRotationDirection(Ax, Ay, Bx, By, Cx, Cy):
+    return ((Bx - Ax) * (Cy - By)) - ((By - Ay) * (Cx - Bx))
 
-    """This strategy always tries to steer the hunter directly towards where the target last
-    said it was and then moves forwards at full speed. This strategy also keeps track of all
-    the target measurements, hunter positions, and hunter headings over time, but it doesn't
-    do anything with that information."""
+
+def getRotationSign(rotationAngles):
+    # some will be negative; some positive; count which one has more elements
+    positive = [i for i in rotationAngles if i > 0.0]
+    negative = [i for i in rotationAngles if i < 0.0]
+
+    if len(positive) > len(negative):
+        return 1
+    else:
+        return -1
+
+
+def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     xy_estimate = target_measurement
 
@@ -53,8 +64,9 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         distances = []
         angles = []
         coords = []
+        turnAngle = []
     else:
-        distances, angles, coords = OTHER
+        distances, angles, coords, turnAngle = OTHER
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
@@ -64,6 +76,9 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = target_measurement
+
+            turnAngle.append(calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1]))
+            rotationSign = getRotationSign(turnAngle)
 
             y1Delta = point2[1] - point1[1]
             hypotenuse1 = distance_between(point1, point2)
@@ -76,18 +91,18 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
-            angles.append(predictedTurnAngleAvg)
+            angles.append(abs(predictedTurnAngleAvg))
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            newR = robot(target_measurement[0], target_measurement[1], headingAngle2, avgAngle, avgDT)
+            newR = robot(target_measurement[0], target_measurement[1], headingAngle2, rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
     coords.append(target_measurement)
-    OTHER = (distances, angles, coords)
+    OTHER = (distances, angles, coords, turnAngle)
 
     heading_to_target = angle_trunc(get_heading(hunter_position, xy_estimate))
     heading_difference = heading_to_target - hunter_heading
@@ -95,6 +110,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     distance = distance_between(hunter_position, xy_estimate)
 
     return turning, distance, OTHER
+
 
 
 def distance_between(point1, point2):
@@ -259,45 +275,45 @@ def kalman_filter(x, P, measurements):
 
 
 
-target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
+target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -20.0, 0.0)
 
 #demo_grading(hunter, target, next_move)
-#demo_grading_visual(hunter, target, next_move)
+demo_grading_visual(hunter, target, next_move)
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
-    measurement_noise = .05 * target.distance
-    target.set_noise(0.0, 0.0, measurement_noise)
-    hunter = robot(-10.0, -20.0, 0.0)
-
-    score = demo_grading(hunter, target, next_move)
-
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+#     measurement_noise = .05 * target.distance
+#     target.set_noise(0.0, 0.0, measurement_noise)
+#     hunter = robot(-10.0, -20.0, 0.0)
+#
+#     score = demo_grading(hunter, target, next_move)
+#
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
 # 1000 runs with positive angle (counterclockwise)
-# average score:  171.352705411
+# average score:  44.309
 # minimum score:  14
-# maximum score:  831
-# fails:  2
+# maximum score:  356
+# fails:  0
 
 # 1000 runs with negative angle (clockwise)
-# average score:  169.475426279
+# average score:  38.515
 # minimum score:  8
-# maximum score:  979
-# fails:  3
+# maximum score:  170
+# fails:  0
 

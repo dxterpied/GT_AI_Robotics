@@ -196,7 +196,7 @@ def demo_grading_new(estimate_next_pos_fcn, target_bot, OTHER = None):
 # This is how we create a target bot. Check the robot.py file to understand
 # How the robot class behaves.
 #test_target = robot(0, 0, 0.5, 2*pi/34.0, 1.5)
-test_target = robot(0, 0, heading = 0.0, turning = 2*pi/10, distance = 1.0)
+test_target = robot(0, 0, heading = 0.0, turning = -2*pi/10, distance = 1.0)
 
 test_target.set_noise(0.0, 0.0, 0.0)
 

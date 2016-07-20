@@ -5,6 +5,7 @@ import random
 import numpy
 import turtle
 
+# This straight KF performs much worse than the running average (RR4.py) or the PF version.
 
 # These are the equations used for prediction:
 #  x(n+1) = x(n) + distance * cos(self.heading)

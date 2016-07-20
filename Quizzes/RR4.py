@@ -31,7 +31,6 @@ import turtle    #You need to run this locally to use the turtle module
 # 1 <= target_speed <= 5
 
 
-
 # cross product
 def calculateRotationDirection(Ax, Ay, Bx, By, Cx, Cy):
     return ((Bx - Ax) * (Cy - By)) - ((By - Ay) * (Cx - Bx))
@@ -48,22 +47,12 @@ def getRotationSign(rotationAngles):
         return -1
 
 
-#stats for this method :
-# average score:  155
-# minimum score:  22
-# maximum score:  985
-# fails:  7
-
-
-
-
-
 # average score:  235.333333333
 # minimum score:  22
 # maximum score:  996
 # fails:  16
 
-def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+def next_move_straight_line_Worse(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     predictedPosition = [0, 0]
     xy_estimate = None
@@ -122,44 +111,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 newR.move_in_circle()
                 xy_estimate = newR.x, newR.y
 
-
-            # if xy_estimate is None:
-            #
-            #     # broken_robot = turtle.Turtle()
-            #     # broken_robot.shape('turtle')
-            #     # broken_robot.color('red')
-            #     # #broken_robot.resizemode('user')
-            #     # broken_robot.shapesize(0.2, 0.2, 0.2)
-            #
-            #     steps = 1
-            #
-            #     while True:
-            #         #time.sleep(0.1)
-            #         xy_estimate = newR.x, newR.y
-            #         headingAngle2 = newR.heading
-            #         distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
-            #         # check how many steps it will take to get there for Hunter
-            #         projectedDistance = steps * max_distance
-            #
-            #         # broken_robot.setheading(headingAngle2 * 180/pi)
-            #         # broken_robot.goto(newR.x * 20, newR.y * 20 - 200)
-            #         # broken_robot.stamp()
-            #
-            #         if projectedDistance >= distanceBetweenHunterAndRobot:
-            #             break
-            #
-            #         steps += 1
-            #         if steps > 50:
-            #             break
-            #
-            #         newR.move_in_circle()
-            #
-            # else:
-            #     steps -= 1
-            #     #print "decrement steps", steps
-            #     if steps <= 0:
-            #         xy_estimate = None
-
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle)
     if xy_estimate is None:
@@ -178,18 +129,18 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     return turning, distance, OTHER
 
 
-# 1000 runs counterclockwise:
-# average score:  201.667003027
-# minimum score:  12
-# maximum score:  990
-# fails:  9
-
-# clockwise:
-# average score:  159.531062124
+# 1000 runs counterclockwise (+):
+# average score:  153.075
 # minimum score:  21
-# maximum score:  993
-# fails:  2
-def next_move_straight_line_OLD(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+# maximum score:  854
+# fails:  0
+
+# 1000 runs clockwise (-):
+# average score:  142.162162162
+# minimum score:  12
+# maximum score:  907
+# fails:  1
+def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     predictedPosition = [0, 0]
     xy_estimate = None
@@ -249,10 +200,19 @@ def next_move_straight_line_OLD(hunter_position, hunter_heading, target_measurem
 
                 steps = 1
 
+                # distance from hunter to predicted target position
+                # dist_to_target = distance_between(predictedPosition, hunter_position)
+                #
+                # for i in range( int( dist_to_target / max_distance ) ):
+                #     # look ahead d moves and go that way
+                #     xy_estimate = newR.x, newR.y
+                #     newR.move_in_circle()
+                #     steps += 1
+
+
                 while True:
                     #time.sleep(0.1)
                     xy_estimate = newR.x, newR.y
-                    headingAngle2 = newR.heading
                     distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
                     # check how many steps it will take to get there for Hunter
                     projectedDistance = steps * max_distance
@@ -272,7 +232,6 @@ def next_move_straight_line_OLD(hunter_position, hunter_heading, target_measurem
 
             else:
                 steps -= 1
-                #print "decrement steps", steps
                 if steps <= 0:
                     xy_estimate = None
 
@@ -280,19 +239,17 @@ def next_move_straight_line_OLD(hunter_position, hunter_heading, target_measurem
     OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle)
     if xy_estimate is None:
         xy_estimate = target_measurement
-    heading_to_target = get_heading(hunter_position, xy_estimate)
-    heading_to_target2 = get_heading(hunter_position, predictedPosition)
-    turning = heading_to_target - hunter_heading # turn towards the target
-    if abs(turning) > pi:
-        turning = turning % pi
-    turning2 = heading_to_target2 - hunter_heading # turn towards the target
-    distance = distance_between(hunter_position, xy_estimate)
+
     distance2 = distance_between(hunter_position, predictedPosition)
 
     if distance2 <= max_distance:
-        turning = turning2
+        turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
         distance = distance2
         OTHER = (distances, angles, coords, None, steps, turnAngle)
+    else:
+        turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading)
+        distance = distance_between(hunter_position, xy_estimate)
+
 
     return turning, distance, OTHER
 
@@ -455,7 +412,7 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -5.0, 0.0)
 
 
-demo_grading(hunter, target, next_move_straight_line)
+#demo_grading(hunter, target, next_move_straight_line)
 #demo_grading_visual(hunter, target, next_move_straight_line)
 
 
@@ -463,7 +420,7 @@ scores = []
 fails = 0
 for i in range(1000):
     print i
-    target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+    target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
     target.set_noise(0.0, 0.0, measurement_noise)
     hunter = robot(-10.0, -20.0, 0.0)
     score = demo_grading(hunter, target, next_move_straight_line)
@@ -478,10 +435,6 @@ print "maximum score: ", max(scores)
 print "fails: ", fails
 
 
-# average score:  235.333333333
-# minimum score:  22
-# maximum score:  996
-# fails:  16
 
 
 

@@ -6,8 +6,6 @@ from numpy import *
 import turtle
 from collections import Counter
 
-# fails to work clockwise... needs work
-
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 20.0  #change Size of animation
@@ -112,42 +110,42 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # distance from hunter to predicted target position
             dist_to_target = distance_between(predictedPosition, hunter_position)
 
-            for d in range( int( dist_to_target / max_distance ) ):
-                # look ahead d moves and go that way
-                newR.move_in_circle()
-                xy_estimate = newR.x, newR.y
+            # for d in range( int( dist_to_target / max_distance ) ):
+            #     # look ahead d moves and go that way
+            #     newR.move_in_circle()
+            #     xy_estimate = newR.x, newR.y
 
 
-            # if xy_estimate is None:
-            #     steps = 1
-            #
-            #     while True:
-            #         #time.sleep(0.1)
-            #         xy_estimate = newR.x, newR.y
-            #         headingAngle2 = newR.heading
-            #         distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
-            #         # check how many steps it will take to get there for Hunter
-            #         projectedDistance = steps * max_distance
-            #
-            #         # broken_robot.setheading(headingAngle2 * 180/pi)
-            #         # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
-            #         # broken_robot.stamp()
-            #
-            #         if projectedDistance >= distanceBetweenHunterAndRobot:
-            #             #print xy_estimate, steps
-            #             break
-            #
-            #         steps += 1
-            #         if steps > 50:
-            #             break
-            #
-            #         newR.move_in_circle()
-            #
-            # else:
-            #     steps -= 1
-            #     #print "decrement steps", steps
-            #     if steps <= 0:
-            #         xy_estimate = None
+            if xy_estimate is None:
+                steps = 1
+
+                while True:
+                    #time.sleep(0.1)
+                    xy_estimate = newR.x, newR.y
+                    headingAngle2 = newR.heading
+                    distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
+                    # check how many steps it will take to get there for Hunter
+                    projectedDistance = steps * max_distance
+
+                    # broken_robot.setheading(headingAngle2 * 180/pi)
+                    # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
+                    # broken_robot.stamp()
+
+                    if projectedDistance >= distanceBetweenHunterAndRobot:
+                        #print xy_estimate, steps
+                        break
+
+                    steps += 1
+                    if steps > 50:
+                        break
+
+                    newR.move_in_circle()
+
+            else:
+                steps -= 1
+                #print "decrement steps", steps
+                if steps <= 0:
+                    xy_estimate = None
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle)

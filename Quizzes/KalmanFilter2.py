@@ -9,19 +9,25 @@ from math import *
 # belief function.
 
 
-# update is used for sensing
-def update(oldMean, oldVariance, newMean, newVariance):
-    new_mean = ( newVariance * oldMean + oldVariance * newMean ) / (oldVariance + newVariance)
+# update when sensing new data
+def update(oldEstimate, errEstimate, measurement, errMeasurement):
+    new_estimate = ( errMeasurement * oldEstimate + errEstimate * measurement ) / (errEstimate + errMeasurement)
+    # the sucker above already contains Kalman gain!
+    #new_mean = (errEstimate/(errEstimate + errMeasurement)) * measurement + (errEstimate/(errEstimate + errMeasurement)) * oldEstimate
+    # new_mean = Weight 1 * measurement + Weight 2 * oldEstimate
+    # Weight 1 + Weight 2 = 1
+    # errEstimate/(errEstimate + errMeasurement) + errEstimate/(errEstimate + errMeasurement) = 1
+    # so, the Kalman Gain = errEstimate/(errEstimate + errMeasurement)
+    # new_mean = KG * measurement + (1 - KG) * oldEstimate = oldEstimate + KG * (measurement - oldEstimate)
 
-    new_var = 1./ ( 1./oldVariance + 1./newVariance  )
+    new_estimate_error = (errEstimate * errMeasurement) / (errEstimate + errMeasurement)
+    return [new_estimate, new_estimate_error]
 
-    return [new_mean, new_var]
-
-# this is used for motion prediction
-def predict(oldMean, oldVariance, newMean, newVariance):
-    new_mean = oldMean + newMean
-    new_var = oldVariance + newVariance
-    return [new_mean, new_var]
+# predict
+def predict(oldEstimate, errEstimate, measurement, errMeasurement):
+    new_estimate = oldEstimate + measurement
+    new_estimate_error = errEstimate + errMeasurement
+    return [new_estimate, new_estimate_error]
 
 
 measurements = [5., 6., 7., 9., 10.]

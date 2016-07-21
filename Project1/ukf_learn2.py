@@ -7,44 +7,47 @@ import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal as mv_norm
 
 
+"""
+Given a state vector of length n, covariance matrix sigma, (non)-linear
+prediction function, (non)-linear measurement function, process and
+measurement noise models, and UKF parameters alpha, beta, and kappa,
+perform a UKF update on the state and covariance.
+
+Params:
+---
+    state_mu: current state (1xn array)
+
+    cov_sigma: covariance matrix (nxn array)
+
+    control_u: control command (1xn array)
+
+    measurement_z: current measurement (1xm array)
+
+    process_fn: callable - given x and u, determine next state
+
+    predict_fn: callable - given x, determine measurement
+
+    noise_Rt: process noise
+
+    noise_Qt: measurement noise
+
+    alpha: UKF parameter (typically 1e-3 according to wikipedia)
+
+    beta: UKF parameter (typically 2 if true distribution is gaussian)
+
+    kappa: UKF parameter (typically 0 according to wikipedia)
+
+Output:
+---
+    new_state
+
+    new_cov
+"""
+
+
 def UKF(state_mu, cov_sigma, control_u, measurement_z, process_fn,
         predict_fn, noise_Rt, noise_Qt, alpha=1e-3, beta=2, kappa=0):
-    """
-    Given a state vector of length n, covariance matrix sigma, (non)-linear
-    prediction function, (non)-linear measurement function, process and
-    measurement noise models, and UKF parameters alpha, beta, and kappa,
-    perform a UKF update on the state and covariance.
 
-    Params:
-    ---
-        state_mu: current state (1xn array)
-
-        cov_sigma: covariance matrix (nxn array)
-
-        control_u: control command (1xn array)
-
-        measurement_z: current measurement (1xm array)
-
-        process_fn: callable - given x and u, determine next state
-
-        predict_fn: callable - given x, determine measurement
-
-        noise_Rt: process noise
-
-        noise_Qt: measurement noise
-
-        alpha: UKF parameter (typically 1e-3 according to wikipedia)
-
-        beta: UKF parameter (typically 2 if true distribution is gaussian)
-
-        kappa: UKF parameter (typically 0 according to wikipedia)
-
-    Output:
-    ---
-        new_state
-
-        new_cov
-    """
     n = len(state_mu)
     L = 2 * n + 1
     lam = alpha**2 * (n + kappa) - n

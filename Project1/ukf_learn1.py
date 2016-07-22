@@ -121,13 +121,13 @@ def generateStatesAndObservations():
     states = []
     observations = []
 
-    target = robot(-10.0, -0.0, 0.0, 2*pi / 30, 1)
+    target = robot(-10.0, -0.0, 0.0, 2*pi / 30, 1.5)
     target.set_noise(0.0, 0.0, 0.2)
 
 
-    for i in range(10):
+    for i in range(30):
         target.moveInCircle()
-        states.append((target.x, target.y))
+        states.append([target.x, target.y])
         observations.append(target.sense())
 
     return (states, observations)
@@ -153,8 +153,7 @@ states, observations = generateStatesAndObservations()
 filtered_state_estimates = kf.filter(observations)[0]
 
 # print filtered_state_estimates
-# print states
-
+print states
 
 for i in range(len(filtered_state_estimates)):
     target_robot.goto(states[i][0] * size_multiplier, states[i][1] * size_multiplier)

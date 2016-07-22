@@ -1,11 +1,7 @@
 #https://github.com/balzer82/Kalman
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats
-
-
 
 """
 Given a state vector of length n, covariance matrix sigma, (non)-linear
@@ -14,7 +10,6 @@ measurement noise models, and UKF parameters alpha, beta, and kappa,
 perform a UKF update on the state and covariance.
 
 Params:
----
     x: current state (1xn array)
     P: covariance matrix (nxn array)
     u: control command (1xn array)
@@ -29,7 +24,6 @@ Params:
 
 Output: x, P
 """
-
 
 def filterUsingUKF(x, P, u, z, R, Q,
         process_fn,
@@ -66,7 +60,7 @@ def filterUsingUKF(x, P, u, z, R, Q,
     mu_bar = np.sum(wm * chi_star_bar, axis=1)
 
     sigma_bar = np.array(R)
-    for w, chi_i in zip(wc, chi_star_bar.T):  # use .T to iterate columns
+    for w, chi_i in zip(wc, chi_star_bar.transpose()):  # use .transpose() to iterate columns
         chi_dev = (chi_i - mu_bar)[:, np.newaxis]  # force into column vector
         sigma_bar += w * (chi_dev * chi_dev.T)
 
@@ -104,8 +98,8 @@ def filterUsingUKF(x, P, u, z, R, Q,
     return new_state, new_cov
 
 
-# state vector - position x, y, velocity, heading
-x = np.array([ 50., 70.,  20.,  np.pi/4] )
+# state vector - x, y, velocity, heading
+x = np.array([ 50., 70.,  20.,  2*np.pi/4] )
 
 P = np.matrix([[1., 0., 0., 0.], # state variance-covariance
                [0., 1., 0., 0.],
@@ -120,27 +114,34 @@ distance = 0.1
 r_rand = scipy.stats.multivariate_normal(cov=R)
 q_rand = scipy.stats.multivariate_normal(cov=Q)
 
-# determine next state
-def g(uk, xk):
+# state transition function
+def g(u, sigma_points):
+
     # an arbitrary nonlinear function from x to y
-    y = np.zeros(xk.shape)
-    for i, x_i in enumerate(xk.T):
-        A = np.array([[1, 0, np.cos(x_i[3]) * distance, 0],
+    y = np.zeros(sigma_points.shape)
+
+    # x_i is [ 50.          70.          20.           0.78539816] - one sigma point for each variable (x, y, v, heading)
+    for index, x_i in enumerate(sigma_points.transpose()):
+        F = np.array([[1, 0, np.cos(x_i[3]) * distance, 0],
                       [0, 1, np.sin(x_i[3]) * distance, 0],
                       [0, 0, 1, 0],
                       [0, 0, 0, 1]])
+
         B = np.array([[0, 0],
                       [0, 0],
                       [1, 0],
                       [0, 1]])
-        y[:, i] = A.dot(x_i) + B.dot(uk)
 
-    eps = r_rand.rvs(size=xk.shape[1]).T
-    y += eps
+        # x = Fx + Bu
+        # print "F.dot(x_i)", F.dot(x_i)
+        # print "B.dot(u)", B.dot(u)
+        y[:, index] = F.dot(x_i) + B.dot(u)
+
+    y = y + r_rand.rvs( size=sigma_points.shape[1] ).transpose()
 
     return y
 
-# determine measurement
+# measurement function
 def h(xk):
     # measure function - predict the measurements given xk
     # only measures location
@@ -148,12 +149,13 @@ def h(xk):
     return m
 
 
-controls = dict({10: np.array([0., np.pi / 6]),
-            30: np.array([-.5, 0.]),
-            50: np.array([0., -np.pi / 6]),
-            60: np.array([0., -np.pi / 6]),
-            70: np.array([1., 0.]),
-            85: np.array([-.5, np.pi / 6]),
+controls = dict({
+            10:  np.array([0., 2*np.pi / 12]),
+            30:  np.array([-.5, 0.]),
+            50:  np.array([0., -2*np.pi / 12]),
+            70:  np.array([0., -2*np.pi / 12]),
+            90:  np.array([1., 0.]),
+            85:  np.array([-.5, 2*np.pi / 12]),
             100: np.array([0., 0.])
             })
 
@@ -162,9 +164,13 @@ states = np.ndarray([100, x.shape[0]])
 # print "\t\t\t", "x\t\t\t", "y\t\t\t", "V\t\t\t", "phi"
 # print 0, ",", np.array2string(x, formatter={'float_kind': lambda x: ",\t{:>8.3f}".format(x)})
 
-
 for i in range(100):
     u += controls.get(i, np.array([0., 0.])) * distance
+    # print "u"
+    # print u
+    # if i > 50:
+    #     exit()
+
     z = h( x[:, np.newaxis] )
     x, P = filterUsingUKF(x, P, u, z, R, Q, g, h)
     #print i+1, ",", np.array2string(x, formatter={'float_kind': lambda x: ",\t{:>8.3f}".format(x)})
@@ -184,6 +190,6 @@ ax3 = fig.add_subplot(313)
 ax3.plot(states[:, 3])
 ax3.set_title('Heading')
 
-#plt.show()
+plt.show()
 
 

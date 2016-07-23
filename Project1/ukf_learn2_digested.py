@@ -43,95 +43,6 @@ size_multiplier = 25
 
 
 
-def filterUsingUKF(x, P, u, z, R, Q,
-        process_fn,
-        predict_fn,
-        alpha=1e-3, beta=2, kappa=0):
-
-    n = len(x) # len is 4
-    L = 2 * n + 1
-    lam = alpha**2 * (n + kappa) - n
-    gamma = np.sqrt(n + lam)
-
-    # Calculate matrix sqrt of covariance by cholesky decomposition;
-    # sigma = L * L^* (but for Hermetian L^* = L.T). i.e.,
-    # sigma = sigma_root.dot(sigma_root.T)
-    sigma_root = np.linalg.cholesky(P)
-
-    # Calculate the weights to recover the mean and covariance estimates
-    wm, wc = np.zeros(L), np.zeros(L)
-    wm[0] = gamma / (n + gamma)
-    wc[0] = wm[0] + (1. - alpha**2 + beta)
-    wm[1:] = wc[1:] = (0.5 / (n + gamma))
-
-    # Find the sigma points; vec[:, np.newaxis] treats vec as a column
-    # to match numpy arithmetic broadcasting rules
-    chi = np.zeros([n, L])
-    chi[:, 0] = x
-    chi[:, 1:n+1] = x[:, np.newaxis] + gamma * sigma_root
-    chi[:, n+1:] = x[:, np.newaxis] - gamma * sigma_root
-
-    # propagate the sigma points and control commands through the process model
-    chi_star_bar = process_fn(u, chi)
-
-    # recover the mean and covariance estimates
-    mu_bar = np.sum(wm * chi_star_bar, axis=1)
-
-    sigma_bar = np.array(R)
-    for w, chi_i in zip(wc, chi_star_bar.transpose()):  # use .transpose() to iterate columns
-        chi_dev = (chi_i - mu_bar)[:, np.newaxis]  # force into column vector
-        sigma_bar += w * (chi_dev * chi_dev.T)
-
-    # Calculate matrix sqrt of covariance by cholesky decomposition;
-    # sigma_bar = L * L^* (but for Hermetian L^* = L.T). i.e.,
-    # sigma_bar = sigma_bar_root.dot(cov_bar_root.T)
-    sigma_bar_root = np.linalg.cholesky(sigma_bar)
-
-    chi_bar = np.zeros([n, L])
-    chi_bar[:, 0] = mu_bar
-    chi_bar[:, 1:n+1] = mu_bar[:, np.newaxis] + gamma * sigma_bar_root
-    chi_bar[:, n+1:] = mu_bar[:, np.newaxis] - gamma * sigma_bar_root
-
-    # Z_bar should have size (# observables, L)
-    Z_bar = predict_fn(chi_bar)
-    z_hat = np.sum(wm * Z_bar, axis=1)
-    m = Z_bar.shape[0]
-
-    S = np.array(Q)
-    for w, Z_i in zip(wc, Z_bar.T):  # use .T to iterate columns
-        z_dev = (Z_i - z_hat)[:, np.newaxis]  # force into column vector
-        S += w * (z_dev * z_dev.T)
-
-    sigma_xz = np.zeros([n, m])
-    for w, chi_bar_i, Z_i in zip(wc, chi_bar.T, Z_bar.T):
-        chi_dev = (chi_bar_i - mu_bar)[:, np.newaxis]  # coerce to column
-        z_dev = (Z_i - z_hat)[:, np.newaxis]  # coerce to column vector
-        sigma_xz += w * (chi_dev * z_dev.T)
-
-    # consider using the pseudo-inverse or catching singular errors in inv()
-    K = sigma_xz.dot(np.linalg.inv(S))
-    new_state = mu_bar + np.dot(K, (z - z_hat[:, np.newaxis]))[0]
-    new_cov = sigma_bar - np.dot(K, np.dot(S, K.T))
-
-    return new_state, new_cov
-
-
-# state vector - x, y, velocity, heading
-x = np.array([ 50., 70.,  20.,  2*np.pi/4] )
-
-P = np.matrix([[1., 0., 0., 0.], # state variance-covariance
-               [0., 1., 0., 0.],
-               [0., 0., 1., 0.],
-               [0., 0., 0., 1.]])  #np.eye(4)
-R = np.diag([.5, .5, .05, 1e-2])
-Q = np.diag([.01] * 2)
-u = np.array([0., 0.])
-distance = 0.1
-
-# declare noise functions using covariances
-r_rand = scipy.stats.multivariate_normal(cov=R)
-q_rand = scipy.stats.multivariate_normal(cov=Q)
-
 
 # state transition function
 def g(u, sigma_points):
@@ -151,11 +62,17 @@ def g(u, sigma_points):
     #  [ 0.  0.  0.  0.  0.  0.  0.  0.  0.]]
 
     # x_i is [ 50.          70.          20.           1.57079633] - one sigma point for each variable (x, y, v, heading)
-    for index, x_i in enumerate(sigma_points.transpose()):
+    for index, sigmaPointsVector in enumerate(sigma_points.transpose()):
         #print "x_i", x_i   # [ 50.          70.          20.           1.57079633]
 
-        F = np.array([[1, 0, np.cos(x_i[3]) * distance, 0],
-                      [0, 1, np.sin(x_i[3]) * distance, 0],
+        # here only sigma point for velocity is used
+
+        x_velocity = np.cos(sigmaPointsVector[3]) * distance
+        y_velocity = np.sin(sigmaPointsVector[3]) * distance
+
+
+        F = np.array([[1, 0,  x_velocity,  0],
+                      [0, 1,  y_velocity,  0],
                       [0, 0, 1, 0],
                       [0, 0, 0, 1]])
 
@@ -171,10 +88,10 @@ def g(u, sigma_points):
 
         # x = Fx + Bu
         #print "u", u                    # [ 0.  0.]
-        #print "F.dot(x_i)", F.dot(x_i)  # [ 50.          72.          20.           1.57079633]
+        #print "F.dot(sigmaPointsVector)", F.dot(sigmaPointsVector)  # [ 50.          72.          20.           1.57079633]
         #print "B.dot(u)", B.dot(u)      #     [ 0.  0.  0.  0.]
-        y[:, index] = F.dot(x_i) + B.dot(u)
-        #print F.dot(x_i) + B.dot(u)     # [ 50.          72.          20.           1.57079633]
+        y[:, index] = F.dot(sigmaPointsVector) #+ B.dot(u) # multiply F by sigma points vector
+        #print F.dot(sigmaPointsVector) + B.dot(u)     # [ 50.          72.          20.           1.57079633]
 
     #print "y", y
     # [[ 50.          50.002       50.          50.          49.996       49.998   50.          50.          50.004     ]
@@ -204,14 +121,98 @@ def g(u, sigma_points):
 
     return y
 
+
+
 # measurement function
 def h(xk):
     # measure function - predict the measurements given xk
     # only measures location
-    m = xk[:2, :] + np.atleast_2d(q_rand.rvs(size=xk.shape[1])).T
+
+    m = xk[:2, :] + np.atleast_2d( q_rand.rvs(size=xk.shape[1] )).transpose()
+
     return m
 
 
+def filterUsingUKF(x, P, u, z, R, Q, process_fn, predict_fn, alpha=1e-3, beta=2, kappa=0):
+
+    L = len(x) # len is 4
+    sigmaPointsCount = 2 * L + 1
+    lam = alpha**2 * (L + kappa) - L
+    gamma = np.sqrt(L + lam)
+
+    # Calculate matrix sqrt of covariance by cholesky decomposition;
+    # sigma = L * L^* (but for Hermetian L^* = L.T). i.e.,
+    # sigma = sigma_root.dot(sigma_root.T)
+    sigma_root = np.linalg.cholesky(P)
+
+    # Calculate the weights to recover the mean and covariance estimates
+    wm, wc = np.zeros(sigmaPointsCount), np.zeros(sigmaPointsCount)
+    wm[0] = gamma / (L + gamma)
+    wc[0] = wm[0] + (1. - alpha**2 + beta)
+    wm[1:] = wc[1:] = (0.5 / (L + gamma))
+
+    # Find the sigma points; vec[:, np.newaxis] treats vec as a column
+    # to match numpy arithmetic broadcasting rules
+    chi = np.zeros([L, sigmaPointsCount])
+    chi[:, 0] = x
+    chi[:, 1:L+1] = x[:, np.newaxis] + gamma * sigma_root
+    chi[:, L+1:] = x[:, np.newaxis] - gamma * sigma_root
+
+    # propagate the sigma points and control commands through the process model
+    chi_star_bar = process_fn(u, chi)
+
+    # recover the mean and covariance estimates
+    mu_bar = np.sum(wm * chi_star_bar, axis=1)
+
+    sigma_bar = np.array(R)
+    for w, chi_i in zip(wc, chi_star_bar.transpose()):  # use .transpose() to iterate columns
+        chi_dev = (chi_i - mu_bar)[:, np.newaxis]  # force into column vector
+        sigma_bar += w * (chi_dev * chi_dev.T)
+
+    # Calculate matrix sqrt of covariance by cholesky decomposition;
+    # sigma_bar = L * L^* (but for Hermetian L^* = L.T). i.e.,
+    # sigma_bar = sigma_bar_root.dot(cov_bar_root.T)
+    sigma_bar_root = np.linalg.cholesky(sigma_bar)
+
+    chi_bar = np.zeros([L, sigmaPointsCount])
+    chi_bar[:, 0] = mu_bar
+    chi_bar[:, 1:L+1] = mu_bar[:, np.newaxis] + gamma * sigma_bar_root
+    chi_bar[:, L+1:] = mu_bar[:, np.newaxis] - gamma * sigma_bar_root
+
+    # Z_bar should have size (# observables, L)
+    Z_bar = predict_fn(chi_bar)
+    z_hat = np.sum(wm * Z_bar, axis=1)
+    m = Z_bar.shape[0]
+
+    S = np.array(Q)
+    for w, Z_i in zip(wc, Z_bar.T):  # use .T to iterate columns
+        z_dev = (Z_i - z_hat)[:, np.newaxis]  # force into column vector
+        S += w * (z_dev * z_dev.T)
+
+    sigma_xz = np.zeros([L, m])
+    for w, chi_bar_i, Z_i in zip(wc, chi_bar.T, Z_bar.T):
+        chi_dev = (chi_bar_i - mu_bar)[:, np.newaxis]  # coerce to column
+        z_dev = (Z_i - z_hat)[:, np.newaxis]  # coerce to column vector
+        sigma_xz += w * (chi_dev * z_dev.T)
+
+    # consider using the pseudo-inverse or catching singular errors in inv()
+    K = sigma_xz.dot(np.linalg.inv(S))
+    new_state = mu_bar + np.dot(K, (z - z_hat[:, np.newaxis]))[0]
+    new_cov = sigma_bar - np.dot(K, np.dot(S, K.T))
+
+    return new_state, new_cov
+
+
+# state vector - x, y, velocity, heading
+x = np.array([ 0., 0.,  0,  0] )
+
+P = np.matrix([[1., 0., 0., 0.], # state variance-covariance
+               [0., 1., 0., 0.],
+               [0., 0., 1., 0.],
+               [0., 0., 0., 1.]])  #np.eye(4)
+R = np.diag([.5, .5, .05, 1e-2])
+Q = np.diag([.01] * 2)
+u = np.array([0., 0.])
 controls = dict({
             10:  np.array([0., 2*np.pi / 12]),
             30:  np.array([-.5, 0.]),
@@ -221,6 +222,13 @@ controls = dict({
             85:  np.array([-.5, 2*np.pi / 12]),
             100: np.array([0., 0.])
             })
+
+distance = 1.5
+
+# declare noise functions using covariances
+r_rand = scipy.stats.multivariate_normal(cov=R)
+q_rand = scipy.stats.multivariate_normal(cov=Q)
+
 
 states = np.ndarray([100, x.shape[0]])
 
@@ -251,7 +259,7 @@ for i in range(100):
     states[i, :] = x.copy()
 
 #print true_states
-print states
+#print states
 
 
 for i in true_states:
@@ -259,7 +267,7 @@ for i in true_states:
     target_robot.stamp()
 
 for i in states:
-    predicted_robot.goto(i[0], i[1])
+    predicted_robot.goto(i[0] * 10, i[1] * 10)
     predicted_robot.stamp()
 
 

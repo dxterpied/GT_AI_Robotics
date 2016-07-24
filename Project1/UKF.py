@@ -1,5 +1,6 @@
 
 from collections import namedtuple
+import pylab as pl
 
 import numpy as np
 from numpy import ma
@@ -644,6 +645,72 @@ class UKF(UnscentedMixin):
         seed for random sample generation
     '''
 
+    def sample(self, n_timesteps, initial_state=None, random_state=None):
+        '''Sample from model defined by the Unscented Kalman Filter
+
+        Parameters
+        ----------
+        n_timesteps : int
+            number of time steps
+        initial_state : optional, [n_dim_state] array
+            initial state.  If unspecified, will be sampled from initial state
+            distribution.
+        random_state : optional, int or Random
+            random number generator
+        '''
+        (transition_functions, observation_functions,
+         transition_covariance, observation_covariance,
+         initial_state_mean, initial_state_covariance) = (
+            self._initialize_parameters()
+        )
+
+        n_dim_state = transition_covariance.shape[-1]
+        n_dim_obs = observation_covariance.shape[-1]
+
+        # logic for instantiating rng
+        if random_state is None:
+            rng = check_random_state(self.random_state)
+        else:
+            rng = check_random_state(random_state)
+
+        # logic for selecting initial state
+        if initial_state is None:
+            initial_state = rng.multivariate_normal(
+                initial_state_mean, initial_state_covariance
+            )
+
+        # logic for generating samples
+        x = np.zeros((n_timesteps, n_dim_state))
+        z = np.zeros((n_timesteps, n_dim_obs))
+        for t in range(n_timesteps):
+            if t == 0:
+                x[0] = initial_state
+            else:
+                transition_function = (
+                    _last_dims(transition_functions, t - 1, ndims=1)[0]
+                )
+                transition_noise = (
+                    rng.multivariate_normal(
+                        np.zeros(n_dim_state),
+                        transition_covariance.newbyteorder('=')
+                    )
+                )
+                x[t] = transition_function(x[t - 1], transition_noise)
+
+            observation_function = (
+                _last_dims(observation_functions, t, ndims=1)[0]
+            )
+            observation_noise = (
+                rng.multivariate_normal(
+                    np.zeros(n_dim_obs),
+                    observation_covariance.newbyteorder('=')
+                )
+            )
+            z[t] = observation_function(x[t], observation_noise)
+
+        return (x, ma.asarray(z))
+
+
     def filter(self, Z):
         '''Run Unscented Kalman Filter
 
@@ -835,3 +902,56 @@ class UKF(UnscentedMixin):
             'initial_state_covariance': np.eye(self.n_dim_state),
             'random_state': 0,
         }
+
+
+distance = 1.5
+
+# initialize parameters
+def transition_function(state, noise):
+    #print state, noise # [ 0.  0.] [ 0.95008842 -0.15135721]
+    # Ilya: I changed this to linear motion
+    a =  state[0] + distance + noise[0]            # np.sin(state[0]) + state[1] * noise[0]
+    b =  state[1] + distance / 2. + noise[1]       # state[1] + noise[1]
+    return np.array([a, b])
+
+def observation_function(state, noise):
+    C = np.array([[-1, 0.5], [0.2, 0.1]])
+    return np.dot(C, state) + noise
+
+transition_covariance = np.eye(2)
+random_state = np.random.RandomState(0)
+observation_covariance = np.eye(2) + random_state.randn(2, 2) * 0.1
+initial_state_mean = [0, 0]
+initial_state_covariance = [[1, 0.1], [-0.1, 1]]
+
+# sample from model
+kf = UKF(
+    transition_function, observation_function,
+    transition_covariance, observation_covariance,
+    initial_state_mean, initial_state_covariance,
+    random_state=random_state
+)
+states, observations = kf.sample(50, initial_state_mean)
+
+# estimate state with filtering and smoothing
+filtered_state_estimates = kf.filter(observations)[0]
+smoothed_state_estimates = kf.smooth(observations)[0]
+
+# draw estimates
+pl.figure()
+lines_true = pl.plot(states, color='b')
+
+lines_filt = pl.plot(filtered_state_estimates, color='r', ls='-')
+
+#lines_smooth = pl.plot(smoothed_state_estimates, color='g', ls='-.')
+
+pl.legend((lines_true[0], lines_filt[0]),
+          ('true', 'filtered'),
+          loc='lower left')
+
+
+# pl.legend((lines_true[0], lines_filt[0], lines_smooth[0]),
+#           ('true', 'filt', 'smooth'),
+#           loc='lower left'
+# )
+pl.show()

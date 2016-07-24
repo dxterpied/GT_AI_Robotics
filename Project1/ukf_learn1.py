@@ -22,6 +22,9 @@ superior to the EKF and EKS in nearly all scenarios.
 The figure drawn shows the true, hidden state; the state estimates given by the
 UKF; and finally the same given by the UKS.
 '''
+import matplotlib
+matplotlib.use('TkAgg')
+
 import numpy as np
 import pylab as pl
 from UKF import *

@@ -181,6 +181,8 @@ def filterUsingUKF(x, P, u, z, R, Q, process_fn, predict_fn, alpha=1e-3, beta=2,
 
     # Z_bar should have size (# observables, L)
     Z_bar = predict_fn(chi_bar)
+
+
     z_hat = np.sum(wm * Z_bar, axis=1)
     m = Z_bar.shape[0]
 

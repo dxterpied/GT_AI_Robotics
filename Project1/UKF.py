@@ -7,7 +7,7 @@ from scipy import linalg
 from pykalman.standard import  _last_dims, _determine_dimensionality, _arg_or_default
 from pykalman.utils import array1d, array2d, check_random_state, get_params, preprocess_arguments, check_random_state
 
-# this is from pykalman
+# this is from PYKALMAN
 
 Moments = namedtuple('Moments', ['mean', 'covariance'])
 

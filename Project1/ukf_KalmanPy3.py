@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Created on Mon Jun  1 18:13:23 2015
 
@@ -42,6 +42,8 @@ def move(x, u, dt, wheelbase):
 
     dist = v*dt
 
+    state = None
+
     if abs(steering_angle) > 0.001:
         b = dist / wheelbase * tan(steering_angle)
         r = wheelbase / tan(steering_angle) # radius
@@ -51,9 +53,41 @@ def move(x, u, dt, wheelbase):
         cosh = cos(h)
         coshb = cos(h + b)
 
-        return x + array([-r*sinh + r*sinhb, r*cosh - r*coshb, b])
+        state = x + array([-r*sinh + r*sinhb, r*cosh - r*coshb, b])
     else:
-        return x + array([dist*cos(h), dist*sin(h), 0])
+        state = x + array([dist*cos(h), dist*sin(h), 0])
+
+    print state
+
+    return state
+
+
+def move_Ilya(x, u, dt, wheelbase):
+
+    h = x[2]
+    v = u[0]
+    steering_angle = u[1]
+
+    dist = v*dt
+
+    state = None
+
+    if abs(steering_angle) > 0.001:
+        b = dist / wheelbase * tan(steering_angle)
+        r = wheelbase / tan(steering_angle) # radius
+
+        sinh = sin(h)
+        sinhb = sin(h + b)
+        cosh = cos(h)
+        coshb = cos(h + b)
+
+        state = x + array([-r*sinh + r*sinhb, r*cosh - r*coshb, b])
+    else:
+        state = x + array([dist*cos(h), dist*sin(h), 0])
+
+    print state
+
+    return state
 
 
 def state_mean(sigmas, Wm):
@@ -101,15 +135,10 @@ def Hx(x, landmark):
 
 
 m = array([[5., 10], [10, 5], [15, 15], [20., 16], [0, 30], [50, 30], [40, 10]])
-#m = array([[5, 10], [10, 5], [15, 15], [20, 5],[5,5], [8, 8.4]])#, [0, 30], [50, 30], [40, 10]])
-#m = array([[5, 10], [10, 5]])#, [0, 30], [50, 30], [40, 10]])
-#m = array([[5., 10], [10, 5]])
-#m = array([[5., 10], [10, 5]])
 
 
 sigma_r = .3
-sigma_h =  .1#radians(.5)#np.radians(1)
-#sigma_steer =  radians(10)
+sigma_h = .1  #radians(.5)#np.radians(1)
 dt = 0.1
 wheelbase = 0.5
 
@@ -118,16 +147,13 @@ points = MerweScaledSigmaPoints(n=3, alpha=.1, beta=2, kappa=0, subtract=residua
 ukf= UKF(dim_x=3, dim_z=2*len(m), fx=fx, hx=Hx, dt=dt, points=points,
          x_mean_fn=state_mean, z_mean_fn=z_mean,
          residual_x=residual_x, residual_z=residual_h)
-ukf.x = array([2, 6, .3])
+ukf.x = array([2., 6., .3])
 ukf.P = np.diag([.1, .1, .05])
 ukf.R = np.diag([sigma_r**2, sigma_h**2]* len(m))
-ukf.Q =np.eye(3)*.00001
-
+ukf.Q = np.eye(3)*.00001
 
 u = array([1.1, 0.])
-
 xp = ukf.x.copy()
-
 
 plt.cla()
 plt.scatter(m[:, 0], m[:, 1])
@@ -156,8 +182,11 @@ track = []
 
 std = 16
 while cindex < len(cmds):
+
     u = cmds[cindex]
+
     xp = move(xp, u, dt, wheelbase) # simulate robot
+
     track.append(xp)
 
     ukf.predict(fx_args=u)

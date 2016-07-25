@@ -5,6 +5,7 @@
 from math import *
 import random
 import turtle
+from robot import *
 
 
 turtle.setup(800, 800)

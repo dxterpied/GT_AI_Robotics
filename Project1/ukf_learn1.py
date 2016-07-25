@@ -61,7 +61,7 @@ def observation_function(state, noise):
 
 
 
-transition_covariance = np.eye(2)  # identity matrix
+transition_covariance = np.eye(2)
 # [[ 1.  0.]
 #  [ 0.  1.]]
 random_state = np.random.RandomState(0)

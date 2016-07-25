@@ -159,7 +159,7 @@ ukf.R = np.diag([sigma_r**2, sigma_h**2]* len(m))
 ukf.Q = np.eye(3)*.00001
 
 u = array([1.1, 0.])
-xp = ukf.x.copy()
+state = ukf.x.copy()
 
 plt.cla()
 plt.scatter(m[:, 0], m[:, 1])
@@ -192,7 +192,7 @@ for chun in range(100):
 
     #u = cmds[cindex]
 
-    state = move_Ilya(xp, dt, turning) # simulate robot
+    state = move_Ilya(state, dt, turning) # simulate robot
 
     target_robot.goto(state[0] * 25, state[1] * 25)
     target_robot.stamp()
@@ -208,9 +208,9 @@ for chun in range(100):
     z = []
 
     for lmark in m:
-        d = sqrt((lmark[0] - xp[0])**2 + (lmark[1] - xp[1])**2) + randn() * sigma_r
-        bearing = atan2(lmark[1] - xp[1], lmark[0] - xp[0])
-        a = normalize_angle(bearing - xp[2] + randn() * sigma_h)
+        d = sqrt((lmark[0] - state[0])**2 + (lmark[1] - state[1])**2) + randn() * sigma_r
+        bearing = atan2(lmark[1] - state[1], lmark[0] - state[0])
+        a = normalize_angle(bearing - state[2] + randn() * sigma_h)
         z.extend([d, a])
 
     ukf.update(np.array(z), hx_args=(m,))

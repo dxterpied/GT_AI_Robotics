@@ -12,10 +12,11 @@ from filterpy.kalman import UnscentedKalmanFilter as UKF
 from filterpy.kalman import MerweScaledSigmaPoints
 from math import tan, sin, cos, sqrt, atan2, radians
 import matplotlib.pyplot as plt
-from numpy import array
+from numpy import *
 import numpy as np
-from numpy.random import randn, seed
+from numpy.random import *
 import turtle
+import random
 
 
 turtle.setup(800, 800)
@@ -123,7 +124,6 @@ def Hx(x, landmark):
     """ takes a state variable and returns the measurement that would
     correspond to that state.
     """
-
     hx = []
     for lmark in landmark:
         px, py = lmark
@@ -131,6 +131,12 @@ def Hx(x, landmark):
         angle = atan2(py - x[1], px - x[0])
         hx.extend([dist, normalize_angle(angle - x[2])])
     return np.array(hx)
+
+
+def sense(state):
+    return (random.gauss(state[0], 0.075),
+            random.gauss(state[1], 0.075),
+            state[2])
 
 
 m = array([[5., 10], [10, 5], [15, 15], [20., 16], [0, 30], [50, 30], [40, 10]])
@@ -186,18 +192,19 @@ for chun in range(100):
 
     #u = cmds[cindex]
 
-    xp = move_Ilya(xp, dt, turning) # simulate robot
+    state = move_Ilya(xp, dt, turning) # simulate robot
 
-    target_robot.goto(xp[0] * 25, xp[1] * 25)
+    target_robot.goto(state[0] * 25, state[1] * 25)
     target_robot.stamp()
 
-    track.append(xp)
+    track.append(state)
 
     ukf.predict(fx_args=u)
 
     # if cindex % 20 == 0:
     #     plot_covariance_ellipse((ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=std, facecolor='b', alpha=0.58)
 
+    z = sense(state)
     z = []
 
     for lmark in m:
@@ -218,7 +225,6 @@ for chun in range(100):
 
     cindex += 1
 
-print cindex
 
 # track = np.array(track)
 # plt.plot(track[:, 0], track[:, 1], color='k')

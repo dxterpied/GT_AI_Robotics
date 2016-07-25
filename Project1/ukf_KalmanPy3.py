@@ -4,6 +4,9 @@ Created on Mon Jun  1 18:13:23 2015
 
 @author: rlabbe
 """
+import matplotlib
+matplotlib.use('TkAgg')
+
 from filterpy.stats import plot_covariance_ellipse
 from filterpy.kalman import UnscentedKalmanFilter as UKF
 from filterpy.kalman import MerweScaledSigmaPoints
@@ -12,7 +15,22 @@ import matplotlib.pyplot as plt
 from numpy import array
 import numpy as np
 from numpy.random import randn, seed
+import turtle
 
+
+turtle.setup(800, 800)
+window = turtle.Screen()
+window.bgcolor('white')
+
+target_robot = turtle.Turtle()
+target_robot.shape('turtle')
+target_robot.color('green')
+target_robot.shapesize(0.2, 0.2, 0.2)
+
+predicted_robot = turtle.Turtle()
+predicted_robot.shape('circle')
+predicted_robot.color('blue')
+predicted_robot.shapesize(0.2, 0.2, 0.2)
 
 
 def normalize_angle(x):
@@ -57,35 +75,16 @@ def move(x, u, dt, wheelbase):
     else:
         state = x + array([dist*cos(h), dist*sin(h), 0])
 
-    print state
-
     return state
 
 
-def move_Ilya(x, u, dt, wheelbase):
+def move_Ilya(x, dt, turning):
 
-    h = x[2]
-    v = u[0]
-    steering_angle = u[1]
+    heading = x[2] + turning
+    x1 = x[0] + dt * cos(heading)
+    y1 = x[1] + dt * sin(heading)
 
-    dist = v*dt
-
-    state = None
-
-    if abs(steering_angle) > 0.001:
-        b = dist / wheelbase * tan(steering_angle)
-        r = wheelbase / tan(steering_angle) # radius
-
-        sinh = sin(h)
-        sinhb = sin(h + b)
-        cosh = cos(h)
-        coshb = cos(h + b)
-
-        state = x + array([-r*sinh + r*sinhb, r*cosh - r*coshb, b])
-    else:
-        state = x + array([dist*cos(h), dist*sin(h), 0])
-
-    print state
+    state = [x1, y1, heading]
 
     return state
 
@@ -117,7 +116,7 @@ def z_mean(sigmas, Wm):
 
 
 def fx(x, dt, u):
-    return move(x, u, dt, wheelbase)
+    return move_Ilya(x, dt, turning)
 
 
 def Hx(x, landmark):
@@ -139,16 +138,17 @@ m = array([[5., 10], [10, 5], [15, 15], [20., 16], [0, 30], [50, 30], [40, 10]])
 
 sigma_r = .3
 sigma_h = .1  #radians(.5)#np.radians(1)
-dt = 0.1
-wheelbase = 0.5
+dt = 1.0
+turning = 2 * np.pi / 30
 
 points = MerweScaledSigmaPoints(n=3, alpha=.1, beta=2, kappa=0, subtract=residual_x)
 #points = JulierSigmaPoints(n=3,  kappa=3)
+
 ukf= UKF(dim_x=3, dim_z=2*len(m), fx=fx, hx=Hx, dt=dt, points=points,
          x_mean_fn=state_mean, z_mean_fn=z_mean,
          residual_x=residual_x, residual_z=residual_h)
-ukf.x = array([2., 6., .3])
-ukf.P = np.diag([.1, .1, .05])
+ukf.x = array([0., 0., 0.])
+ukf.P = np.diag([.1, .1, .1])
 ukf.R = np.diag([sigma_r**2, sigma_h**2]* len(m))
 ukf.Q = np.eye(3)*.00001
 
@@ -181,43 +181,50 @@ u = cmds[0]
 track = []
 
 std = 16
-while cindex < len(cmds):
+#while cindex < len(cmds):
+for chun in range(100):
 
-    u = cmds[cindex]
+    #u = cmds[cindex]
 
-    xp = move(xp, u, dt, wheelbase) # simulate robot
+    xp = move_Ilya(xp, dt, turning) # simulate robot
+
+    target_robot.goto(xp[0] * 25, xp[1] * 25)
+    target_robot.stamp()
 
     track.append(xp)
 
     ukf.predict(fx_args=u)
 
-    if cindex % 20 == 0:
-        plot_covariance_ellipse((ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=std,
-                                facecolor='b', alpha=0.58)
+    # if cindex % 20 == 0:
+    #     plot_covariance_ellipse((ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=std, facecolor='b', alpha=0.58)
 
-    #print(cindex, ukf.P.diagonal())
-    #print(ukf.P.diagonal())
     z = []
-    for lmark in m:
-        d = sqrt((lmark[0] - xp[0])**2 + (lmark[1] - xp[1])**2) + randn()*sigma_r
-        bearing = atan2(lmark[1] - xp[1], lmark[0] - xp[0])
-        a = normalize_angle(bearing - xp[2] + randn()*sigma_h)
-        z.extend([d, a])
 
-        # if cindex % 20 == 0:
-        #    plt.plot([lmark[0], lmark[0] - d*cos(a+xp[2])], [lmark[1], lmark[1]-d*sin(a+xp[2])], color='r')
+    for lmark in m:
+        d = sqrt((lmark[0] - xp[0])**2 + (lmark[1] - xp[1])**2) + randn() * sigma_r
+        bearing = atan2(lmark[1] - xp[1], lmark[0] - xp[0])
+        a = normalize_angle(bearing - xp[2] + randn() * sigma_h)
+        z.extend([d, a])
 
     ukf.update(np.array(z), hx_args=(m,))
 
-    if cindex % 20 == 0:
-        plot_covariance_ellipse((ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=std,
-                                 facecolor='g', alpha=0.5)
+    predicted_robot.goto(ukf.x[0] * 25, ukf.x[1] * 25)
+    predicted_robot.stamp()
+
+
+
+    # if cindex % 20 == 0:
+    #     plot_covariance_ellipse((ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=std, facecolor='g', alpha=0.5)
+
     cindex += 1
 
+print cindex
 
-track = np.array(track)
-plt.plot(track[:, 0], track[:,1], color='k')
+# track = np.array(track)
+# plt.plot(track[:, 0], track[:, 1], color='k')
+#
+# plt.axis('equal')
+# plt.title("UKF Robot localization")
+# plt.show()
 
-plt.axis('equal')
-plt.title("UKF Robot localization")
-plt.show()
+turtle.getscreen()._root.mainloop()

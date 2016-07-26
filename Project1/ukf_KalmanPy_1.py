@@ -1,17 +1,12 @@
 import matplotlib
 matplotlib.use('TkAgg')
-import numpy as np
-import scipy.linalg as linalg
-import matplotlib.pyplot as plt
 from filterpy.kalman import UnscentedKalmanFilter as UKF
-from filterpy.common import Q_discrete_white_noise
 from math import *
-from filterpy.stats import plot_covariance_ellipse
 from filterpy.kalman.sigma_points import *
 import turtle
 import random
 
-# THIS ONE WORKS! it's based off of ukf_KalmanPy.py ---------------------------------------
+# THIS  WORKS! it's based off of ukf_KalmanPy.py ---------------------------------------
 
 
 turtle.setup(800, 800)
@@ -27,6 +22,12 @@ predicted_robot = turtle.Turtle()
 predicted_robot.shape('circle')
 predicted_robot.color('blue')
 predicted_robot.shapesize(0.2, 0.2, 0.2)
+
+
+measured_robot = turtle.Turtle()
+measured_robot.shape('circle')
+measured_robot.color('red')
+measured_robot.shapesize(0.2, 0.2, 0.2)
 
 
 def normalize_angle(x):
@@ -46,49 +47,17 @@ def move(x, dt, turning):
 
     return state
 
-
-def move_old(x, u, dt, wheelbase):
-    hdg = x[2]
-    vel = u[0]
-    steering_angle = u[1]
-    dist = vel * dt
-
-    if abs(steering_angle) > 0.001: # is robot turning?
-        beta = (dist / wheelbase) * tan(steering_angle)
-        r = wheelbase / tan(steering_angle) # radius
-
-        sinh, sinhb = sin(hdg), sin(hdg + beta)
-        cosh, coshb = cos(hdg), cos(hdg + beta)
-        result = x + np.array([-r*sinh + r*sinhb,
-                              r*cosh - r*coshb, beta])
-    else: # moving in straight line
-        result = x + np.array([dist*cos(hdg), dist*sin(hdg), 0])
-    #print "move", result # [ 20.28326362  16.25589597   0.72241408]
-    return result
-
-def fx(x, dt, u):
+def fx(x, dt):
     #return move(x, u, dt, wheelbase)
     return move(x, dt, turning)
+
 
 
 def Hx(x):
     return sense(x)
 
-def Hx_old(x, landmarks):
-    """ takes a state variable and returns the measurement (distance and angle) that would correspond to that state. """
-    hx = []
-    for lmark in landmarks:
-        px, py = lmark
-        dist = sqrt((px - x[0])**2 + (py - x[1])**2)
-        angle = atan2(py - x[1], px - x[0])
-        hx.extend([dist, normalize_angle(angle - x[2])])
-    result = np.array(hx)
-    print "Hx", result # [ 16.40870679   2.81858409]
-    return result
-
 def sense(x):
-    return (random.gauss(x[0], 0.075), random.gauss(x[1], 0.075))
-
+    return (random.gauss(x[0], 0.1), random.gauss(x[1], 0.1))
 
 
 def residual_h(a, b):
@@ -130,82 +99,41 @@ wheelbase = 0.5
 dt = 1.0
 turning = 2 * np.pi / 30
 
-def run_localization(
-    cmds, landmarks, sigma_vel, sigma_steer, sigma_range,
-    sigma_bearing, ellipse_step=1, step=10):
+def run_localization(cmds, landmarks, sigma_vel, sigma_steer, sigma_range,
+                        sigma_bearing, ellipse_step=1, step=10):
 
-    plt.figure()
     points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
-    ukf = UKF(dim_x=3, dim_z=2*len(landmarks), fx=fx, hx=Hx,
+
+    ukf = UKF(dim_x = 3, dim_z= 2 * len(landmarks), fx=fx, hx=Hx,
               dt=dt, points=points, x_mean_fn=state_mean,
               z_mean_fn=z_mean, residual_x=residual_x,
               residual_z=residual_h)
 
-    ukf.x = np.array([2, 6, .3])
+    ukf.x = np.array([0., 0., 0.])
     ukf.P = np.diag([.1, .1, .05])
-    ukf.R = np.diag([sigma_range**2,
-                     sigma_bearing**2]*len(landmarks))
-    ukf.Q = np.eye(3)*0.0001
+    ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] * len(landmarks) )
+    ukf.Q = np.eye(3) * 0.0001
 
-    sim_pos = ukf.x.copy()
+    state = ukf.x.copy()
 
-    # plot landmarks
-    if len(landmarks) > 0:
-        plt.scatter(landmarks[:, 0], landmarks[:, 1],
-                    marker='s', s=60)
-
-    track = []
     for i, u in enumerate(cmds):
+        state = move(state, dt, turning)
+        ukf.predict()
+        z = sense(state)
+        ukf.update(z)
 
-        # sim_pos = move(sim_pos, u, dt/step, wheelbase)
-        sim_pos = move(sim_pos, dt, turning)
-        target_robot.goto(sim_pos[0] * 25, sim_pos[1] * 25)
+        measured_robot.goto(z[0] * 25, z[1] * 25)
+        measured_robot.stamp()
+        target_robot.goto(state[0] * 25, state[1] * 25)
         target_robot.stamp()
-
-        # track.append(sim_pos)
-
-        if i % step == 0:
-            ukf.predict(fx_args=u)
-
-            if i % ellipse_step == 0:
-                plot_covariance_ellipse(
-                    (ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=6,
-                     facecolor='k', alpha=0.3)
-
-            x, y = sim_pos[0], sim_pos[1]
-            z = []
-            z = sense(sim_pos)
-
-            # for lmark in landmarks:
-            #     dx, dy = lmark[0] - x, lmark[1] - y
-            #     d = sqrt(dx**2 + dy**2) + np.random.randn() * sigma_range
-            #     bearing = atan2(lmark[1] - y, lmark[0] - x)
-            #     a = (normalize_angle(bearing - sim_pos[2] +
-            #          np.random.randn() * sigma_bearing))
-            #     z.extend([d, a])
-
-            ukf.update(z)
-
-            predicted_robot.goto(ukf.x[0] * 25, ukf.x[1] * 25)
-            predicted_robot.stamp()
-
-            if i % ellipse_step == 0:
-                plot_covariance_ellipse(
-                    (ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=6,
-                     facecolor='g', alpha=0.8)
-
-    # track = np.array(track)
-    # plt.plot(track[:, 0], track[:,1], color='k', lw=2)
-    # plt.axis('equal')
-    # plt.title("UKF Robot localization")
-    # #plt.show()
+        predicted_robot.goto(ukf.x[0] * 25, ukf.x[1] * 25)
+        predicted_robot.stamp()
     return ukf
 
 
 landmarks = np.array([[5, 10]])
-cmds = [np.array([1.1, .01])] * 100
+cmds = [np.array([1.1, .01])] * 30
 
 ukf = run_localization(cmds, landmarks, sigma_vel=0.1, sigma_steer=np.radians(1), sigma_range=0.3, sigma_bearing=0.1)
 
-
-#print(np.degrees(normalize_angle(np.radians(1-359))))
+turtle.getscreen()._root.mainloop()

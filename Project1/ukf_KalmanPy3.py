@@ -120,6 +120,7 @@ def z_mean(sigmas, Wm):
 
 def fx(x, dt, u):
     return move_Ilya(x, dt, turning)
+    #return move(x, u, dt, 1.0)
 
 
 def Hx(x, landmarks):
@@ -132,22 +133,22 @@ def Hx(x, landmarks):
         dist = sqrt((px - x[0])**2 + (py - x[1])**2)
         angle = atan2(py - x[1], px - x[0])
         hx.extend([dist, normalize_angle(angle - x[2])])
-    print len(hx)
+
+    #print "len(hx)", len(hx)
+    # print np.array(hx)
     # return np.array(hx)
     return (random.gauss(x[0], 0.075),
-            random.gauss(x[1], 0.075),
-            x[2])
+            random.gauss(x[1], 0.075))
 
 
 
 def sense(x):
     return (random.gauss(x[0], 0.075),
-            random.gauss(x[1], 0.075),
-            x[2])
+            random.gauss(x[1], 0.075))
 
 
 #landmarks = array([[5., 10], [10, 5], [15, 15], [20., 16], [0, 30], [50, 30], [40, 10]])
-landmarks = array([[5., 10], [10, 5], [15, 15]])
+landmarks = array([[5., 10]])
 
 
 sigma_r = .3
@@ -196,7 +197,7 @@ track = []
 
 std = 16
 #while cindex < len(cmds):
-for chun in range(100):
+for choonk in range(100):
 
     #u = cmds[cindex]
 

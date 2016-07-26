@@ -94,8 +94,6 @@ def z_mean(sigmas, Wm):
 
 dt = 1.0
 turning = -2 * np.pi / 30
-landmarks = np.array([[5, 10]])
-cmds = [np.array([1.1, .01])] * 30
 sigma_vel=0.1
 sigma_steer= np.radians(1)
 sigma_range= 0.3
@@ -103,19 +101,18 @@ sigma_bearing=0.1
 
 points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
 
-ukf = UKF(dim_x = 3, dim_z = 2 * len(landmarks), fx=fx, hx=Hx,
+ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
           dt=dt, points=points, x_mean_fn=state_mean,
           z_mean_fn=z_mean, residual_x=residual_x,
           residual_z=residual_h)
-
 ukf.x = np.array([0., 0., 0.])
 ukf.P = np.diag([.1, .1, .05])
-ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] * len(landmarks) )
+ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
 ukf.Q = np.eye(3) * 0.0001
 
 state = ukf.x.copy()
 
-for i, u in enumerate(cmds):
+for i in range(30):
     state = move(state, dt, turning)
     ukf.predict()
     z = sense(state)

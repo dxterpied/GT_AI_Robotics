@@ -120,26 +120,32 @@ def fx(x, dt, u):
     return move_Ilya(x, dt, turning)
 
 
-def Hx(x, landmark):
+def Hx(x, landmarks):
     """ takes a state variable and returns the measurement that would
     correspond to that state.
     """
     hx = []
-    for lmark in landmark:
+    for lmark in landmarks:
         px, py = lmark
         dist = sqrt((px - x[0])**2 + (py - x[1])**2)
         angle = atan2(py - x[1], px - x[0])
         hx.extend([dist, normalize_angle(angle - x[2])])
-    return np.array(hx)
+    print len(hx)
+    # return np.array(hx)
+    return (random.gauss(x[0], 0.075),
+            random.gauss(x[1], 0.075),
+            x[2])
 
 
-def sense(state):
-    return (random.gauss(state[0], 0.075),
-            random.gauss(state[1], 0.075),
-            state[2])
+
+def sense(x):
+    return (random.gauss(x[0], 0.075),
+            random.gauss(x[1], 0.075),
+            x[2])
 
 
-m = array([[5., 10], [10, 5], [15, 15], [20., 16], [0, 30], [50, 30], [40, 10]])
+#landmarks = array([[5., 10], [10, 5], [15, 15], [20., 16], [0, 30], [50, 30], [40, 10]])
+landmarks = array([[5., 10], [10, 5], [15, 15]])
 
 
 sigma_r = .3
@@ -150,19 +156,19 @@ turning = 2 * np.pi / 30
 points = MerweScaledSigmaPoints(n=3, alpha=.1, beta=2, kappa=0, subtract=residual_x)
 #points = JulierSigmaPoints(n=3,  kappa=3)
 
-ukf= UKF(dim_x=3, dim_z=2*len(m), fx=fx, hx=Hx, dt=dt, points=points,
+ukf= UKF(dim_x=3, dim_z=2*len(landmarks), fx=fx, hx=Hx, dt=dt, points=points,
          x_mean_fn=state_mean, z_mean_fn=z_mean,
          residual_x=residual_x, residual_z=residual_h)
 ukf.x = array([0., 0., 0.])
 ukf.P = np.diag([.1, .1, .1])
-ukf.R = np.diag([sigma_r**2, sigma_h**2]* len(m))
+ukf.R = np.diag([sigma_r**2, sigma_h**2]* len(landmarks))
 ukf.Q = np.eye(3)*.00001
 
 u = array([1.1, 0.])
 state = ukf.x.copy()
 
 plt.cla()
-plt.scatter(m[:, 0], m[:, 1])
+plt.scatter(landmarks[:, 0], landmarks[:, 1])
 
 cmds = [[v, .0] for v in np.linspace(0.001, 1.1, 30)]
 cmds.extend([cmds[-1]]*50)
@@ -205,15 +211,15 @@ for chun in range(100):
     #     plot_covariance_ellipse((ukf.x[0], ukf.x[1]), ukf.P[0:2, 0:2], std=std, facecolor='b', alpha=0.58)
 
     z = sense(state)
-    z = []
+    # z = []
+    #
+    # for lmark in landmarks:
+    #     d = sqrt((lmark[0] - state[0])**2 + (lmark[1] - state[1])**2) + randn() * sigma_r
+    #     bearing = atan2(lmark[1] - state[1], lmark[0] - state[0])
+    #     a = normalize_angle(bearing - state[2] + randn() * sigma_h)
+    #     z.extend([d, a])
 
-    for lmark in m:
-        d = sqrt((lmark[0] - state[0])**2 + (lmark[1] - state[1])**2) + randn() * sigma_r
-        bearing = atan2(lmark[1] - state[1], lmark[0] - state[0])
-        a = normalize_angle(bearing - state[2] + randn() * sigma_h)
-        z.extend([d, a])
-
-    ukf.update(np.array(z), hx_args=(m,))
+    ukf.update(np.array(z), hx_args=(landmarks,))
 
     predicted_robot.goto(ukf.x[0] * 25, ukf.x[1] * 25)
     predicted_robot.stamp()

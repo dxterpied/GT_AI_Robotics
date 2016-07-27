@@ -72,28 +72,52 @@ def residual_x(a, b):
     return y
 
 
+"""
+        Function that computes the mean of the provided sigma points
+        and weights. Use this if your state variable contains nonlinear
+        values such as angles which cannot be summed.
 
+            def state_mean(sigmas, Wm):
+                x = np.zeros(3)
+                sum_sin, sum_cos = 0., 0.
+
+                for i in range(len(sigmas)):
+                    s = sigmas[i]
+                    x[0] += s[0] * Wm[i]
+                    x[1] += s[1] * Wm[i]
+                    sum_sin += sin(s[2])*Wm[i]
+                    sum_cos += cos(s[2])*Wm[i]
+                x[2] = atan2(sum_sin, sum_cos)
+                return x
+"""
 def state_mean(sigmas, Wm):
     x = np.zeros(3)
 
-    sum_sin = np.sum(np.dot(np.sin(sigmas[:, 2]), Wm))
-    sum_cos = np.sum(np.dot(np.cos(sigmas[:, 2]), Wm))
-    x[0] = np.sum(np.dot(sigmas[:, 0], Wm))
-    x[1] = np.sum(np.dot(sigmas[:, 1], Wm))
+    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
+    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
+
+    sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
+    sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
     x[2] = atan2(sum_sin, sum_cos)
+
     return x
 
 
+# sigmas here has two columns - one for x and one for y
 def z_mean(sigmas, Wm):
     z_count = sigmas.shape[1]
     x = np.zeros(z_count)
 
-    for z in range(0, z_count, 2):
-        sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
-        sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
+    # for z in range(0, z_count, 2):
+    #     sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
+    #     sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
+    #
+    #     x[z] = np.sum(np.dot(sigmas[:,z], Wm))
+    #     x[z+1] = atan2(sum_sin, sum_cos)
 
-        x[z] = np.sum(np.dot(sigmas[:,z], Wm))
-        x[z+1] = atan2(sum_sin, sum_cos)
+    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
+    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
+
     return x
 
 
@@ -161,10 +185,16 @@ def estimate_next_pos(measurement, OTHER = None):
             if ukf is None:
                 points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
 
-                ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
-                          dt=1.5, points=points, x_mean_fn=state_mean,
-                          z_mean_fn=z_mean, residual_x=residual_x,
-                          residual_z=residual_h)
+                ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx, dt = avgDT, points=points,
+                          x_mean_fn=state_mean, z_mean_fn=z_mean,
+                          residual_x= residual_x, residual_z= residual_h)
+
+                # ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
+                #           dt=avgDT, points=points, x_mean_fn=state_mean,
+                #           z_mean_fn=z_mean, residual_x=residual_x,
+                #           residual_z=residual_h)
+
+
                 ukf.x = np.array([measurement[0], measurement[1], headingAngle2])
                 ukf.P = np.diag([.1, .1, .1])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )

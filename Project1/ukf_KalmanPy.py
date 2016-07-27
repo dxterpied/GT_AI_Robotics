@@ -37,16 +37,20 @@ def move(x, u, dt, wheelbase):
 def fx(x, dt, u):
     return move(x, u, dt, wheelbase)
 
-
+# returns distance and angle to each landmark: [distance, angle]. Size defined in dim_z of constructor
 def Hx(x, landmarks):
     """ takes a state variable and returns the measurement
     that would correspond to that state. """
     hx = []
     for lmark in landmarks:
         px, py = lmark
+
         dist = sqrt((px - x[0])**2 + (py - x[1])**2)
-        angle = atan2(py - x[1], px - x[0])
-        hx.extend([dist, normalize_angle(angle - x[2])])
+
+        angle = normalize_angle(atan2(py - x[1], px - x[0]))
+
+        hx.extend([dist, angle])
+
     result = np.array(hx)
     print "Hx", result
     return result
@@ -150,7 +154,7 @@ def run_localization(
     return ukf
 
 
-landmarks = np.array([[5, 10], [10, 5], [15, 15]])
+landmarks = np.array([[5, 10]])
 cmds = [np.array([1.1, .01])] * 200
 ukf = run_localization(
     cmds, landmarks, sigma_vel=0.1, sigma_steer=np.radians(1),

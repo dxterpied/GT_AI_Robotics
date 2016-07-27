@@ -6,6 +6,7 @@ import random
 from robot import *
 
 
+# attempts to solve RR2 using UKF from KalmanPy
 # works badly; needs further work; based on ukf_KalmanPy_1.py ---------------------------------------
 
 turtle.setup(800, 800)
@@ -42,7 +43,8 @@ def normalize_angle(x):
 
 
 def fx(x, dt, turning):
-    heading = x[2] + turning
+    prevsiousHeading = x[2]
+    heading = prevsiousHeading + turning
     x1 = x[0] + dt * cos(heading)
     y1 = x[1] + dt * sin(heading)
     state = [x1, y1, heading]
@@ -50,7 +52,11 @@ def fx(x, dt, turning):
 
 
 def Hx(x):
-    return test_target.sense()
+    result = test_target.sense()
+
+    #result = result[0], result[1], 1.
+
+    return result
 
 
 def residual_h(a, b):
@@ -165,7 +171,7 @@ def estimate_next_pos(measurement, OTHER = None):
                 ukf.Q = np.eye(3) * 0.0001
 
 
-            ukf.predict(dt=1.5, fx_args=2*pi / 34.0)
+            ukf.predict(dt = avgDT, fx_args = avgAngle)
             #ukf.predict()
             ukf.update(measurement)
 

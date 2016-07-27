@@ -1,36 +1,97 @@
-# ----------
-# Part Two
-#
-# Now we'll make the scenario a bit more realistic. Now Traxbot's
-# sensor measurements are a bit noisy (though its motions are still
-# completely noise-free and it still moves in an almost-circle).
-# You'll have to write a function that takes as input the next
-# noisy (x, y) sensor measurement and outputs the best guess
-# for the robot's next position.
-#
-# ----------
-# YOUR JOB
-#
-# Complete the function estimate_next_pos. You will be considered
-# correct if your estimate is within 0.01 stepsizes of Traxbot's next
-# true position.
-#
-# ----------
-# GRADING
-#
-# We will make repeated calls to your estimate_next_pos function. After
-# each call, we will compare your estimated position to the robot's true
-# position. As soon as you are within 0.01 stepsizes of the true position,
-# you will be marked correct and we will tell you how many steps it took
-# before your function successfully located the target bot.
-
-# These import steps give you access to libraries which you may (or may
-# not) want to use.
-from robot import *  # Check the robot.py tab to see how this works.
+from filterpy.kalman import UnscentedKalmanFilter as UKF
 from math import *
-from matrix import * # Check the matrix.py tab to see how this works.
+from filterpy.kalman.sigma_points import *
+import turtle
 import random
-from numpy import *
+from robot import *
+
+
+# works badly; needs further work; based on ukf_KalmanPy_1.py ---------------------------------------
+
+turtle.setup(800, 800)
+window = turtle.Screen()
+window.bgcolor('white')
+target_robot = turtle.Turtle()
+target_robot.shape('turtle')
+target_robot.color('green')
+target_robot.shapesize(0.2, 0.2, 0.2)
+predicted_robot = turtle.Turtle()
+predicted_robot.shape('circle')
+predicted_robot.color('blue')
+predicted_robot.shapesize(0.2, 0.2, 0.2)
+measured_robot = turtle.Turtle()
+measured_robot.shape('circle')
+measured_robot.color('red')
+measured_robot.shapesize(0.2, 0.2, 0.2)
+
+test_target = robot(0., 0., 0., 2*pi / 34.0, 1.5)
+measurement_noise = 0.05 * test_target.distance
+test_target.set_noise(0.0, 0.0, measurement_noise)
+
+dt = 1.5
+turning = 2*pi / 34.0
+sigma_vel=0.1
+sigma_steer= np.radians(1)
+sigma_range= 0.3
+sigma_bearing=0.1
+
+
+def normalize_angle(x):
+    x = x % (2 * np.pi)    # force in range [0, 2 pi)
+    if x > np.pi:          # move to [-pi, pi)
+        x -= 2 * np.pi
+    return x
+
+
+def fx(x, dt):
+    heading = x[2] + turning
+    x1 = x[0] + dt * cos(heading)
+    y1 = x[1] + dt * sin(heading)
+    state = [x1, y1, heading]
+    return state
+
+
+def Hx(x):
+    return test_target.sense()
+
+
+def residual_h(a, b):
+    y = a - b
+    # data in format [dist_1, bearing_1, dist_2, bearing_2,...]
+    for i in range(0, len(y), 2):
+        y[i + 1] = normalize_angle(y[i + 1])
+    return y
+
+
+def residual_x(a, b):
+    y = a - b
+    y[2] = normalize_angle(y[2])
+    return y
+
+
+
+def state_mean(sigmas, Wm):
+    x = np.zeros(3)
+
+    sum_sin = np.sum(np.dot(np.sin(sigmas[:, 2]), Wm))
+    sum_cos = np.sum(np.dot(np.cos(sigmas[:, 2]), Wm))
+    x[0] = np.sum(np.dot(sigmas[:, 0], Wm))
+    x[1] = np.sum(np.dot(sigmas[:, 1], Wm))
+    x[2] = atan2(sum_sin, sum_cos)
+    return x
+
+
+def z_mean(sigmas, Wm):
+    z_count = sigmas.shape[1]
+    x = np.zeros(z_count)
+
+    for z in range(0, z_count, 2):
+        sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
+        sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
+
+        x[z] = np.sum(np.dot(sigmas[:,z], Wm))
+        x[z+1] = atan2(sum_sin, sum_cos)
+    return x
 
 
 # cross product
@@ -54,6 +115,7 @@ def estimate_next_pos(measurement, OTHER = None):
 
     xy_estimate = measurement
 
+
     if OTHER is None:
         distances = []
         angles = []
@@ -66,6 +128,12 @@ def estimate_next_pos(measurement, OTHER = None):
             hypotenuse1 = distance_between(coords[0], measurement)
             distances.append(hypotenuse1)
 
+            #ukf.x = measurement[0], measurement[1], 0.
+
+            ukf.predict()
+            ukf.update(measurement)
+
+
         elif len(coords) >= 2:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
@@ -77,20 +145,12 @@ def estimate_next_pos(measurement, OTHER = None):
             y1Delta = point2[1] - point1[1]
             hypotenuse1 = distance_between(point1, point2)
 
-            # try:
-            #     headingAngleAvg1 = asin(y1Delta / avgDT)
-            # except:
-            #     #print "avgDT", avgDT
             headingAngleAvg1 = asin(y1Delta / hypotenuse1)
 
             y2Delta = point3[1] - point2[1]
             x2Delta = point3[0] - point2[0]
             hypotenuse2 = distance_between(point2, point3)
 
-            # try:
-            #     headingAngleAvg2 = asin(y2Delta / avgDT)
-            # except:
-            #     #print "avgDT", avgDT
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             headingAngle2 = atan2(y2Delta, x2Delta)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
@@ -101,7 +161,12 @@ def estimate_next_pos(measurement, OTHER = None):
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            newR = robot(point3[0], point3[1], headingAngle2, rotationSign * avgAngle, avgDT)
+            #ukf.predict(dt=avgDT, fx_args=headingAngle2)
+            ukf.predict()
+            ukf.update(measurement)
+
+
+            newR = robot(ukf.x[0], ukf.x[1], headingAngle2, rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
@@ -208,21 +273,41 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
     return localized
 
 
-# This is how we create a target bot. Check the robot.py file to understand
-# How the robot class behaves.
-test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
-measurement_noise = 0.05 * test_target.distance
-test_target.set_noise(0.0, 0.0, measurement_noise)
 
-demo_grading_visual(estimate_next_pos, test_target)
+points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+
+ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
+          dt=dt, points=points, x_mean_fn=state_mean,
+          z_mean_fn=z_mean, residual_x=residual_x,
+          residual_z=residual_h)
+ukf.x = np.array([0., 0., 0.])
+ukf.P = np.diag([.1, .1, .1])
+ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+ukf.Q = np.eye(3) * 0.0001
+
+
 #demo_grading(estimate_next_pos, test_target)
+demo_grading_visual(estimate_next_pos, test_target)
+
 
 # scores = []
 # fails = 0
 # for i in range(1000):
 #     print i
-#     test_target = robot(2.1, 4.3, 0.5, -2*pi / 34.0, 1.5)
-#     test_target.set_noise(0.0, 0.0, 0.05 * test_target.distance)
+#     test_target = robot(0., 0., 0., 2*pi / 34.0, 1.5)
+#     measurement_noise = 0.05 * test_target.distance
+#     test_target.set_noise(0.0, 0.0, measurement_noise)
+#
+#     points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+#
+#     ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
+#               dt=dt, points=points, x_mean_fn=state_mean,
+#               z_mean_fn=z_mean, residual_x=residual_x,
+#               residual_z=residual_h)
+#     ukf.x = np.array([0., 0., 0.])
+#     ukf.P = np.diag([.1, .1, .1])
+#     ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+#     ukf.Q = np.eye(3) * 0.0001
 #
 #     score = demo_grading(estimate_next_pos, test_target)
 #
@@ -236,20 +321,11 @@ demo_grading_visual(estimate_next_pos, test_target)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
 
-# 1000 runs with negative turning angle -2*pi/34.0
-# average score:  116.105
+# these are the results with hardcoded dt and heading; need to make them dynamic
+# average score:  18.579
 # minimum score:  3
-# maximum score:  773
-# fails:  0
-
-# 1000 runs with positive turning angle
-# average score:  115.136
-# minimum score:  3
-# maximum score:  660
+# maximum score:  101
 # fails:  0
 
 
-
-
-
-
+#turtle.getscreen()._root.mainloop()

@@ -32,7 +32,7 @@ test_target.set_noise(0.0, 0.0, measurement_noise)
 sigma_vel=0.1
 sigma_steer= np.radians(1)
 sigma_range= 0.3
-sigma_bearing=0.1
+sigma_bearing= 0.1
 
 
 def normalize_angle(x):
@@ -168,7 +168,7 @@ def estimate_next_pos(measurement, OTHER = None):
                 ukf.x = np.array([measurement[0], measurement[1], headingAngle2])
                 ukf.P = np.diag([.1, .1, .1])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
-                ukf.Q = np.eye(3) * 0.0001
+                ukf.Q = np.diag([0., 0., 0.])
 
 
             ukf.predict(dt = avgDT, fx_args = avgAngle)

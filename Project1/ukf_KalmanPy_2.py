@@ -51,11 +51,8 @@ def fx(x, dt, turning):
     return state
 
 
-def Hx(x, heading):
-    result = test_target.sense()
-
-    result = result[0], result[1], heading
-
+def Hx(x):
+    result = x[0], x[1], x[2] # x, y, heading
     return result
 
 
@@ -207,13 +204,13 @@ def estimate_next_pos(measurement, OTHER = None):
 
             ukf.predict(dt = avgDT, fx_args = avgAngle)
             z = [measurement[0], measurement[1], headingAngle2]
-            ukf.update(z, hx_args = headingAngle2)
+            ukf.update(z)
 
 
-            # newR = robot(ukf.x[0], ukf.x[1], headingAngle2, rotationSign * avgAngle, avgDT)
-            # newR.move_in_circle()
-            #xy_estimate = newR.x, newR.y
-            xy_estimate = ukf.x[0], ukf.x[1]
+            newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
+            newR.move_in_circle()
+            xy_estimate = newR.x, newR.y
+            #xy_estimate = ukf.x[0], ukf.x[1]
 
     coords.append(measurement)
     OTHER = (distances, angles, coords, turnAngle, ukf)

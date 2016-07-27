@@ -28,8 +28,6 @@ test_target = robot(0., 0., 0., 2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
-dt = 1.5
-turning = 2*pi / 34.0
 sigma_vel=0.1
 sigma_steer= np.radians(1)
 sigma_range= 0.3
@@ -43,7 +41,7 @@ def normalize_angle(x):
     return x
 
 
-def fx(x, dt):
+def fx(x, dt, turning):
     heading = x[2] + turning
     x1 = x[0] + dt * cos(heading)
     y1 = x[1] + dt * sin(heading)
@@ -57,7 +55,6 @@ def Hx(x):
 
 def residual_h(a, b):
     y = a - b
-    # data in format [dist_1, bearing_1, dist_2, bearing_2,...]
     for i in range(0, len(y), 2):
         y[i + 1] = normalize_angle(y[i + 1])
     return y
@@ -121,19 +118,13 @@ def estimate_next_pos(measurement, OTHER = None):
         angles = []
         coords = []
         turnAngle = []
+        ukf = None
     else:
-        distances, angles, coords, turnAngle = OTHER
+        distances, angles, coords, turnAngle, ukf = OTHER
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], measurement)
             distances.append(hypotenuse1)
-
-            #ukf.x = measurement[0], measurement[1], 0.
-
-            ukf.predict()
-            ukf.update(measurement)
-
-
         elif len(coords) >= 2:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
@@ -161,17 +152,31 @@ def estimate_next_pos(measurement, OTHER = None):
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            #ukf.predict(dt=avgDT, fx_args=headingAngle2)
-            ukf.predict()
+            if ukf is None:
+                points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+
+                ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
+                          dt=1.5, points=points, x_mean_fn=state_mean,
+                          z_mean_fn=z_mean, residual_x=residual_x,
+                          residual_z=residual_h)
+                ukf.x = np.array([measurement[0], measurement[1], headingAngle2])
+                ukf.P = np.diag([.1, .1, .1])
+                ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+                ukf.Q = np.eye(3) * 0.0001
+
+
+            ukf.predict(dt=1.5, fx_args=2*pi / 34.0)
+            #ukf.predict()
             ukf.update(measurement)
 
 
-            newR = robot(ukf.x[0], ukf.x[1], headingAngle2, rotationSign * avgAngle, avgDT)
-            newR.move_in_circle()
-            xy_estimate = newR.x, newR.y
+            # newR = robot(ukf.x[0], ukf.x[1], headingAngle2, rotationSign * avgAngle, avgDT)
+            # newR.move_in_circle()
+            #xy_estimate = newR.x, newR.y
+            xy_estimate = ukf.x[0], ukf.x[1]
 
     coords.append(measurement)
-    OTHER = (distances, angles, coords, turnAngle)
+    OTHER = (distances, angles, coords, turnAngle, ukf)
 
     return xy_estimate, OTHER
 
@@ -274,16 +279,16 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 
 
 
-points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+#points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
 
-ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
-          dt=dt, points=points, x_mean_fn=state_mean,
-          z_mean_fn=z_mean, residual_x=residual_x,
-          residual_z=residual_h)
-ukf.x = np.array([0., 0., 0.])
-ukf.P = np.diag([.1, .1, .1])
-ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
-ukf.Q = np.eye(3) * 0.0001
+# ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
+#           dt=dt, points=points, x_mean_fn=state_mean,
+#           z_mean_fn=z_mean, residual_x=residual_x,
+#           residual_z=residual_h)
+# ukf.x = np.array([0., 0., 0.])
+# ukf.P = np.diag([.1, .1, .1])
+# ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+# ukf.Q = np.eye(3) * 0.0001
 
 
 #demo_grading(estimate_next_pos, test_target)

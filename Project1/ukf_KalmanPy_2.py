@@ -51,17 +51,17 @@ def fx(x, dt, turning):
     return state
 
 
-def Hx(x):
+def Hx(x, heading):
     result = test_target.sense()
 
-    #result = result[0], result[1], 1.
+    result = result[0], result[1], heading
 
     return result
 
 
 def residual_h(a, b):
     y = a - b
-    for i in range(0, len(y), 2):
+    for i in range(0, len(y), 3):
         y[i + 1] = normalize_angle(y[i + 1])
     return y
 
@@ -90,8 +90,9 @@ def residual_x(a, b):
                 x[2] = atan2(sum_sin, sum_cos)
                 return x
 """
+# sigmas here has three columns - for x, y, and heading
 def state_mean(sigmas, Wm):
-    x = np.zeros(3)
+    x = np.zeros(sigmas.shape[1])
 
     x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
     x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
@@ -105,8 +106,7 @@ def state_mean(sigmas, Wm):
 
 # sigmas here has two columns - one for x and one for y
 def z_mean(sigmas, Wm):
-    z_count = sigmas.shape[1]
-    x = np.zeros(z_count)
+    x = np.zeros(sigmas.shape[1])
 
     # for z in range(0, z_count, 2):
     #     sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
@@ -117,6 +117,10 @@ def z_mean(sigmas, Wm):
 
     x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
     x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
+
+    sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
+    sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
+    x[2] = atan2(sum_sin, sum_cos)
 
     return x
 
@@ -185,7 +189,7 @@ def estimate_next_pos(measurement, OTHER = None):
             if ukf is None:
                 points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
 
-                ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx, dt = avgDT, points=points,
+                ukf = UKF(dim_x = 3, dim_z = 3, fx=fx, hx=Hx, dt = avgDT, points=points,
                           x_mean_fn=state_mean, z_mean_fn=z_mean,
                           residual_x= residual_x, residual_z= residual_h)
 
@@ -197,13 +201,13 @@ def estimate_next_pos(measurement, OTHER = None):
 
                 ukf.x = np.array([measurement[0], measurement[1], headingAngle2])
                 ukf.P = np.diag([.1, .1, .1])
-                ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+                ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
                 ukf.Q = np.diag([0., 0., 0.])
 
 
             ukf.predict(dt = avgDT, fx_args = avgAngle)
-            #ukf.predict()
-            ukf.update(measurement)
+            z = [measurement[0], measurement[1], headingAngle2]
+            ukf.update(z, hx_args = headingAngle2)
 
 
             # newR = robot(ukf.x[0], ukf.x[1], headingAngle2, rotationSign * avgAngle, avgDT)

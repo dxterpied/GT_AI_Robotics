@@ -123,12 +123,14 @@ def g(u, sigma_points):
 
 
 
-# measurement function
+# measurement function, returns [x, y] or sigma points for x, y
 def h(xk):
-    # measure function - predict the measurements given xk
-    # only measures location
+
+    print "xk", xk
 
     m = xk[:2, :] + np.atleast_2d( q_rand.rvs(size=xk.shape[1] )).transpose()
+
+    print "m", m
 
     return m
 

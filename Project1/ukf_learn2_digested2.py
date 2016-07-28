@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal as mv_norm
 
 
+# trying to use it for linear model. not working yet
+
 """
 Given a state vector of length n, covariance matrix sigma, (non)-linear
 prediction function, (non)-linear measurement function, process and
@@ -108,7 +110,7 @@ def UKF(state_mu, cov_sigma, measurement_z, process_fn,
 def main():
 
     # initial state vector - position x, y
-    x = np.array([0., 0.])
+    x = np.array([0., 1.])
     P = np.eye(2)
     dt = 0.1
     R = np.diag([100., 100.])
@@ -141,10 +143,12 @@ def main():
         m = xk[:1, :] + np.atleast_2d(q_rand.rvs(size=xk.shape[1])).T
         return m
 
-    states = np.ndarray([100, x.shape[0]])
     predicted_states = np.ndarray([100, x.shape[0]])
+    states = np.ndarray([100, x.shape[0]])
 
-    print states
+
+    for i in range(len(predicted_states)):
+        states[i, 0] = i
 
     for i in range(len(states)):
         x, P = UKF(x, P, h( x[:, None] ), f, h, R, Q)
@@ -155,7 +159,6 @@ def main():
     ax1.plot(predicted_states[:, 0], color='b')
     ax1.plot(states[:, 0], color='r')
     ax1.set_title('x-y position')
-
 
     plt.show()
 

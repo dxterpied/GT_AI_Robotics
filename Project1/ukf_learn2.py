@@ -141,6 +141,10 @@ def main():
                           [0, 0],
                           [1, 0],
                           [0, 1]])
+            print "A", A
+            print "x_i", x_i
+            print "A.dot(x_i)", A.dot(x_i)
+            exit()
             y[:, i] = A.dot(x_i) + B.dot(uk)
 
         eps = r_rand.rvs(size=xk.shape[1]).T

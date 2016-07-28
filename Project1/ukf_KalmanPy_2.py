@@ -26,7 +26,7 @@ measured_robot.shape('circle')
 measured_robot.color('red')
 measured_robot.shapesize(0.2, 0.2, 0.2)
 
-test_target = robot(0., 0., 0., 2*pi / 34.0, 1.5)
+test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 measurement_noise = 0.05 * test_target.distance
 test_target.set_noise(0.0, 0.0, measurement_noise)
 
@@ -273,7 +273,7 @@ def normalize_angle(x):
         x -= 2 * np.pi
     return x
 
-
+# state transition function
 def fx(x, dt, turning):
     previousHeading = x[2]
     heading = previousHeading + turning
@@ -301,24 +301,6 @@ def residual_x(a, b):
     return y
 
 
-"""
-        Function that computes the mean of the provided sigma points
-        and weights. Use this if your state variable contains nonlinear
-        values such as angles which cannot be summed.
-
-            def state_mean(sigmas, Wm):
-                x = np.zeros(3)
-                sum_sin, sum_cos = 0., 0.
-
-                for i in range(len(sigmas)):
-                    s = sigmas[i]
-                    x[0] += s[0] * Wm[i]
-                    x[1] += s[1] * Wm[i]
-                    sum_sin += sin(s[2])*Wm[i]
-                    sum_cos += cos(s[2])*Wm[i]
-                x[2] = atan2(sum_sin, sum_cos)
-                return x
-"""
 # sigmas here has three columns - for x, y, and heading
 def state_mean(sigmas, Wm):
     x = np.zeros(sigmas.shape[1])
@@ -422,19 +404,13 @@ def estimate_next_pos(measurement, OTHER = None):
                           x_mean_fn=state_mean, z_mean_fn=z_mean,
                           residual_x= residual_x, residual_z= residual_h)
 
-                # ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
-                #           dt=avgDT, points=points, x_mean_fn=state_mean,
-                #           z_mean_fn=z_mean, residual_x=residual_x,
-                #           residual_z=residual_h)
-
-
                 ukf.x = np.array([measurement[0], measurement[1], headingAngle2])
                 ukf.P = np.diag([.1, .1, .1])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
-                ukf.Q = np.diag([0., 0., 0.])
+                ukf.Q = np.diag([.3, .3, .3])
 
 
-            ukf.predict(dt = avgDT, fx_args = avgAngle)
+            ukf.predict(dt = avgDT, fx_args = rotationSign * avgAngle)
             z = [measurement[0], measurement[1], headingAngle2]
             ukf.update(z)
 
@@ -561,39 +537,35 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 
 
 #demo_grading(estimate_next_pos, test_target)
-demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading_visual(estimate_next_pos, test_target)
 
 
-# scores = []
-# fails = 0
-# for i in range(1000):
-#     print i
-#     test_target = robot(0., 0., 0., 2*pi / 34.0, 1.5)
-#     measurement_noise = 0.05 * test_target.distance
-#     test_target.set_noise(0.0, 0.0, measurement_noise)
-#
-#     points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
-#
-#     ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
-#               dt=dt, points=points, x_mean_fn=state_mean,
-#               z_mean_fn=z_mean, residual_x=residual_x,
-#               residual_z=residual_h)
-#     ukf.x = np.array([0., 0., 0.])
-#     ukf.P = np.diag([.1, .1, .1])
-#     ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
-#     ukf.Q = np.eye(3) * 0.0001
-#
-#     score = demo_grading(estimate_next_pos, test_target)
-#
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+    measurement_noise = 0.05 * test_target.distance
+    test_target.set_noise(0.0, 0.0, measurement_noise)
+
+    score = demo_grading(estimate_next_pos, test_target)
+
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+# dynamic dt and heading
+# average score:  95.938
+# minimum score:  4
+# maximum score:  677
+# fails:  0
+
 
 # these are the results with hardcoded dt and heading; need to make them dynamic
 # average score:  18.579

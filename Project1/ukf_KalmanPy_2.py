@@ -267,10 +267,6 @@ class UKF(object):
         self.P = self.P - dot3(K, Pz, K.T)
 
 
-
-
-
-
 def normalize_angle(x):
     x = x % (2 * np.pi)    # force in range [0, 2 pi)
     if x > np.pi:          # move to [-pi, pi)

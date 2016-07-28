@@ -536,29 +536,29 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 # ukf.Q = np.eye(3) * 0.0001
 
 
-#demo_grading(estimate_next_pos, test_target)
+demo_grading(estimate_next_pos, test_target)
 #demo_grading_visual(estimate_next_pos, test_target)
 
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
-    measurement_noise = 0.05 * test_target.distance
-    test_target.set_noise(0.0, 0.0, measurement_noise)
-
-    score = demo_grading(estimate_next_pos, test_target)
-
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
+#     measurement_noise = 0.05 * test_target.distance
+#     test_target.set_noise(0.0, 0.0, measurement_noise)
+#
+#     score = demo_grading(estimate_next_pos, test_target)
+#
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
 # dynamic dt and heading
 # average score:  95.938

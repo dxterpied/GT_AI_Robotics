@@ -407,13 +407,12 @@ def estimate_next_pos(measurement, OTHER = None):
                 ukf.x = np.array([measurement[0], measurement[1], headingAngle2])
                 ukf.P = np.diag([.1, .1, .1])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
-                ukf.Q = np.diag([.3, .3, .3])
+                ukf.Q = np.diag([.001, .001, .001])
 
 
             ukf.predict(dt = avgDT, fx_args = rotationSign * avgAngle)
             z = [measurement[0], measurement[1], headingAngle2]
             ukf.update(z)
-
 
             newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
@@ -536,8 +535,8 @@ def demo_grading_visual(estimate_next_pos_fcn, target_bot, OTHER = None):
 # ukf.Q = np.eye(3) * 0.0001
 
 
-demo_grading(estimate_next_pos, test_target)
-#demo_grading_visual(estimate_next_pos, test_target)
+#demo_grading(estimate_next_pos, test_target)
+demo_grading_visual(estimate_next_pos, test_target)
 
 
 # scores = []
@@ -560,7 +559,23 @@ demo_grading(estimate_next_pos, test_target)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
 
-# dynamic dt and heading
+
+# with  ukf.Q = np.diag([.001, .001, .001])  and measurement_noise = 0.1 * test_target.distance
+# average score:  342.752293578
+# minimum score:  3
+# maximum score:  990
+# fails:  564
+
+
+# with ukf.Q = np.diag([.001, .001, .001])
+# average score:  50.524
+# minimum score:  4
+# maximum score:  222
+# fails:  0
+
+
+
+# dynamic dt and heading with ukf.Q = np.diag([.3, .3, .3])
 # average score:  95.938
 # minimum score:  4
 # maximum score:  677

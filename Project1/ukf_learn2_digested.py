@@ -45,7 +45,8 @@ size_multiplier = 25
 
 
 # state transition function. Used to propagate sigma points during PREDICT
-def f(u, sigma_points):
+# returns new matrix with updated sigma points after they are propagated through transition model
+def f(sigma_points):
 
     #print "sigma_points", sigma_points
     # [[ 50.          50.002       50.          50.          50.          49.998     50.          50.          50.        ]
@@ -53,44 +54,21 @@ def f(u, sigma_points):
     #  [ 20.          20.          20.          20.002       20.          20.        20.          19.998       20.        ]
     #  [  1.57079633   1.57079633   1.57079633   1.57079633   1.57279633  1.57079633   1.57079633   1.57079633   1.56879633]]
 
-    # an arbitrary nonlinear function from x to y
     y = np.zeros(sigma_points.shape) # sigma_points.shape = (4, 9)
-    # y is
-    # [[ 0.  0.  0.  0.  0.  0.  0.  0.  0.]
-    #  [ 0.  0.  0.  0.  0.  0.  0.  0.  0.]
-    #  [ 0.  0.  0.  0.  0.  0.  0.  0.  0.]
-    #  [ 0.  0.  0.  0.  0.  0.  0.  0.  0.]]
 
-    # x_i is [ 50.          70.          20.           1.57079633] - one sigma point for each variable (x, y, v, heading)
+    # sigmaPointsVector:  [ 50. 70. 20. 1.57079633] - one sigma point for each variable: [x, y, v, heading]
     for index, sigmaPointsVector in enumerate(sigma_points.transpose()):
-        #print "x_i", x_i   # [ 50.          70.          20.           1.57079633]
-
         # here only sigma point for velocity is used
-
-        x_velocity = np.cos(sigmaPointsVector[3]) * distance
-        y_velocity = np.sin(sigmaPointsVector[3]) * distance
-
-
+        heading = sigmaPointsVector[3]
+        x_velocity = np.cos(heading) * distance
+        y_velocity = np.sin(heading) * distance
         F = np.array([[1, 0,  x_velocity,  0],
                       [0, 1,  y_velocity,  0],
-                      [0, 0, 1, 0],
-                      [0, 0, 0, 1]])
+                      [0, 0, 1, 0],   # velocity is unchanged
+                      [0, 0, 0, 1]])  # heading is unchanged
 
-        #print "F", F
-        # [[  1.00000000e+00   0.00000000e+00   6.12323400e-18   0.00000000e+00]
-        #  [  0.00000000e+00   1.00000000e+00   1.00000000e-01   0.00000000e+00]
-        #  [  0.00000000e+00   0.00000000e+00   1.00000000e+00   0.00000000e+00]
-        #  [  0.00000000e+00   0.00000000e+00   0.00000000e+00   1.00000000e+00]]
-        B = np.array([[0, 0],
-                      [0, 0],
-                      [1, 0],
-                      [0, 1]])
-
-        # x = Fx + Bu
-        #print "u", u                    # [ 0.  0.]
         #print "F.dot(sigmaPointsVector)", F.dot(sigmaPointsVector)  # [ 50.          72.          20.           1.57079633]
-        #print "B.dot(u)", B.dot(u)      #     [ 0.  0.  0.  0.]
-        y[:, index] = F.dot(sigmaPointsVector) #+ B.dot(u) # multiply F by sigma points vector
+        y[:, index] = F.dot(sigmaPointsVector) # multiply F by sigma points vector
         #print F.dot(sigmaPointsVector) + B.dot(u)     # [ 50.          72.          20.           1.57079633]
 
     #print "y", y
@@ -110,6 +88,7 @@ def f(u, sigma_points):
     #  [-0.23166491  0.07741916  0.30400598  0.15220117]
     #  [-0.8766521  -0.47128929 -0.06782059 -0.16527805]]
 
+    # why randomize here?
     y = y + r_rand.rvs( size=sigma_points.shape[1] ).transpose()
 
     #print "y", y
@@ -126,49 +105,45 @@ def f(u, sigma_points):
 # measurement function, returns [x, y] or sigma points for x, y
 def h(xk):
 
-    print "xk", xk
+    #print "xk", xk
 
     m = xk[:2, :] + np.atleast_2d( q_rand.rvs(size=xk.shape[1] )).transpose()
 
-    print "m", m
+    #print "m", m
 
     return m
 
 
-def filterUsingUKF(x, P, u, z, R, Q, process_fn, predict_fn, alpha=1e-3, beta=2, kappa=0):
+def filterUsingUKF(x, P, z, R, Q, transition_fn, measurement_fn, alpha=1e-3, beta=2, kappa=0):
 
     L = len(x) # len is 4
     sigmaPointsCount = 2 * L + 1
     lam = alpha**2 * (L + kappa) - L
     gamma = np.sqrt(L + lam)
 
-    # Calculate matrix sqrt of covariance by cholesky decomposition;
-    # sigma = L * L^* (but for Hermetian L^* = L.T). i.e.,
-    # sigma = sigma_root.dot(sigma_root.T)
     sigma_root = np.linalg.cholesky(P)
 
     # Calculate the weights to recover the mean and covariance estimates
-    wm, wc = np.zeros(sigmaPointsCount), np.zeros(sigmaPointsCount)
-    wm[0] = gamma / (L + gamma)
-    wc[0] = wm[0] + (1. - alpha**2 + beta)
-    wm[1:] = wc[1:] = (0.5 / (L + gamma))
+    weights_mean, weights_covariance = np.zeros(sigmaPointsCount), np.zeros(sigmaPointsCount)
+    weights_mean[0] = gamma / (L + gamma) # weights for mean
+    weights_covariance[0] = weights_mean[0] + (1. - alpha**2 + beta) # weights for covariance
+    weights_mean[1:] = weights_covariance[1:] = (0.5 / (L + gamma))
 
-    # Find the sigma points; vec[:, np.newaxis] treats vec as a column
-    # to match numpy arithmetic broadcasting rules
-    chi = np.zeros([L, sigmaPointsCount])
-    chi[:, 0] = x
-    chi[:, 1:L+1] = x[:, np.newaxis] + gamma * sigma_root
-    chi[:, L+1:] = x[:, np.newaxis] - gamma * sigma_root
+    # Find the sigma points; vec[:, None] treats vec as a column to match numpy arithmetic broadcasting rules
+    sigma_points = np.zeros([L, sigmaPointsCount])
+    sigma_points[:, 0] = x
+    sigma_points[:, 1:L+1] = x[:, None] + gamma * sigma_root
+    sigma_points[:, L+1:] = x[:, None] - gamma * sigma_root
 
-    # propagate the sigma points and control commands through the process model
-    chi_star_bar = process_fn(u, chi)
+    # propagate the sigma points and control commands through the state transition function
+    chi_star_bar = transition_fn(sigma_points)
 
     # recover the mean and covariance estimates
-    mu_bar = np.sum(wm * chi_star_bar, axis=1)
+    mu_bar = np.sum(weights_mean * chi_star_bar, axis=1)
 
     sigma_bar = np.array(R)
-    for w, chi_i in zip(wc, chi_star_bar.transpose()):  # use .transpose() to iterate columns
-        chi_dev = (chi_i - mu_bar)[:, np.newaxis]  # force into column vector
+    for w, chi_i in zip(weights_covariance, chi_star_bar.transpose()):  # use .transpose() to iterate columns
+        chi_dev = (chi_i - mu_bar)[:, None]  # force into column vector
         sigma_bar += w * (chi_dev * chi_dev.T)
 
     # Calculate matrix sqrt of covariance by cholesky decomposition;
@@ -178,30 +153,32 @@ def filterUsingUKF(x, P, u, z, R, Q, process_fn, predict_fn, alpha=1e-3, beta=2,
 
     chi_bar = np.zeros([L, sigmaPointsCount])
     chi_bar[:, 0] = mu_bar
-    chi_bar[:, 1:L+1] = mu_bar[:, np.newaxis] + gamma * sigma_bar_root
-    chi_bar[:, L+1:] = mu_bar[:, np.newaxis] - gamma * sigma_bar_root
+    chi_bar[:, 1:L+1] = mu_bar[:, None] + gamma * sigma_bar_root
+    chi_bar[:, L+1:] = mu_bar[:, None] - gamma * sigma_bar_root
 
+
+    # propagate sigma points through measurement function
     # Z_bar should have size (# observables, L)
-    Z_bar = predict_fn(chi_bar)
+    Z_bar = measurement_fn(chi_bar)
 
 
-    z_hat = np.sum(wm * Z_bar, axis=1)
+    z_hat = np.sum(weights_mean * Z_bar, axis=1)
     m = Z_bar.shape[0]
 
     S = np.array(Q)
-    for w, Z_i in zip(wc, Z_bar.T):  # use .T to iterate columns
-        z_dev = (Z_i - z_hat)[:, np.newaxis]  # force into column vector
+    for w, Z_i in zip(weights_covariance, Z_bar.T):  # use .T to iterate columns
+        z_dev = (Z_i - z_hat)[:, None]  # force into column vector
         S += w * (z_dev * z_dev.T)
 
     sigma_xz = np.zeros([L, m])
-    for w, chi_bar_i, Z_i in zip(wc, chi_bar.T, Z_bar.T):
-        chi_dev = (chi_bar_i - mu_bar)[:, np.newaxis]  # coerce to column
-        z_dev = (Z_i - z_hat)[:, np.newaxis]  # coerce to column vector
+    for w, chi_bar_i, Z_i in zip(weights_covariance, chi_bar.T, Z_bar.T):
+        chi_dev = (chi_bar_i - mu_bar)[:, None]  # coerce to column
+        z_dev = (Z_i - z_hat)[:, None]  # coerce to column vector
         sigma_xz += w * (chi_dev * z_dev.T)
 
     # consider using the pseudo-inverse or catching singular errors in inv()
     K = sigma_xz.dot(np.linalg.inv(S))
-    new_state = mu_bar + np.dot(K, (z - z_hat[:, np.newaxis]))[0]
+    new_state = mu_bar + np.dot(K, (z - z_hat[:, None]))[0]
     new_cov = sigma_bar - np.dot(K, np.dot(S, K.T))
 
     return new_state, new_cov
@@ -213,19 +190,9 @@ x = np.array([ 0., 0.,  0,  0] )
 P = np.matrix([[1., 0., 0., 0.], # state variance-covariance
                [0., 1., 0., 0.],
                [0., 0., 1., 0.],
-               [0., 0., 0., 1.]])  #np.eye(4)
-R = np.diag([.5, .5, .05, 1e-2])
+               [0., 0., 0., 1.]])
+R = np.diag([.5, .5, .05, 0.1])
 Q = np.diag([.01] * 2)
-u = np.array([0., 0.])
-controls = dict({
-            10:  np.array([0., 2*np.pi / 12]),
-            30:  np.array([-.5, 0.]),
-            50:  np.array([0., -2*np.pi / 12]),
-            70:  np.array([0., -2*np.pi / 12]),
-            90:  np.array([1., 0.]),
-            85:  np.array([-.5, 2*np.pi / 12]),
-            100: np.array([0., 0.])
-            })
 
 distance = 1.5
 
@@ -236,30 +203,16 @@ q_rand = scipy.stats.multivariate_normal(cov=Q)
 
 states = np.ndarray([100, x.shape[0]])
 
-# print "\t\t\t", "x\t\t\t", "y\t\t\t", "V\t\t\t", "phi"
-# print 0, ",", np.array2string(x, formatter={'float_kind': lambda x: ",\t{:>8.3f}".format(x)})
-
 true_states = [[-9.021852399266194, 0.20791169081775918], [-8.108306941623594, 0.6146483338935591], [-7.2992899472486465, 1.2024335861860318], [-6.630159340889788, 1.9455784116634256], [-6.130159340889788, 2.811603815447864], [-5.821142346514841, 3.762660331743018], [-5.716613883247188, 4.757182227111291], [-5.821142346514842, 5.751704122479564], [-6.13015934088979, 6.702760638774718], [-6.630159340889791, 7.568786042559156], [-7.299289947248649, 8.31193086803655], [-8.108306941623596, 8.899716120329023], [-9.021852399266196, 9.306452763404824], [-10.000000000000002, 9.514364454222585], [-11.000000000000002, 9.514364454222587], [-11.978147600733807, 9.30645276340483], [-12.89169305837641, 8.899716120329032], [-13.70071005275136, 8.311930868036562], [-14.36984065911022, 7.568786042559171], [-14.869840659110224, 6.702760638774734], [-15.178857653485176, 5.751704122479582], [-15.283386116752833, 4.75718222711131], [-15.178857653485183, 3.762660331743036], [-14.869840659110238, 2.8116038154478815], [-14.36984065911024, 1.9455784116634418], [-13.700710052751383, 1.202433586186047], [-12.891693058376436, 0.6146483338935738], [-11.978147600733834, 0.20791169081777466], [-11.000000000000028, 1.765254609153999e-14], [-10.000000000000028, 1.9872992140790302e-14]]
 
 #true_states = []
 
 for i in range(100):
 
-    # u is not a real location, dummy!!! it's just a control matrix or vector. i don't know how to get real location in this case
-    u += controls.get(i, np.array([0., 0.])) * distance
-    #u += np.array(true_states[i]) * distance
 
-    #print "u", u
-    #true_states.append([u[0], u[1]])
+    z = h( x[:, None] )
+    x, P = filterUsingUKF(x, P, z, R, Q, f, h)
 
-    # print "u"
-    # print u
-    # if i > 50:
-    #     exit()
-
-    z = h( x[:, np.newaxis] )
-    x, P = filterUsingUKF(x, P, u, z, R, Q, f, h)
-    #print i+1, ",", np.array2string(x, formatter={'float_kind': lambda x: ",\t{:>8.3f}".format(x)})
     states[i, :] = x.copy()
 
 #print true_states
@@ -274,25 +227,7 @@ for i in states:
     predicted_robot.goto(i[0] * 10, i[1] * 10)
     predicted_robot.stamp()
 
-
-
-# fig = plt.figure()
-# ax1 = fig.add_subplot(311)
-# ax1.plot(states[:,0], states[:, 1])
-# ax1.set_title('x-y position')
-#ax1.plot(true_states[:][0], true_states[:][1], color='r')
-#ax1.plot(true_states, color='r')
-
-# ax2 = fig.add_subplot(312)
-# ax2.plot(states[:, 2])
-# ax2.set_title('Speed')
-#
-# ax3 = fig.add_subplot(313)
-# ax3.plot(states[:, 3])
-# ax3.set_title('Heading')
-
 turtle.getscreen()._root.mainloop()
 
-#plt.show()
 
 

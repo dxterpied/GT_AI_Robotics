@@ -177,12 +177,11 @@ P = matrix([[1000., 0.],
             [0., 1000.]]) # estimate noise; state covariance matrix;
 
 F = matrix([[1. , 1.],
-            [0. , 1.]]) # next state function (transition matrix)
+            [0. , 1.]]) # next state function (state transition model)
 
 u = matrix([[0.], [0.]]) # external motion
 
-H = matrix([[1., 0.]]) # measurement function
-
+H = matrix([[1., 0.]]) # measurement function (observation model). 1 for location, 0 for velocity because it's not measured
 R = matrix([[1.]]) # measurement noise
 
 I = matrix([[1., 0.], [0., 1.]]) # identity matrix

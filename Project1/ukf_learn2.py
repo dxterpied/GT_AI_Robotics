@@ -141,10 +141,6 @@ def main():
                           [0, 0],
                           [1, 0],
                           [0, 1]])
-            print "A", A
-            print "x_i", x_i
-            print "A.dot(x_i)", A.dot(x_i)
-            exit()
             y[:, i] = A.dot(x_i) + B.dot(uk)
 
         eps = r_rand.rvs(size=xk.shape[1]).T
@@ -184,7 +180,7 @@ def main():
     fig = plt.figure()
     ax1 = fig.add_subplot(311)
     ax1.plot(states[:,0], states[:, 1])
-    ax1.set_title('x-y position')
+    ax1.set_title('predicted x-y position')
 
     ax2 = fig.add_subplot(312)
     ax2.plot(states[:, 2])

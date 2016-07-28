@@ -1,9 +1,10 @@
-from filterpy.kalman import UnscentedKalmanFilter as UKF
-from math import *
 from filterpy.kalman.sigma_points import *
 import turtle
-import random
 from robot import *
+from numpy import eye, zeros, dot, isscalar, outer
+from scipy.linalg import inv, cholesky
+from filterpy.kalman import unscented_transform
+from filterpy.common import dot3
 
 
 # attempts to solve RR2 using UKF from KalmanPy
@@ -35,6 +36,241 @@ sigma_range= 0.3
 sigma_bearing= 0.1
 
 
+class UKF(object):
+    """
+    Attributes
+    ----------
+    x : numpy.array(dim_x)
+        state estimate vector
+    P : numpy.array(dim_x, dim_x)
+        covariance estimate matrix
+    R : numpy.array(dim_z, dim_z)
+        measurement noise matrix
+    Q : numpy.array(dim_x, dim_x)
+        process noise matrix
+
+    Readable Attributes
+    -------------------
+    xp : numpy.array(dim_x)
+        predicted state (result of predict())
+    Pp : numpy.array(dim_x, dim_x)
+        predicted covariance matrix (result of predict())
+    """
+
+    def __init__(self, dim_x, dim_z, dt, hx, fx, points, x_mean_fn=None, z_mean_fn=None,
+                 residual_x=None,
+                 residual_z=None):
+        r"""
+        Parameters
+        ----------
+
+        dim_x : int
+            Number of state variables for the filter. For example, if
+            you are tracking the position and velocity of an object in two
+            dimensions, dim_x would be 4.
+        dim_z : int
+            Number of of measurement inputs. For example, if the sensor
+            provides you with position in (x,y), dim_z would be 2.
+        dt : float
+            Time between steps in seconds.
+        hx : function(x)
+            Measurement function. Converts state vector x into a measurement
+            vector of shape (dim_z).
+        fx : function(x,dt)
+            function that returns the state x transformed by the
+            state transistion function. dt is the time step in seconds.
+        points : class
+            Class which computes the sigma points and weights for a UKF
+            algorithm. You can vary the UKF implementation by changing this
+            class. For example, MerweScaledSigmaPoints implements the alpha,
+            beta, kappa parameterization of Van der Merwe, and
+            JulierSigmaPoints implements Julier's original kappa
+            parameterization. See either of those for the required
+            signature of this class if you want to implement your own.
+        x_mean_fn : callable  (sigma_points, weights), optional
+            Function that computes the mean of the provided sigma points
+            and weights. Use this if your state variable contains nonlinear
+            values such as angles which cannot be summed.
+
+            .. code-block:: Python
+                def state_mean(sigmas, Wm):
+                    x = np.zeros(3)
+                    sum_sin, sum_cos = 0., 0.
+
+                    for i in range(len(sigmas)):
+                        s = sigmas[i]
+                        x[0] += s[0] * Wm[i]
+                        x[1] += s[1] * Wm[i]
+                        sum_sin += sin(s[2])*Wm[i]
+                        sum_cos += cos(s[2])*Wm[i]
+                    x[2] = atan2(sum_sin, sum_cos)
+                    return x
+
+        z_mean_fn : callable  (sigma_points, weights), optional
+            Same as x_mean_fn, except it is called for sigma points which
+            form the measurements after being passed through hx().
+
+        residual_x : callable (x, y), optional
+        residual_z : callable (x, y), optional
+            Function that computes the residual (difference) between x and y.
+            You will have to supply this if your state variable cannot support
+            subtraction, such as angles (359-1 degreees is 2, not 358). x and y
+            are state vectors, not scalars. One is for the state variable,
+            the other is for the measurement state.
+
+            .. code-block:: Python
+
+                def residual(a, b):
+                    y = a[0] - b[0]
+                    if y > np.pi:
+                        y -= 2*np.pi
+                    if y < -np.pi:
+                        y = 2*np.pi
+                    return y
+
+        """
+
+        self.Q = eye(dim_x)
+        self.R = eye(dim_z)
+        self.x = zeros(dim_x)
+        self.P = eye(dim_x)
+        self._dim_x = dim_x
+        self._dim_z = dim_z
+        self._dt = dt
+        self._num_sigmas = 2*dim_x + 1
+        self.hx = hx
+        self.fx = fx
+        self.points_fn = points
+        self.x_mean = x_mean_fn
+        self.z_mean = z_mean_fn
+        self.msqrt = cholesky
+
+        # weights for the means and covariances.
+        self.Wm, self.Wc = self.points_fn.weights()
+
+        if residual_x is None:
+            self.residual_x = np.subtract
+        else:
+            self.residual_x = residual_x
+
+        if residual_z is None:
+            self.residual_z = np.subtract
+        else:
+            self.residual_z = residual_z
+
+        # sigma points transformed through f(x) and h(x)
+        # variables for efficiency so we don't recreate every update
+        self.sigmas_f = zeros((2*self._dim_x+1, self._dim_x))
+        self.sigmas_h = zeros((self._num_sigmas, self._dim_z))
+
+
+
+    def predict(self, dt=None,  UT=None, fx_args=()):
+        r""" Performs the predict step of the UKF. On return, self.x and
+        self.P contain the predicted state (x) and covariance (P). '
+
+        Important: this MUST be called before update() is called for the first
+        time.
+
+        Parameters
+        ----------
+
+        dt : double, optional
+            If specified, the time step to be used for this prediction.
+            self._dt is used if this is not provided.
+
+        UT : function(sigmas, Wm, Wc, noise_cov), optional
+            Optional function to compute the unscented transform for the sigma
+            points passed through hx. Typically the default function will
+            work - you can use x_mean_fn and z_mean_fn to alter the behavior
+            of the unscented transform.
+
+        fx_args : tuple, optional, default (,)
+            optional arguments to be passed into fx() after the required state
+            variable.
+        """
+
+        if dt is None:
+            dt = self._dt
+
+        if not isinstance(fx_args, tuple):
+            fx_args = (fx_args,)
+
+        if UT is None:
+            UT = unscented_transform
+
+        # calculate sigma points for given mean and covariance
+        sigmas = self.points_fn.sigma_points(self.x, self.P)
+
+        for i in range(self._num_sigmas):
+            self.sigmas_f[i] = self.fx(sigmas[i], dt, *fx_args)
+
+        self.x, self.P = UT(self.sigmas_f, self.Wm, self.Wc, self.Q,
+                            self.x_mean, self.residual_x)
+
+
+    def update(self, z, R=None, UT=None, hx_args=()):
+        """ Update the UKF with the given measurements. On return,
+        self.x and self.P contain the new mean and covariance of the filter.
+
+        Parameters
+        ----------
+
+        z : numpy.array of shape (dim_z)
+            measurement vector
+
+        R : numpy.array((dim_z, dim_z)), optional
+            Measurement noise. If provided, overrides self.R for
+            this function call.
+
+        UT : function(sigmas, Wm, Wc, noise_cov), optional
+            Optional function to compute the unscented transform for the sigma
+            points passed through hx. Typically the default function will
+            work - you can use x_mean_fn and z_mean_fn to alter the behavior
+            of the unscented transform.
+
+        hx_args : tuple, optional, default (,)
+            arguments to be passed into Hx function after the required state
+            variable.
+        """
+
+        if z is None:
+            return
+
+        if not isinstance(hx_args, tuple):
+            hx_args = (hx_args,)
+
+        if UT is None:
+            UT = unscented_transform
+
+        if R is None:
+            R = self.R
+        elif isscalar(R):
+            R = eye(self._dim_z) * R
+
+        for i in range(self._num_sigmas):
+            self.sigmas_h[i] = self.hx(self.sigmas_f[i], *hx_args)
+
+        # mean and covariance of prediction passed through unscented transform
+        zp, Pz = UT(self.sigmas_h, self.Wm, self.Wc, R, self.z_mean, self.residual_z)
+
+        # compute cross variance of the state and the measurements
+        Pxz = zeros((self._dim_x, self._dim_z))
+        for i in range(self._num_sigmas):
+            dx = self.residual_x(self.sigmas_f[i], self.x)
+            dz =  self.residual_z(self.sigmas_h[i], zp)
+            Pxz += self.Wc[i] * outer(dx, dz)
+
+        K = dot(Pxz, inv(Pz))   # Kalman gain
+        y = self.residual_z(z, zp)   #residual
+        self.x = self.x + dot(K, y)
+        self.P = self.P - dot3(K, Pz, K.T)
+
+
+
+
+
+
 def normalize_angle(x):
     x = x % (2 * np.pi)    # force in range [0, 2 pi)
     if x > np.pi:          # move to [-pi, pi)
@@ -43,8 +279,8 @@ def normalize_angle(x):
 
 
 def fx(x, dt, turning):
-    prevsiousHeading = x[2]
-    heading = prevsiousHeading + turning
+    previousHeading = x[2]
+    heading = previousHeading + turning
     x1 = x[0] + dt * cos(heading)
     y1 = x[1] + dt * sin(heading)
     state = [x1, y1, heading]
@@ -52,7 +288,7 @@ def fx(x, dt, turning):
 
 
 def Hx(x):
-    result = x[0], x[1], x[2] # x, y, heading
+    result = x[0], x[1] , x[2] # x, y, heading
     return result
 
 

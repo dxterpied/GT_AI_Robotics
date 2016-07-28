@@ -16,31 +16,20 @@ perform a UKF update on the state and covariance.
 Params:
 ---
     state_mu: current state (1xn array)
-
     cov_sigma: covariance matrix (nxn array)
-
     control_u: control command (1xn array)
-
     measurement_z: current measurement (1xm array)
-
     process_fn: callable - given x and u, determine next state
-
     predict_fn: callable - given x, determine measurement
-
     noise_Rt: process noise
-
     noise_Qt: measurement noise
-
     alpha: UKF parameter (typically 1e-3 according to wikipedia)
-
     beta: UKF parameter (typically 2 if true distribution is gaussian)
-
     kappa: UKF parameter (typically 0 according to wikipedia)
 
 Output:
 ---
     new_state
-
     new_cov
 """
 
@@ -129,20 +118,14 @@ def main():
     r_rand = mv_norm(cov=R)
     q_rand = mv_norm(cov=Q)
 
-
-    def g(uk, xk):
+    # transition function. Used to propagate sigma points during PREDICT
+    def f(uk, xk):
         # an arbitrary nonlinear function from x to y
         y = np.zeros(xk.shape)
         for i, x_i in enumerate(xk.T):
-
-
             A = np.array([[1., 0.]])
-
-
             B = np.array([[0., 1.]])
-
             y[:, i] = A.dot(x_i) + B.dot(uk)
-
         eps = r_rand.rvs(size=xk.shape[1]).T
         y += eps
         # print y
@@ -174,7 +157,7 @@ def main():
 
     for i in range(100):
         u += controls.get(i, np.array([0., 0.])) * dt
-        state, cov = UKF(state, cov, u, h(state[:, np.newaxis]), g, h, R, Q)
+        state, cov = UKF(state, cov, u, h(state[:, np.newaxis]), f, h, R, Q)
         states[i, :] = state.copy()
         # print u
 

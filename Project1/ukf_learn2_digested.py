@@ -44,8 +44,8 @@ size_multiplier = 25
 
 
 
-# state transition function
-def g(u, sigma_points):
+# state transition function. Used to propagate sigma points during PREDICT
+def f(u, sigma_points):
 
     #print "sigma_points", sigma_points
     # [[ 50.          50.002       50.          50.          50.          49.998     50.          50.          50.        ]
@@ -258,7 +258,7 @@ for i in range(100):
     #     exit()
 
     z = h( x[:, np.newaxis] )
-    x, P = filterUsingUKF(x, P, u, z, R, Q, g, h)
+    x, P = filterUsingUKF(x, P, u, z, R, Q, f, h)
     #print i+1, ",", np.array2string(x, formatter={'float_kind': lambda x: ",\t{:>8.3f}".format(x)})
     states[i, :] = x.copy()
 

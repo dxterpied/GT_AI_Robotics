@@ -365,7 +365,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     #End of Visualization
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 60:
+    while not caught and ctr < 91:
 
         # if ctr >= 43:
         #     #time.sleep(0.5)

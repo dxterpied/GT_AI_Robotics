@@ -6,6 +6,10 @@ from numpy import *
 import turtle
 from collections import Counter
 
+
+# this one uses PF
+
+
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 20.0  #change Size of animation
@@ -467,8 +471,8 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
-demo_grading(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading(hunter, target, next_move_straight_line)
 
 # scores = []
 # fails = 0

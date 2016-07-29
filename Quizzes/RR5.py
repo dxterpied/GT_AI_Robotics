@@ -467,8 +467,8 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-demo_grading_visual(hunter, target, next_move_straight_line)
-#demo_grading(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading(hunter, target, next_move_straight_line)
 
 # scores = []
 # fails = 0
@@ -489,20 +489,9 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 # print "maximum score: ", max(scores)
 # print "fails: ", fails
 #
-# with predicted angle:
-# average score:  165.305
-# minimum score:  21
-# maximum score:  848
-# fails:  0
-
-# without predicted angle:
-# average score:  161.693079238
-# minimum score:  21
-# maximum score:  856
-# fails:  3
 
 
-#turtle.getscreen()._root.mainloop()
+turtle.getscreen()._root.mainloop()
 
 
 

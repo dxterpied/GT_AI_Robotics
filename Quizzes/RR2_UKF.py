@@ -569,11 +569,6 @@ demo_grading_visual(estimate_next_pos, test_target)
 # fails:  0
 
 
-# these are the results with hardcoded dt and heading; need to make them dynamic
-# average score:  18.579
-# minimum score:  3
-# maximum score:  101
-# fails:  0
 
 
 #turtle.getscreen()._root.mainloop()

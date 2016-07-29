@@ -106,46 +106,19 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             newR = robot(xy_pf[0], xy_pf[1], headingAngle2, rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
+            xy_estimate = newR.x, newR.y
 
-            # distance from hunter to predicted target position
-            dist_to_target = distance_between(predictedPosition, hunter_position)
+            # try to find the shortest straight path from hunter position to predicted target position
+            steps = 1
+            while True:
+                # check how many steps it will take to get there for Hunter
+                projectedDistance = steps * max_distance
+                if projectedDistance >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                    break
+                steps += 1
+                newR.move_in_circle()
+                xy_estimate = newR.x, newR.y
 
-            # for d in range( int( dist_to_target / max_distance ) ):
-            #     # look ahead d moves and go that way
-            #     newR.move_in_circle()
-            #     xy_estimate = newR.x, newR.y
-
-
-            if xy_estimate is None:
-                steps = 1
-
-                while True:
-                    #time.sleep(0.1)
-                    xy_estimate = newR.x, newR.y
-                    headingAngle2 = newR.heading
-                    distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
-                    # check how many steps it will take to get there for Hunter
-                    projectedDistance = steps * max_distance
-
-                    # broken_robot.setheading(headingAngle2 * 180/pi)
-                    # broken_robot.goto(newR.x * 25, newR.y * 25 - 200)
-                    # broken_robot.stamp()
-
-                    if projectedDistance >= distanceBetweenHunterAndRobot:
-                        #print xy_estimate, steps
-                        break
-
-                    steps += 1
-                    if steps > 50:
-                        break
-
-                    newR.move_in_circle()
-
-            else:
-                steps -= 1
-                #print "decrement steps", steps
-                if steps <= 0:
-                    xy_estimate = None
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle)
@@ -491,27 +464,27 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    particles = []
-    target = robot(0.0, 10.0, 0.0, -2*pi / 30, 1.5)
-    target.set_noise(0.0, 0.0, .05*target.distance)
-    hunter = robot(-10.0, -10.0, 0.0)
-    score = demo_grading(hunter, target, next_move_straight_line)
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     particles = []
+#     target = robot(0.0, 10.0, 0.0, -2*pi / 30, 1.5)
+#     target.set_noise(0.0, 0.0, .05*target.distance)
+#     hunter = robot(-10.0, -10.0, 0.0)
+#     score = demo_grading(hunter, target, next_move_straight_line)
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
 
 # 1000 runs counterclockwise:

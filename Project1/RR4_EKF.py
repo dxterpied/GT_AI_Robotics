@@ -188,6 +188,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
     X_next, P_next = X.copy(), P.copy()
 
+    print int( dist_to_target / max_distance )
     for D in range( int( dist_to_target / max_distance ) ):
         # look ahead D moves and go that way
         hunter_to_xy, X_next, _ = EKF_Predict(X_next, P_next, 1.)

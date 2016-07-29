@@ -51,7 +51,7 @@ def getRotationSign(rotationAngles):
 # minimum score:  22
 # maximum score:  996
 # fails:  16
-
+# this approach is taken from RR4_EKF. Works worse than my straight_line functions
 def next_move_straight_line_Worse(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     predictedPosition = [0, 0]
@@ -106,6 +106,7 @@ def next_move_straight_line_Worse(hunter_position, hunter_heading, target_measur
             # distance from hunter to predicted target position
             dist_to_target = distance_between(predictedPosition, hunter_position)
 
+            print int( dist_to_target / max_distance )
             for d in range( int( dist_to_target / max_distance ) ):
                 # look ahead d moves and go that way
                 newR.move_in_circle()
@@ -253,6 +254,91 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
     return turning, distance, OTHER
 
+
+# this one calculates straight line on every iteration; that's the modification; it performs better than just straight line approach
+# average score:  125.2
+# minimum score:  12
+# maximum score:  677
+# fails:  0
+def next_move_straight_line_modified(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
+    predictedPosition = [0, 0]
+    xy_estimate = None
+
+    if OTHER is None:
+        distances = []
+        angles = []
+        coords = []
+        xy_estimate = target_measurement
+        steps = 0
+        turnAngle = []
+    else:
+        distances, angles, coords, xy_estimate, steps, turnAngle = OTHER
+
+        if len(coords) == 1:
+            hypotenuse1 = distance_between(coords[0], target_measurement)
+            distances.append(hypotenuse1)
+            xy_estimate = target_measurement
+
+        elif len(coords) >= 2:
+            point1 = coords[len(coords) - 2]
+            point2 = coords[len(coords) - 1]
+            point3 = target_measurement
+
+            # this is done to determine clock wise or counter clock wise rotation
+            turnAngle.append(calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1]))
+            rotationSign = getRotationSign(turnAngle)
+
+            y1Delta = point2[1] - point1[1]
+            hypotenuse1 = distance_between(point1, point2)
+            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+
+            y2Delta = point3[1] - point2[1]
+            x2Delta = point3[0] - point2[0]
+            hypotenuse2 = distance_between(point2, point3)
+            headingAngle2 = atan2(y2Delta, x2Delta)
+            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+
+            angles.append(abs(predictedTurnAngleAvg))
+            distances.append(hypotenuse2)
+
+            avgDT = sum(distances)/len(distances)
+            avgAngle = sum(angles)/len(angles)
+
+            newR = robot(point3[0], point3[1], headingAngle2, rotationSign * avgAngle, avgDT)
+            newR.move_in_circle()
+            predictedPosition = newR.x, newR.y
+            xy_estimate = newR.x, newR.y
+
+            # try to find the shortest straight path from hunter position to predicted target position
+            steps = 1
+            while True:
+                # check if hunter will reach target in a straight line
+                if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                    break
+                steps += 1
+                newR.move_in_circle()
+                xy_estimate = newR.x, newR.y
+
+
+    coords.append(target_measurement)
+    OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle)
+    if xy_estimate is None:
+        xy_estimate = target_measurement
+
+    distance2 = distance_between(hunter_position, predictedPosition)
+
+    if distance2 <= max_distance:
+        turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
+        distance = distance2
+        OTHER = (distances, angles, coords, None, steps, turnAngle)
+    else:
+        turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading)
+        distance = distance_between(hunter_position, xy_estimate)
+
+
+    return turning, distance, OTHER
 
 
 def distance_between(point1, point2):
@@ -412,27 +498,27 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -5.0, 0.0)
 
 
-#demo_grading(hunter, target, next_move_straight_line)
-#demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading(hunter, target, next_move_straight_line_modified)
+demo_grading_visual(hunter, target, next_move_straight_line_modified)
 
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
-    target.set_noise(0.0, 0.0, measurement_noise)
-    hunter = robot(-10.0, -20.0, 0.0)
-    score = demo_grading(hunter, target, next_move_straight_line)
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
+#     target.set_noise(0.0, 0.0, measurement_noise)
+#     hunter = robot(-10.0, -20.0, 0.0)
+#     score = demo_grading(hunter, target, next_move_straight_line_modified)
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
 
 

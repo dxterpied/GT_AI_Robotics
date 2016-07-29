@@ -407,51 +407,18 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
+            xy_estimate = newR.x, newR.y
 
-            if xy_estimate is None:
+            steps = 1
 
-                # broken_robot = turtle.Turtle()
-                # broken_robot.shape('turtle')
-                # broken_robot.color('red')
-                # #broken_robot.resizemode('user')
-                # broken_robot.shapesize(0.2, 0.2, 0.2)
+            while True:
+                # check if hunter can reach target in straight line
+                if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                    break
+                steps += 1
+                newR.move_in_circle()
+                xy_estimate = newR.x, newR.y
 
-                steps = 1
-
-                # distance from hunter to predicted target position
-                # dist_to_target = distance_between(predictedPosition, hunter_position)
-                #
-                # for i in range( int( dist_to_target / max_distance ) ):
-                #     # look ahead d moves and go that way
-                #     xy_estimate = newR.x, newR.y
-                #     newR.move_in_circle()
-                #     steps += 1
-
-
-                while True:
-                    #time.sleep(0.1)
-                    xy_estimate = newR.x, newR.y
-                    distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
-                    # check how many steps it will take to get there for Hunter
-                    projectedDistance = steps * max_distance
-
-                    # broken_robot.setheading(headingAngle2 * 180/pi)
-                    # broken_robot.goto(newR.x * 20, newR.y * 20 - 200)
-                    # broken_robot.stamp()
-
-                    if projectedDistance >= distanceBetweenHunterAndRobot:
-                        break
-
-                    steps += 1
-                    if steps > 50:
-                        break
-
-                    newR.move_in_circle()
-
-            else:
-                steps -= 1
-                if steps <= 0:
-                    xy_estimate = None
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle, ukf)
@@ -634,7 +601,7 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 # fails = 0
 # for i in range(1000):
 #     print i
-#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+#     target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
 #     target.set_noise(0.0, 0.0, measurement_noise)
 #     hunter = robot(-10.0, -20.0, 0.0)
 #     score = demo_grading(hunter, target, next_move_straight_line)
@@ -650,15 +617,15 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 
 # This is better than Running Averages, PF, EKF !!!
 # Clockwise:
-# average score:  94.404
+# average score:  66.256
 # minimum score:  12
-# maximum score:  658
+# maximum score:  649
 # fails:  0
 
 # Counterclockwise:
-# average score:  100.536
+# average score:  70.461
 # minimum score:  21
-# maximum score:  558
+# maximum score:  345
 # fails:  0
 
 

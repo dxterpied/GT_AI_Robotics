@@ -14,6 +14,8 @@ from numpy import zeros, eye, diag, sin, cos, linalg, pi, matrix
 import pylab
 
 
+# this one fails to work either
+
 def next_move(hunter_position, hunter_heading, target_measurement,
               max_distance, OTHER = None):
     # This function will be called after each time the target moves.

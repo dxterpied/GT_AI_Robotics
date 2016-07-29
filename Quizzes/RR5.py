@@ -205,22 +205,9 @@ def Gaussian(mu, sigma, x):
 # returns the arithmetic means of x, y and orientation. It is already weighted.
 def get_position(p):
     x = y = 0.0
-
-    # for some reason averages work much better than most common
-    # countX = Counter([i.x for i in particles])
-    # x = countX.most_common()[0][0]
-    #
-    # countY = Counter([i.y for i in particles])
-    # y = countY.most_common()[0][0]
-    #
-    # return x, y
-
-
     for i in range(len(p)):
         x += p[i].x
         y += p[i].y
-
-
     return [ x/len(p), y/len(p) ]
 
 
@@ -338,6 +325,12 @@ def particle_filter(targetMeasurementToLandmarks, averageTurning, averageDistanc
 
     return get_position(particles)
 
+x_points = []
+y_points = []
+x_actual = []
+y_actual = []
+
+
 
 def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     """Returns True if your next_move_fcn successfully guides the hunter_bot
@@ -372,7 +365,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     #End of Visualization
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 1000:
+    while not caught and ctr < 60:
 
         # if ctr >= 43:
         #     #time.sleep(0.5)
@@ -390,6 +383,11 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
         # The target broadcasts its noisy measurement
         target_measurement = target_bot.sense()
+
+        x_points.append(target_measurement[0])
+        y_points.append(target_measurement[1])
+        x_actual.append(target_bot.x)
+        y_actual.append(target_bot.y)
 
         bumblebee.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
         bumblebee.stamp()
@@ -422,7 +420,10 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
             print "It took too many steps to catch the target."
 
 
-
+    print "x_points", x_points
+    print "y_points", y_points
+    print "x_actual", x_actual
+    print "y_actual", y_actual
     return caught
 
 def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):

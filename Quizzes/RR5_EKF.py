@@ -14,7 +14,7 @@ from numpy import zeros, eye, diag, sin, cos, linalg, pi, matrix
 import pylab
 
 
-# this one fails to work either
+# Ilya: this one works sometimes - around 23% success. The closest of all for RR5 so far.
 
 def next_move(hunter_position, hunter_heading, target_measurement,
               max_distance, OTHER = None):
@@ -59,11 +59,8 @@ def next_move(hunter_position, hunter_heading, target_measurement,
     OTHER = [next_est_target_xy, X, P]
     # ************************** My Code End ********************
 
-
-    # The OTHER variable is a place for you to store any historical information about
-    # the progress of the hunt (or maybe some localization information). Your return format
-    # must be as follows in order to be graded properly.
     return turning, distance, OTHER
+
 
 def EKF_Motion(X = None, P = None, dt = 0.):
     # Extended Kalman Filter Motion Estimate for nonlinear X state
@@ -417,7 +414,33 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -10.0, 0.0)
 
 #print demo_grading(hunter, target, next_move)
-turtle_demo(hunter, target, next_move)#, None)
+#turtle_demo(hunter, target, next_move)#, None)
+
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, measurement_noise)
+    hunter = robot(-10.0, -20.0, 0.0)
+    score = demo_grading(hunter, target, next_move)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+# for 100 runs:
+# average score:  447.869565217
+# minimum score:  46
+# maximum score:  989
+# fails:  77
+
+
 
 
 

@@ -409,51 +409,17 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
+            xy_estimate = newR.x, newR.y
 
-            if xy_estimate is None:
+            steps = 1
+            while True:
+                # check how many steps it will take to get there for Hunter
+                if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                    break
+                steps += 1
+                newR.move_in_circle()
+                xy_estimate = newR.x, newR.y
 
-                # broken_robot = turtle.Turtle()
-                # broken_robot.shape('turtle')
-                # broken_robot.color('red')
-                # #broken_robot.resizemode('user')
-                # broken_robot.shapesize(0.2, 0.2, 0.2)
-
-                steps = 1
-
-                # distance from hunter to predicted target position
-                # dist_to_target = distance_between(predictedPosition, hunter_position)
-                #
-                # for i in range( int( dist_to_target / max_distance ) ):
-                #     # look ahead d moves and go that way
-                #     xy_estimate = newR.x, newR.y
-                #     newR.move_in_circle()
-                #     steps += 1
-
-
-                while True:
-                    #time.sleep(0.1)
-                    xy_estimate = newR.x, newR.y
-                    distanceBetweenHunterAndRobot = distance_between(hunter_position, xy_estimate)
-                    # check how many steps it will take to get there for Hunter
-                    projectedDistance = steps * max_distance
-
-                    # broken_robot.setheading(headingAngle2 * 180/pi)
-                    # broken_robot.goto(newR.x * 20, newR.y * 20 - 200)
-                    # broken_robot.stamp()
-
-                    if projectedDistance >= distanceBetweenHunterAndRobot:
-                        break
-
-                    steps += 1
-                    if steps > 50:
-                        break
-
-                    newR.move_in_circle()
-
-            else:
-                steps -= 1
-                if steps <= 0:
-                    xy_estimate = None
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle, ukf)

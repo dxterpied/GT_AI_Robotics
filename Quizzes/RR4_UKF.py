@@ -412,7 +412,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             steps = 1
 
             while True:
-                # check if hunter can reach target in straight line
+                # check if hunter can catch target in straight line and calculate that point
                 if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
                     break
                 steps += 1

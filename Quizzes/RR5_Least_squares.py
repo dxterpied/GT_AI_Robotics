@@ -113,7 +113,7 @@ def getRotationSign(rotationAngles):
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
-    predictedPosition = [0, 0]
+    predictedPosition = None
     xy_estimate = None
 
     if OTHER is None:
@@ -122,6 +122,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         angles = []
         coords = []
         xy_estimate = target_measurement
+        predictedPosition = target_measurement
         xy_pf = (0, 0)
         turnAngle = []
         x = []
@@ -139,6 +140,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
+            predictedPosition = target_measurement
             estimated_coords.append(target_measurement)
         elif len(coords) >= 2:
 
@@ -189,7 +191,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             estimated_y = yc + radius * sin(angle)
             estimated_coords.append((estimated_x, estimated_y))
 
-
             distance = distance_between((prev_x, prev_y), (estimated_x, estimated_y))
             distances.append(distance)
             avgDT = sum(distances)/len(distances)
@@ -197,6 +198,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             #print "avgDT", avgDT
 
             xy_estimate =  estimated_x, estimated_y
+            predictedPosition = estimated_x, estimated_y
             # bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
             # bumblebee.stamp()
 
@@ -233,7 +235,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     else:
         turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
         distance = distance_between(hunter_position, xy_estimate)
-
 
     return turning, distance, OTHER
 

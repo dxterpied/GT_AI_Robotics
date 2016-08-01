@@ -41,70 +41,6 @@ sigma_steer= np.radians(1)
 sigma_range= 0.3
 sigma_bearing= 0.1
 
-
-def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
-
-    from matplotlib import pyplot as p
-    x = r_[x]
-    y = r_[y]
-    if x_actual is not None:
-        x_actual = r_[x_actual]
-    if y_actual is not None:
-        y_actual = r_[y_actual]
-    # coordinates of the barycenter
-    x_m = mean(x)
-    y_m = mean(y)
-    # calculation of the reduced coordinates
-    u = x - x_m
-    v = y - y_m
-
-    # linear system defining the center in reduced coordinates (uc, vc):
-    #    Suu * uc +  Suv * vc = (Suuu + Suvv)/2
-    #    Suv * uc +  Svv * vc = (Suuv + Svvv)/2
-    Suv  = sum(u*v)
-    Suu  = sum(u**2)
-    Svv  = sum(v**2)
-    Suuv = sum(u**2 * v)
-    Suvv = sum(u * v**2)
-    Suuu = sum(u**3)
-    Svvv = sum(v**3)
-
-    # Solving the linear system
-    A = array([ [ Suu, Suv ], [Suv, Svv]])
-    B = array([ Suuu + Suvv, Svvv + Suuv ])/2.0
-    uc, vc = linalg.solve(A, B)
-    # center coordinates
-    xc = x_m + uc
-    yc = y_m + vc
-    # Calculation of all distances from the center (xc_1, yc_1)
-    Ri_1      = sqrt((x - xc)**2 + (y - yc)**2) # distance of given points from center
-    radius    = mean(Ri_1)
-
-    if show_plot:
-        theta_fit = linspace(-pi, pi, 180)
-        x_fit = xc + radius * cos(theta_fit)
-        y_fit = yc + radius * sin(theta_fit)
-        # center
-        p.plot([xc], [yc], 'bD', mec='y', mew=1)
-        # calculated circle
-        p.plot(x_fit, y_fit, label="calculated", lw=2)
-        if x_actual is not None:
-            # actual circle points
-            p.plot(x_actual, y_actual, color='black', label='actual', ms=8, mec='b', mew=1)
-        # data points given
-        p.plot(x, y, 'ro', label='data', ms=8, mec='b', mew=1)
-        p.legend(loc='best',labelspacing=0.1 )
-        p.grid()
-        p.xlabel('x')
-        p.ylabel('y')
-        p.title('Least Squares Circle')
-        p.savefig("circle_png")
-        p.show()
-
-
-    return radius, xc, yc
-
-
 class UKF(object):
     """
     Attributes
@@ -422,16 +358,8 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         steps = 0
         turnAngle = []
         ukf = None
-        x = []
-        x.append(target_measurement[0])
-        y = []
-        y.append(target_measurement[1])
     else:
-        distances, angles, coords, xy_estimate, steps, turnAngle, ukf, x, y = OTHER
-
-        x.append(target_measurement[0])
-        y.append(target_measurement[1])
-
+        distances, angles, coords, xy_estimate, steps, turnAngle, ukf= OTHER
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
@@ -472,9 +400,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                           residual_x= residual_x, residual_z= residual_h)
 
                 ukf.x = np.array([target_measurement[0], target_measurement[1], headingAngle2])
-                ukf.P = np.diag([.1, .1, .1])
+                ukf.P = np.diag([1., 1., 1.])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
-                ukf.Q = np.diag([.001, .001, .001])  # Q must not be zeroes!!! .001 is the best for this case
+                ukf.Q = np.diag([1., 1., 1.])  # Q must not be zeroes!!! .001 is the best for this case
 
 
             ukf.predict(dt = avgDT, fx_args = rotationSign * avgAngle)
@@ -497,7 +425,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
 
     coords.append(target_measurement)
-    OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle, ukf, x, y)
+    OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle, ukf)
     if xy_estimate is None:
         xy_estimate = target_measurement
 
@@ -506,7 +434,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     if distance2 <= max_distance:
         turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
         distance = distance2
-        OTHER = (distances, angles, coords, None, steps, turnAngle, ukf, x, y)
+        OTHER = (distances, angles, coords, None, steps, turnAngle, ukf)
     else:
         turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading)
         distance = distance_between(hunter_position, xy_estimate)

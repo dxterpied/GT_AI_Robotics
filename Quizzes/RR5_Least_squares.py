@@ -20,9 +20,9 @@ N = 1000
 measurement_noise = 1.0
 particles = []
 
-target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, 2.0 * target.distance)
-hunter = robot(-10.0, -10.0, 0.0)
+hunter = robot(-10.0, -20.0, 0.0)
 
 bumblebee = turtle.Turtle()
 bumblebee.shape('square')
@@ -118,18 +118,19 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
     if OTHER is None:
         distances = []
+        distances.append(1.5)
         angles = []
         coords = []
         xy_estimate = target_measurement
-        steps = 0
         xy_pf = (0, 0)
         turnAngle = []
         x = []
         x.append(target_measurement[0])
         y = []
         y.append(target_measurement[1])
+        estimated_coords = []
     else:
-        distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle, x, y = OTHER
+        distances, angles, coords, xy_estimate, xy_pf, turnAngle, x, y, estimated_coords = OTHER
 
         x.append(target_measurement[0])
         y.append(target_measurement[1])
@@ -138,7 +139,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
-
+            estimated_coords.append(target_measurement)
         elif len(coords) >= 2:
 
             point1 = coords[len(coords) - 2]
@@ -158,11 +159,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             headingAngleAvg2 = asin(y2Delta / hypotenuse2)
             predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
-            # angles.append(abs(predictedTurnAngleAvg))
-            # distances.append(hypotenuse2)
+            #angles.append(abs(predictedTurnAngleAvg))
+            #avgAngle = sum(angles)/len(angles)
 
-            # avgDT = sum(distances)/len(distances)
-            # avgAngle = sum(angles)/len(angles)
 
             # create particles only after approximate turning and distance are known
             # if len(particles) == 0:
@@ -174,6 +173,12 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # use least squares to find radius and center coords
             radius, xc, yc = least_squares(x, y)
 
+            # actual radius is approximately 7.32; estimated is about 7.53
+
+            #print "radius", radius
+
+            prev_x, prev_y = estimated_coords[len(estimated_coords) - 1]
+
             # get angle based on predicted center and measurement
             xcDelta = xc - target_measurement[0]
             ycDelta = yc - target_measurement[1]
@@ -182,8 +187,16 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # get new estimated x and y based on the above angle
             estimated_x = xc + radius * cos(angle)
             estimated_y = yc + radius * sin(angle)
-            xy_estimate =  estimated_x, estimated_y
+            estimated_coords.append((estimated_x, estimated_y))
 
+
+            distance = distance_between((prev_x, prev_y), (estimated_x, estimated_y))
+            distances.append(distance)
+            avgDT = sum(distances)/len(distances)
+
+            #print "avgDT", avgDT
+
+            xy_estimate =  estimated_x, estimated_y
             # bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
             # bumblebee.stamp()
 
@@ -206,7 +219,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
 
     coords.append(target_measurement)
-    OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle, x, y)
+    OTHER = (distances, angles, coords, xy_estimate, xy_pf, turnAngle, x, y, estimated_coords)
     if xy_estimate is None:
         xy_estimate = target_measurement
 
@@ -216,7 +229,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     if distance2 <= max_distance:
         turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
         distance = distance2
-        OTHER = (distances, angles, coords, None, steps, xy_pf, turnAngle, x, y)
+        OTHER = (distances, angles, coords, None, xy_pf, turnAngle, x, y, estimated_coords)
     else:
         turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
         distance = distance_between(hunter_position, xy_estimate)
@@ -367,11 +380,17 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
     window = turtle.Screen()
     window.bgcolor('white')
+
     broken_robot = turtle.Turtle()
     broken_robot.shape('turtle')
     broken_robot.color('green')
     broken_robot.resizemode('user')
-    broken_robot.shapesize(0.2, 0.2, 0.2)
+    broken_robot.shapesize(0.3, 0.3, 0.3)
+    broken_robot.penup()
+    broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-100)
+    broken_robot.showturtle()
+    broken_robot.pendown()
+
     prediction = turtle.Turtle()
     prediction.shape('arrow')
     prediction.color('blue')
@@ -401,8 +420,8 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # x_actual.append(target_bot.x)
         # y_actual.append(target_bot.y)
 
-        # bumblebee.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
-        # bumblebee.stamp()
+        bumblebee.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
+        bumblebee.stamp()
 
         # This is where YOUR function will be called.
         turning, distance, OTHER = next_move_fcn(hunter_position, hunter_bot.heading, target_measurement, max_distance, OTHER)
@@ -419,6 +438,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
 
+        broken_robot.hideturtle()
         broken_robot.setheading(target_bot.heading*180/pi)
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
         broken_robot.stamp()

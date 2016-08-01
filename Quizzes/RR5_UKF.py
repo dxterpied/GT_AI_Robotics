@@ -439,8 +439,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             xy_estimate = target_measurement
 
         elif len(coords) >= 2:
-
-
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = target_measurement
@@ -465,11 +463,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
-
-
-            print least_squares(x, y)
-            exit()
-
 
             if ukf is None:
                 points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)

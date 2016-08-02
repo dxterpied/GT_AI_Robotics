@@ -9,24 +9,18 @@ from filterpy.kalman import unscented_transform
 from filterpy.common import dot3
 from numpy import *
 
+# Ilya:
+# this one uses circular regression.
+# Circular regression is not complete yet. I am trying to think of some other ideas.
 
-# this one uses PF
-
-
-# it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
-landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
-size_multiplier= 20.0  #change Size of animation
-N = 1000
-measurement_noise = 1.0
-particles = []
-
+size_multiplier = 25.
 target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, 2.0 * target.distance)
 hunter = robot(-10.0, -20.0, 0.0)
 
 bumblebee = turtle.Turtle()
 bumblebee.shape('square')
-bumblebee.color('red')
+bumblebee.color('black')
 bumblebee.penup()
 bumblebee.shapesize(0.2, 0.2, 0.2)
 
@@ -164,34 +158,35 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             #angles.append(abs(predictedTurnAngleAvg))
             #avgAngle = sum(angles)/len(angles)
 
-
-            # create particles only after approximate turning and distance are known
-            # if len(particles) == 0:
-            #     createParticles(target_measurement[0], target_measurement[1], rotationSign * avgAngle, avgDT)
-            #
-            # Z = senseToLandmarks(target_measurement[0], target_measurement[1])
-            # xy_pf = particle_filter(Z, rotationSign * avgAngle, avgDT)
-
             # use least squares to find radius and center coords
             radius, xc, yc = least_squares(x, y)
 
             # actual radius is approximately 7.32; estimated is about 7.53
-
             #print "radius", radius
 
             prev_x, prev_y = estimated_coords[len(estimated_coords) - 1]
 
-            # get angle based on predicted center and measurement
-            xcDelta = xc - target_measurement[0]
-            ycDelta = yc - target_measurement[1]
+            # get angle to measurement based on predicted center
+            xcDelta = target_measurement[0] - xc
+            ycDelta = target_measurement[1] - yc
             angle = atan2(ycDelta, xcDelta)
             #print radius, xc, yc, "angle", angle
+
             # get new estimated x and y based on the above angle
             estimated_x = xc + radius * cos(angle)
             estimated_y = yc + radius * sin(angle)
             estimated_coords.append((estimated_x, estimated_y))
 
+            xcDelta2 = estimated_x - xc
+            ycDelta2 = estimated_y - yc
+            angle2 = atan2(ycDelta2, xcDelta2)
+
+
             distance = distance_between((prev_x, prev_y), (estimated_x, estimated_y))
+            distance = distance * angle / abs(angle) # get the distance sign correctly (negative or positive) based on angle
+
+            #print "angle", angle, "distance", distance
+
             distances.append(distance)
             avgDT = sum(distances)/len(distances)
 
@@ -199,8 +194,12 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             xy_estimate =  estimated_x, estimated_y
             predictedPosition = estimated_x, estimated_y
-            # bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-            # bumblebee.stamp()
+
+            if len(coords) >= 43:
+                #print "angle", angle, "angle2", angle2 # the angles are the same
+                # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
+                bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+                bumblebee.stamp()
 
 
             # newR = robot(estimated_x, estimated_y, headingAngle2, rotationSign * avgAngle, avgDT)
@@ -228,13 +227,17 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     distance2 = distance_between(hunter_position, predictedPosition)
 
     # if distance to the next predicted step is less than max distance, jump there
-    if distance2 <= max_distance:
-        turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
-        distance = distance2
-        OTHER = (distances, angles, coords, None, xy_pf, turnAngle, x, y, estimated_coords)
-    else:
-        turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
-        distance = distance_between(hunter_position, xy_estimate)
+    # if distance2 <= max_distance:
+    #     turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
+    #     distance = distance2
+    #     OTHER = (distances, angles, coords, None, xy_pf, turnAngle, x, y, estimated_coords)
+    # else:
+    #     turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
+    #     distance = distance_between(hunter_position, xy_estimate)
+
+    turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
+    distance = distance_between(hunter_position, xy_estimate)
+
 
     return turning, distance, OTHER
 
@@ -252,73 +255,6 @@ def get_heading(hunter_position, target_position):
     heading = atan2(target_y - hunter_y, target_x - hunter_x)
     heading = angle_trunc(heading)
     return heading
-
-
-
-def createParticles(worldX, worldY, turning, distance):
-    # create new particles
-    for i in range(N):
-        r = robot(random.uniform(worldX - 5, worldX + 5),
-                  random.uniform(worldY - 5, worldY + 5),
-                  random.random() * 2.0*pi, # noise in orientation
-                  turning = turning,
-                  distance = distance)
-        r.set_noise(new_t_noise = 0.05,
-                    new_d_noise = 0.05,
-                    new_m_noise = 0.0) # measurement noise is not used in particles
-
-        particles.append(r)
-
-
-
-def calculateWeight(particleX, particleY, targetMeasurement):
-    # calculates how likely a measurement should be
-    prob = 1.0;
-    for i in range(len(landmarks)):
-        dist = distance_between( (particleX, particleY),  (landmarks[i][0], landmarks[i][1]) )
-        prob *= Gaussian(dist, measurement_noise, targetMeasurement[i])
-    return prob
-
-
-# this sense is only used for target bot
-def senseToLandmarks(targetX, targetY):
-    Z = []
-    import random
-    for i in range(len(landmarks)):
-        dist = distance_between( (targetX, targetY),  (landmarks[i][0], landmarks[i][1]) )
-        Z.append(dist)
-    return Z
-
-
-def Gaussian(mu, sigma, x):
-    # calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
-    return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
-
-
-# returns the arithmetic means of x, y and orientation. It is already weighted.
-def get_position(p):
-    x = y = 0.0
-    for i in range(len(p)):
-        x += p[i].x
-        y += p[i].y
-    return [ x/len(p), y/len(p) ]
-
-
-def move(x, y, turning, distance, heading, distance_noise, turning_noise, measurement_noise):
-    import random
-
-    newHeading = (heading + turning + random.gauss(0.0, turning_noise)) % (2*pi)
-    dist = distance + random.gauss(0.0, distance_noise)
-    newX = x + (cos(newHeading) * dist)
-    newY = y + (sin(newHeading) * dist)
-    # create new particle
-    newRobot = robot(newX, newY, newHeading, turning, distance)
-
-    newRobot.set_noise(new_t_noise = turning_noise,
-                new_d_noise = distance_noise,
-                new_m_noise = measurement_noise) # measurement noise is not used in particles
-
-    return newRobot
 
 
 """Computes distance between point1 and point2. Points are (x, y) pairs."""
@@ -366,8 +302,6 @@ def particle_filter(targetMeasurementToLandmarks, averageTurning, averageDistanc
 # x_actual = []
 # y_actual = []
 
-
-
 def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     """Returns True if your next_move_fcn successfully guides the hunter_bot
     to the target_bot. This function is here to help you understand how we
@@ -388,21 +322,23 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.resizemode('user')
     broken_robot.shapesize(0.3, 0.3, 0.3)
     broken_robot.penup()
-    broken_robot.goto(target_bot.x*size_multiplier, target_bot.y*size_multiplier-100)
-    broken_robot.showturtle()
-    broken_robot.pendown()
 
     prediction = turtle.Turtle()
     prediction.shape('arrow')
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
-    #prediction.penup()
-    #broken_robot.penup()
-    #End of Visualization
+
+
+    noise = turtle.Turtle()
+    noise.shape('circle')
+    noise.color('red')
+    noise.resizemode('user')
+    noise.shapesize(0.2, 0.2, 0.2)
+    #noise.penup()
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 1000:
+    while not caught and ctr < 45:
 
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
@@ -421,32 +357,31 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # x_actual.append(target_bot.x)
         # y_actual.append(target_bot.y)
 
-        bumblebee.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
-        bumblebee.stamp()
 
         # This is where YOUR function will be called.
         turning, distance, OTHER = next_move_fcn(hunter_position, hunter_bot.heading, target_measurement, max_distance, OTHER)
 
+        broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
+        broken_robot.stamp()
+
+        if ctr > 43:
+            noise.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
+            noise.stamp()
+            prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
+            prediction.stamp()
+
+
         # Don't try to move faster than allowed!
-        if distance > max_distance:
-            distance = max_distance
+        # if distance > max_distance:
+        #     distance = max_distance
 
         #print ctr + 1
 
         # We move the hunter according to your instructions
         hunter_bot.move(turning, distance)
-
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
 
-        broken_robot.hideturtle()
-        broken_robot.setheading(target_bot.heading*180/pi)
-        broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
-        broken_robot.stamp()
-
-        prediction.setheading(target_bot.heading*180/pi)
-        prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-        prediction.stamp()
 
         ctr += 1
         if ctr >= 1000:

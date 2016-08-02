@@ -110,18 +110,14 @@ def getRotationSign(rotationAngles):
 
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
-
-    predictedPosition = None
-    xy_estimate = None
+    xy_estimate = target_measurement
 
     if OTHER is None:
         distances = []
-        distances.append(1.5)
+        distances.append(1.5) # just append an estimate for now
         angles = []
         coords = []
         xy_estimate = target_measurement
-        predictedPosition = target_measurement
-        xy_pf = (0, 0)
         turnAngle = []
         x = []
         x.append(target_measurement[0])
@@ -129,18 +125,13 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         y.append(target_measurement[1])
         estimated_coords = []
     else:
-        distances, angles, coords, xy_estimate, xy_pf, turnAngle, x, y, estimated_coords = OTHER
+        distances, angles, coords, xy_estimate, turnAngle, x, y, estimated_coords = OTHER
 
+        # collect measurements
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
-        if len(coords) == 1:
-            hypotenuse1 = distance_between(coords[0], target_measurement)
-            distances.append(hypotenuse1)
-            xy_estimate = target_measurement
-            predictedPosition = target_measurement
-            estimated_coords.append(target_measurement)
-        elif len(coords) >= 2:
+        if len(coords) >= 2:
 
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
@@ -148,94 +139,83 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             turnAngle.append(calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1]))
             rotationSign = getRotationSign(turnAngle)
 
-            y1Delta = point2[1] - point1[1]
-            hypotenuse1 = distance_between(point1, point2)
-            headingAngleAvg1 = asin(y1Delta / hypotenuse1)
-
-            y2Delta = point3[1] - point2[1]
-            x2Delta = point3[0] - point2[0]
-            hypotenuse2 = distance_between(point2, point3)
-            headingAngle2 = atan2(y2Delta, x2Delta)
-            headingAngleAvg2 = asin(y2Delta / hypotenuse2)
-            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+            # y1Delta = point2[1] - point1[1]
+            # hypotenuse1 = distance_between(point1, point2)
+            # headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+            #
+            # y2Delta = point3[1] - point2[1]
+            # x2Delta = point3[0] - point2[0]
+            # hypotenuse2 = distance_between(point2, point3)
+            # headingAngle2 = atan2(y2Delta, x2Delta)
+            # headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+            # predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
             #angles.append(abs(predictedTurnAngleAvg))
             #avgAngle = sum(angles)/len(angles)
 
-            # use least squares to find radius and center coords
-            radius, xc, yc = least_squares(x, y)
+            # start only after n measurements
+            if len(coords) > 20:
+                # find radius and center coords
+                radius, xc, yc = least_squares(x, y)
 
-            # actual radius is approximately 7.32; estimated is about 7.53
-            #print "radius", radius
+                # get the heading to measurement based on predicted center
+                xcDelta = target_measurement[0] - xc
+                ycDelta = target_measurement[1] - yc
+                angle = atan2(ycDelta, xcDelta)
 
-            prev_x, prev_y = estimated_coords[len(estimated_coords) - 1]
+                # get new estimated location on the circumference based on the above angle
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
 
-            # heading to measurement based on predicted center
-            xcDelta = target_measurement[0] - xc
-            ycDelta = target_measurement[1] - yc
-            angle = atan2(ycDelta, xcDelta)
-            #print radius, xc, yc, "angle", angle
+                # get previous coords
+                if len(estimated_coords) > 0:
+                    prev_x, prev_y = estimated_coords[len(estimated_coords) - 1]
+                    estimated_coords.append((estimated_x, estimated_y))
 
-            # get new estimated x and y based on the above angle
-            estimated_x = xc + radius * cos(angle)
-            estimated_y = yc + radius * sin(angle)
-            estimated_coords.append((estimated_x, estimated_y))
+                    # heading for previous estimated location
+                    xcDelta2 = prev_x - xc
+                    ycDelta2 = prev_y - yc
+                    angle2 = atan2(ycDelta2, xcDelta2)
+                    predictedTurnAngle = angle_trunc(angle2 - angle)
 
-            # heading for predicted
-            xcDelta2 = estimated_x - xc
-            ycDelta2 = estimated_y - yc
-            angle2 = atan2(ycDelta2, xcDelta2)
+                    #predict next position
+                    # estimated_x = xc + radius * cos(predictedTurnAngle)
+                    # estimated_y = yc + radius * sin(predictedTurnAngle)
 
-            # heading for previous
-            xcDelta3 = prev_x - xc
-            ycDelta3 = prev_y - yc
-            angle3 = atan2(ycDelta3, xcDelta3)
+                    # get distance between previous estimated and current estimated location
+                    distance = distance_between((prev_x, prev_y), (estimated_x, estimated_y))
+                    #distance = distance * angle / abs(angle) # get the distance sign correctly (negative or positive) based on angle
+                    distances.append(distance)
+                    avgDT = sum(distances)/len(distances)
 
-            predictedTurnAngle = angle3 - angle2
+                    print "avgDT", avgDT
 
-            distance = distance_between((prev_x, prev_y), (estimated_x, estimated_y))
+                    newR = robot(estimated_x, estimated_y, angle, rotationSign * predictedTurnAngle, avgDT)
+                    newR.move_in_circle()
+                    predictedPosition = newR.x, newR.y
+                    xy_estimate = newR.x, newR.y
 
-            #distance = distance * angle / abs(angle) # get the distance sign correctly (negative or positive) based on angle
+                # if len(coords) >= 44:
+                    #print "angle", angle, "angle2", angle2 # the angles are the same
+                    # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
+                    # bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+                    # bumblebee.stamp()
 
-            #print "angle", angle, "distance", distance
-
-            distances.append(distance)
-            avgDT = sum(distances)/len(distances)
-
-            #print "avgDT", avgDT
-
-            #predict next position
-            # estimated_x = xc + radius * cos(predictedTurnAngle)
-            # estimated_y = yc + radius * sin(predictedTurnAngle)
-            # # this is the prediction for next position
-
-            newR = robot(estimated_x, estimated_y, angle, rotationSign * predictedTurnAngle, avgDT)
-            newR.move_in_circle()
-            predictedPosition = newR.x, newR.y
-            xy_estimate = newR.x, newR.y
-
-            #xy_estimate = estimated_x, estimated_y
-
-
-            # if len(coords) >= 44:
-                #print "angle", angle, "angle2", angle2 # the angles are the same
-                # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
-                # bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-                # bumblebee.stamp()
-
-            # try to find the shortest straight path from hunter position to predicted target position
-            # steps = 1
-            # while True:
-            #     # check how many steps it will take to get there for Hunter
-            #     if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
-            #         break
-            #     steps += 1
-            #     newR.move_in_circle()
-            #     xy_estimate = newR.x, newR.y
+                # try to find the shortest straight path from hunter position to predicted target position
+                # steps = 1
+                # while True:
+                #     # check how many steps it will take to get there for Hunter
+                #     if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                #         break
+                #     steps += 1
+                #     newR.move_in_circle()
+                #     xy_estimate = newR.x, newR.y
+                else:
+                    estimated_coords.append((estimated_x, estimated_y))
 
 
     coords.append(target_measurement)
-    OTHER = (distances, angles, coords, xy_estimate, xy_pf, turnAngle, x, y, estimated_coords)
+    OTHER = (distances, angles, coords, xy_estimate, turnAngle, x, y, estimated_coords)
     turning = angle_trunc( get_heading(hunter_position, xy_estimate) - hunter_heading ) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
 

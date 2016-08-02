@@ -24,6 +24,10 @@ bumblebee.color('black')
 bumblebee.penup()
 bumblebee.shapesize(0.2, 0.2, 0.2)
 
+hunterbee = turtle.Turtle()
+hunterbee.shape('turtle')
+hunterbee.color('brown')
+hunterbee.shapesize(0.3, 0.3, 0.3)
 
 
 def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
@@ -166,7 +170,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             prev_x, prev_y = estimated_coords[len(estimated_coords) - 1]
 
-            # get angle to measurement based on predicted center
+            # heading to measurement based on predicted center
             xcDelta = target_measurement[0] - xc
             ycDelta = target_measurement[1] - yc
             angle = atan2(ycDelta, xcDelta)
@@ -177,13 +181,21 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             estimated_y = yc + radius * sin(angle)
             estimated_coords.append((estimated_x, estimated_y))
 
+            # heading for predicted
             xcDelta2 = estimated_x - xc
             ycDelta2 = estimated_y - yc
             angle2 = atan2(ycDelta2, xcDelta2)
 
+            # heading for previous
+            xcDelta3 = prev_x - xc
+            ycDelta3 = prev_y - yc
+            angle3 = atan2(ycDelta3, xcDelta3)
+
+            predictedTurnAngle = angle3 - angle2
 
             distance = distance_between((prev_x, prev_y), (estimated_x, estimated_y))
-            distance = distance * angle / abs(angle) # get the distance sign correctly (negative or positive) based on angle
+
+            #distance = distance * angle / abs(angle) # get the distance sign correctly (negative or positive) based on angle
 
             #print "angle", angle, "distance", distance
 
@@ -192,23 +204,26 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             #print "avgDT", avgDT
 
-            xy_estimate =  estimated_x, estimated_y
-            predictedPosition = estimated_x, estimated_y
+            #predict next position
+            # estimated_x = xc + radius * cos(predictedTurnAngle)
+            # estimated_y = yc + radius * sin(predictedTurnAngle)
+            # # this is the prediction for next position
 
-            if len(coords) >= 43:
+            newR = robot(estimated_x, estimated_y, angle, rotationSign * predictedTurnAngle, avgDT)
+            newR.move_in_circle()
+            predictedPosition = newR.x, newR.y
+            xy_estimate = newR.x, newR.y
+
+            #xy_estimate = estimated_x, estimated_y
+
+
+            # if len(coords) >= 44:
                 #print "angle", angle, "angle2", angle2 # the angles are the same
                 # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
-                bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-                bumblebee.stamp()
+                # bumblebee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+                # bumblebee.stamp()
 
-
-            # newR = robot(estimated_x, estimated_y, headingAngle2, rotationSign * avgAngle, avgDT)
-            # newR.move_in_circle()
-            # predictedPosition = newR.x, newR.y
-            #xy_estimate = newR.x, newR.y
-
-
-            # # try to find the shortest straight path from hunter position to predicted target position
+            # try to find the shortest straight path from hunter position to predicted target position
             # steps = 1
             # while True:
             #     # check how many steps it will take to get there for Hunter
@@ -221,22 +236,15 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
     coords.append(target_measurement)
     OTHER = (distances, angles, coords, xy_estimate, xy_pf, turnAngle, x, y, estimated_coords)
-    if xy_estimate is None:
-        xy_estimate = target_measurement
-
-    distance2 = distance_between(hunter_position, predictedPosition)
-
-    # if distance to the next predicted step is less than max distance, jump there
-    # if distance2 <= max_distance:
-    #     turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
-    #     distance = distance2
-    #     OTHER = (distances, angles, coords, None, xy_pf, turnAngle, x, y, estimated_coords)
-    # else:
-    #     turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
-    #     distance = distance_between(hunter_position, xy_estimate)
-
-    turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
+    turning = angle_trunc( get_heading(hunter_position, xy_estimate) - hunter_heading ) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
+
+    # if len(coords) >= 45:
+    #     print "turning", turning, "distance", distance
+    #     hunterbee.goto(hunter_position[0] * size_multiplier, hunter_position[1] * size_multiplier - 200)
+    #     hunterbee.stamp()
+    #     bumblebee.goto(xy_estimate[0] * size_multiplier, xy_estimate[1] * size_multiplier - 200)
+    #     bumblebee.stamp()
 
 
     return turning, distance, OTHER
@@ -338,7 +346,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     #noise.penup()
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 45:
+    while not caught and ctr < 1000:
 
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
@@ -361,26 +369,31 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # This is where YOUR function will be called.
         turning, distance, OTHER = next_move_fcn(hunter_position, hunter_bot.heading, target_measurement, max_distance, OTHER)
 
-        broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
-        broken_robot.stamp()
-
-        if ctr > 43:
-            noise.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
-            noise.stamp()
-            prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-            prediction.stamp()
-
-
-        # Don't try to move faster than allowed!
-        # if distance > max_distance:
-        #     distance = max_distance
-
-        #print ctr + 1
+        #Don't try to move faster than allowed!
+        if distance > max_distance:
+            distance = max_distance
 
         # We move the hunter according to your instructions
         hunter_bot.move(turning, distance)
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
+
+        broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
+        broken_robot.stamp()
+
+        prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
+        prediction.stamp()
+
+        # if ctr > 43:
+        #     noise.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)
+        #     noise.stamp()
+        #     prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
+        #     prediction.stamp()
+
+
+
+        #print ctr + 1
+
 
 
         ctr += 1

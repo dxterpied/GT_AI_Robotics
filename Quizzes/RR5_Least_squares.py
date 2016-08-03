@@ -192,7 +192,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 hypotenuse2 = distance_between(target_measurement, (xc, yc))
                 headingAngleAvg2 = asin(ycDelta / hypotenuse2)
 
-                #predictedTurnAngleAvg = angle - prevAngle
                 predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
 
                 angles.append(abs(predictedTurnAngleAvg))

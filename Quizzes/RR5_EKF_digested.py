@@ -27,6 +27,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         X, P = OTHER
 
     est_target_xy, X, P = EKF_UPDATE(target_measurement, X, P, 1., noise_est)
+    print X
 
     # Best guess as to true target coordinates now
     next_est_target_xy, X, P = EKF_PREDICT(X, P, dt=1.)

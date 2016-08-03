@@ -19,12 +19,12 @@ import pylab
 def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     noise_est = 60. # should be greater than noise variance
     if not OTHER: # first time calling this function, set up my OTHER variables.
-        last_est_xy = target_measurement[:]
+        last_est_xy = None #target_measurement[:]
         X = None
         P = None
-        OTHER = [last_est_xy, X, P]
+        OTHER = [X, P]
     else: # not the first time, update my history
-        last_est_xy, X, P = OTHER[:]
+        X, P = OTHER
 
     est_target_xy, X, P = EKF_Measurement(target_measurement, X, P, 1., noise_est)
 
@@ -43,7 +43,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
     turning = angle_trunc(get_heading(hunter_position, hunter_to_xy) - hunter_heading)
     distance = min(dist_to_target, max_distance)
-    OTHER = [next_est_target_xy, X, P]
+    OTHER = [X, P]
     return turning, distance, OTHER
 
 
@@ -65,9 +65,9 @@ def EKF_Motion(X = None, P = None, dt = 0.):
     if type(X) == type(None): # Initialize X statespace
         X = matrix([[0.],  # x
                     [0.],  # y
-                    [0.],  # theta (x_dir is 0 deg, y_dir is 90 deg)
+                    [0.],  # theta - heading (x_dir is 0 deg, y_dir is 90 deg)
                     [0.],  # velocity
-                    [0.]]) # d_theta (positive is counter clockwise)
+                    [0.]]) # d_theta - turning (positive is counter clockwise)
     if type(P) == type(None): # Initialize Uncertainty Matrix - no correlation uncertainty
         P = diag([1000., 1000., 2*pi, 100., 2*pi])
 
@@ -149,7 +149,7 @@ def EKF_Measurement(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
         P = diag([1000., 1000., 2.*pi, 100., 2.*pi])
 
     # Z is the measurement itself, currently only measure x,y
-    Z = matrix([[float(measurement[0])],  # Only measures x, y.  Add sensors
+    Z = matrix([[float(measurement[0])],
                 [float(measurement[1])],
                 [         0.          ],
                 [         0.          ],

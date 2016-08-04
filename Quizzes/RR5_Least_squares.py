@@ -92,6 +92,47 @@ def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
 
     return radius, xc, yc
 
+# calculate the average turn angle
+def getTurnAngle(measurements, rotationSign, xc, yc):
+    angle = 0.
+
+    # get the very first heading angle (measured). It's a ball park to get started
+    xcDelta = measurements[0][0] - xc
+    ycDelta = measurements[0][1] - yc
+    firstHeading = atan2(ycDelta, xcDelta)
+
+    #print "firstHeading", firstHeading
+
+    counter = 0
+    prevHeading = firstHeading
+    totalAngle = 0.
+
+    for xy in measurements[1:]:
+        counter += 1
+        # get heading to measurement
+        xcDelta = xy[0] - xc
+        ycDelta = xy[1] - yc
+        heading = atan2(ycDelta, xcDelta)
+
+        #print "prevHeading", prevHeading, "heading", heading
+        turningAngle = angle_trunc(prevHeading - heading)
+
+        #print turningAngle, rotationSign
+
+        if (turningAngle * rotationSign) > 0: # if signs match, it means rotation in the same direction
+            #print "turningAngle",  turningAngle
+            totalAngle += turningAngle
+            prevHeading = heading
+
+
+    if (totalAngle / pi) >= 2:
+        print "\t", totalAngle,  totalAngle / counter
+
+
+    return angle
+
+
+
 
 # determine rotation direction by using cross product of three points
 # returns negative or positive number depending on the direction of rotation
@@ -159,6 +200,8 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 # estimate radius and center
                 radius, xc, yc = least_squares(x, y)
 
+                angle = getTurnAngle(measurements, rotationSign, xc, yc)
+
                 # now that we have an estimate for the center, calculate all previous angles to measurements
                 if len(angles) == 0:
                     for i in range(20):
@@ -197,7 +240,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 angles.append(abs(predictedTurnAngleAvg))
 
                 avgAngle = sum(angles)/len(angles)
-                print avgAngle # prints about 0.4, but needs to be around 0.2
+                #print avgAngle # prints about 0.4, but needs to be around 0.2
 
                 # get new estimated location on the circumference based on the above angle
                 estimated_x = xc + radius * cos(angle)

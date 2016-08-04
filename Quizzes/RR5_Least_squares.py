@@ -103,33 +103,34 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
 
     #print "firstHeading", firstHeading
 
-    counter = 0
+    steps = 0
     prevHeading = firstHeading
     totalAngle = 0.
 
-    for xy in measurements[1:]:
-        counter += 1
+    for coords in measurements[1:]:
+        x, y = coords
+        steps += 1
         # get heading to measurement
-        xcDelta = xy[0] - xc
-        ycDelta = xy[1] - yc
+        xcDelta = x - xc
+        ycDelta = y - yc
         heading = atan2(ycDelta, xcDelta)
 
-        #print "prevHeading", prevHeading, "heading", heading
-        turningAngle = angle_trunc(prevHeading - heading)
-
-        #print turningAngle, rotationSign
+        # difference between previous and current
+        turningAngle = heading - prevHeading
 
         if (turningAngle * rotationSign) > 0: # if signs match, it means rotation in the same direction
-            #print "turningAngle",  turningAngle
+            print "turningAngle",  turningAngle
             totalAngle += turningAngle
             prevHeading = heading
 
 
-    if (totalAngle / pi) >= 2:
-        print "\t", totalAngle,  totalAngle / counter
+    # if (totalAngle / pi) >= 2:
+    #     print "\t", totalAngle,  totalAngle / steps
 
+    print totalAngle
+    angle = abs(totalAngle / steps)
 
-    return angle
+    return angle, angle_trunc(totalAngle)
 
 
 
@@ -151,6 +152,7 @@ def getRotationSign(rotationAngles):
         return -1
 
 
+
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
 
@@ -160,7 +162,155 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         angles = []
         measurements = []
         xy_estimate = target_measurement
-        turnAngle = []
+        turnAngle = [] # contains all angles from measurements
+        x = []
+        x.append(target_measurement[0])
+        y = []
+        y.append(target_measurement[1])
+        estimated_coords = []
+    else:
+        distances, angles, measurements, xy_estimate, turnAngle, x, y, estimated_coords = OTHER
+
+        # collect measurements
+        x.append(target_measurement[0])
+        y.append(target_measurement[1])
+
+        if len(measurements) >= 2:
+
+            point1 = measurements[len(measurements) - 2]
+            point2 = measurements[len(measurements) - 1]
+            point3 = target_measurement
+            rotationDirection = calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1])
+            turnAngle.append(rotationDirection)
+            rotationSign = getRotationSign(turnAngle)
+
+            # y1Delta = point2[1] - point1[1]
+            # hypotenuse1 = distance_between(point1, point2)
+            # headingAngleAvg1 = asin(y1Delta / hypotenuse1)
+            #
+            # y2Delta = point3[1] - point2[1]
+            # x2Delta = point3[0] - point2[0]
+            # hypotenuse2 = distance_between(point2, point3)
+            # headingAngle2 = atan2(y2Delta, x2Delta)
+            # headingAngleAvg2 = asin(y2Delta / hypotenuse2)
+            # predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+
+            #avgAngle = sum(angles)/len(angles)
+
+            # start only after n measurements
+            if len(measurements) > 20:
+                # estimate radius and center using least squares
+                radius, xc, yc = least_squares(x, y)
+                # get estimated turning and total angle traveled from measured start
+                turning, totalAngle = getTurnAngle(measurements, rotationSign, xc, yc)
+                #print turning # it's around .26; needs to be .2
+
+                # get estimated position
+                estimated_x = xc + radius * cos(totalAngle)
+                estimated_y = yc + radius * sin(totalAngle)
+                xy_estimate = estimated_x, estimated_y
+
+                # now that we have an estimate for the center, calculate all previous angles to measurements
+                # if len(angles) == 0:
+                    # for i in range(20):
+                    #     if i > 1:
+                    #         xcDelta = measurements[i - 1][0] - xc
+                    #         ycDelta = measurements[i - 1][1] - yc
+                    #         hypotenuse1 = distance_between(measurements[i - 1], (xc, yc))
+                    #         angle = atan2(ycDelta, xcDelta)
+                    #         headingAngleAvg1 = asin(ycDelta / hypotenuse1)
+                    #
+                    #         xcDelta2 = measurements[i][0] - xc
+                    #         ycDelta2 = measurements[i][1] - yc
+                    #         hypotenuse2 = distance_between(measurements[i], (xc, yc))
+                    #         angle2 = atan2(ycDelta2, xcDelta2)
+                    #         headingAngleAvg2 = asin(ycDelta2 / hypotenuse2)
+                    #
+                    #         #predictedTurnAngleAvg = angle2 - angle
+                    #         predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+                    #         angles.append(abs(predictedTurnAngleAvg))
+
+
+                # xcDelta = measurements[len(measurements) - 1][0] - xc
+                # ycDelta = measurements[len(measurements) - 1][1] - yc
+                # prevAngle = atan2(ycDelta, xcDelta)
+                # hypotenuse1 = distance_between(measurements[len(measurements) - 1], (xc, yc))
+                # headingAngleAvg1 = asin(ycDelta / hypotenuse1)
+                #
+                # # get the heading to measurement based on predicted center
+                # xcDelta = target_measurement[0] - xc
+                # ycDelta = target_measurement[1] - yc
+                # angle = atan2(ycDelta, xcDelta)
+                # hypotenuse2 = distance_between(target_measurement, (xc, yc))
+                # headingAngleAvg2 = asin(ycDelta / hypotenuse2)
+                # predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+                # angles.append(abs(predictedTurnAngleAvg))
+                # avgAngle = sum(angles)/len(angles)
+                # # get new estimated location on the circumference based on the above angle
+                # estimated_x = xc + radius * cos(angle)
+                # estimated_y = yc + radius * sin(angle)
+                #
+                # # get previous coords
+                # if len(estimated_coords) > 0:
+                #     prev_x, prev_y = estimated_coords[len(estimated_coords) - 1]
+                #     estimated_coords.append((estimated_x, estimated_y))
+                #
+                #     # heading for previous estimated location
+                #     xcDelta2 = prev_x - xc
+                #     ycDelta2 = prev_y - yc
+                #     angle2 = atan2(ycDelta2, xcDelta2)
+                #     predictedTurnAngle = angle_trunc(angle2 - angle)
+                #
+                #     #predict next position
+                #     # estimated_x = xc + radius * cos(predictedTurnAngle)
+                #     # estimated_y = yc + radius * sin(predictedTurnAngle)
+                #
+                #     # get distance between previous estimated and current estimated location
+                #     distance = distance_between((prev_x, prev_y), (estimated_x, estimated_y))
+                #     #distance = distance * angle / abs(angle) # get the distance sign correctly (negative or positive) based on angle
+                #     distances.append(distance)
+                #     avgDT = sum(distances)/len(distances)
+                #
+                #     #print "avgDT", avgDT
+                #
+                #     newR = robot(estimated_x, estimated_y, angle, rotationSign * predictedTurnAngle, avgDT)
+                #     newR.move_in_circle()
+                #     predictedPosition = newR.x, newR.y
+                #     xy_estimate = newR.x, newR.y
+
+                # try to find the shortest straight path from hunter position to predicted target position
+                steps = 1
+                while True:
+                    # check how many steps it will take to get there for Hunter
+                    if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                        break
+                    steps += 1
+
+                    totalAngle += rotationSign * turning
+                    estimated_x = xc + radius * cos(totalAngle)
+                    estimated_y = yc + radius * sin(totalAngle)
+                    xy_estimate = estimated_x, estimated_y
+
+
+    measurements.append(target_measurement)
+    OTHER = (distances, angles, measurements, xy_estimate, turnAngle, x, y, estimated_coords)
+    turning = angle_trunc( get_heading(hunter_position, xy_estimate) - hunter_heading ) # turn towards the target
+    distance = distance_between(hunter_position, xy_estimate)
+
+    return turning, distance, OTHER
+
+
+
+def next_move_straight_line_1(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+    xy_estimate = target_measurement
+
+    if OTHER is None:
+        distances = []
+        distances.append(1.5) # just append an estimate for now
+        angles = []
+        measurements = []
+        xy_estimate = target_measurement
+        turnAngle = [] # contains all angles from measurements
         x = []
         x.append(target_measurement[0])
         y = []
@@ -199,28 +349,30 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             if len(measurements) > 20:
                 # estimate radius and center
                 radius, xc, yc = least_squares(x, y)
-
-                angle = getTurnAngle(measurements, rotationSign, xc, yc)
+                # get estimated turning and total angle
+                turning, totalAngle = getTurnAngle(measurements, rotationSign, xc, yc)
+                #print turning # it's around .26; needs to be .2
 
                 # now that we have an estimate for the center, calculate all previous angles to measurements
-                if len(angles) == 0:
-                    for i in range(20):
-                        if i > 1:
-                            xcDelta = measurements[i - 1][0] - xc
-                            ycDelta = measurements[i - 1][1] - yc
-                            hypotenuse1 = distance_between(measurements[i - 1], (xc, yc))
-                            angle = atan2(ycDelta, xcDelta)
-                            headingAngleAvg1 = asin(ycDelta / hypotenuse1)
+                # if len(angles) == 0:
+                    # for i in range(20):
+                    #     if i > 1:
+                    #         xcDelta = measurements[i - 1][0] - xc
+                    #         ycDelta = measurements[i - 1][1] - yc
+                    #         hypotenuse1 = distance_between(measurements[i - 1], (xc, yc))
+                    #         angle = atan2(ycDelta, xcDelta)
+                    #         headingAngleAvg1 = asin(ycDelta / hypotenuse1)
+                    #
+                    #         xcDelta2 = measurements[i][0] - xc
+                    #         ycDelta2 = measurements[i][1] - yc
+                    #         hypotenuse2 = distance_between(measurements[i], (xc, yc))
+                    #         angle2 = atan2(ycDelta2, xcDelta2)
+                    #         headingAngleAvg2 = asin(ycDelta2 / hypotenuse2)
+                    #
+                    #         #predictedTurnAngleAvg = angle2 - angle
+                    #         predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
+                    #         angles.append(abs(predictedTurnAngleAvg))
 
-                            xcDelta2 = measurements[i][0] - xc
-                            ycDelta2 = measurements[i][1] - yc
-                            hypotenuse2 = distance_between(measurements[i], (xc, yc))
-                            angle2 = atan2(ycDelta2, xcDelta2)
-                            headingAngleAvg2 = asin(ycDelta2 / hypotenuse2)
-
-                            #predictedTurnAngleAvg = angle2 - angle
-                            predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-                            angles.append(abs(predictedTurnAngleAvg))
 
                 xcDelta = measurements[len(measurements) - 1][0] - xc
                 ycDelta = measurements[len(measurements) - 1][1] - yc
@@ -234,14 +386,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 angle = atan2(ycDelta, xcDelta)
                 hypotenuse2 = distance_between(target_measurement, (xc, yc))
                 headingAngleAvg2 = asin(ycDelta / hypotenuse2)
-
                 predictedTurnAngleAvg = headingAngleAvg2 - headingAngleAvg1
-
                 angles.append(abs(predictedTurnAngleAvg))
-
                 avgAngle = sum(angles)/len(angles)
-                #print avgAngle # prints about 0.4, but needs to be around 0.2
-
                 # get new estimated location on the circumference based on the above angle
                 estimated_x = xc + radius * cos(angle)
                 estimated_y = yc + radius * sin(angle)

@@ -128,7 +128,7 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
             turningAngle = currentHeading - prevHeading
 
         if len(measurements) > 25:
-            print currentHeading, "\t-", prevHeading, "\t=", turningAngle
+            print currentHeading, "\t-", "(", prevHeading, ")", "\t=", turningAngle
 
         # if len(measurements[1:]) > 40:
         #     print "turningAngle", turningAngle
@@ -151,7 +151,7 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
     angle = abs(totalAngle / len(measurements))
     print "angle", angle
 
-    if len(measurements) > 25:
+    if angle > .27:
         exit()
     return angle, angle_trunc(totalAngle)
 

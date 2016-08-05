@@ -122,7 +122,10 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
         currentHeading = atan2(yDelta, xDelta)
 
         # difference between current and previous
-        turningAngle = currentHeading - prevHeading
+        if currentHeading < 0. and abs(currentHeading) > pi/2 and prevHeading > 0. and prevHeading > pi/2:
+            turningAngle = 2 * pi + currentHeading - prevHeading
+        else:
+            turningAngle = currentHeading - prevHeading
 
         if len(measurements) > 25:
             print currentHeading, "\t-", prevHeading, "\t=", turningAngle

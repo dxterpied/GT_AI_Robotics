@@ -35,8 +35,6 @@ hunterbee.shapesize(0.3, 0.3, 0.3)
 def convertNegativeAngleToPositive(angle):
     return radians(degrees(angle) % 360)
 
-
-
 def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
 
     from matplotlib import pyplot as p
@@ -104,39 +102,54 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
     angle = 0.
 
     # get the very first heading angle (measured). It's a ball park to get started
-    xcDelta = measurements[0][0] - xc
-    ycDelta = measurements[0][1] - yc
-    firstHeading = atan2(ycDelta, xcDelta)
+    xDelta = measurements[0][0] - xc
+    yDelta = measurements[0][1] - yc
+    firstHeading = atan2(yDelta, xDelta)
 
     #print "firstHeading", firstHeading
 
-    steps = 0
     prevHeading = firstHeading
     totalAngle = 0.
 
+    if len(measurements) > 25:
+        print "currentHeading - prevHeading = turningAngle", "rotationSign", rotationSign
+    #print "len(measurements[1:])", len(measurements[1:])
     for coords in measurements[1:]:
         x, y = coords
-        steps += 1
         # get heading to measurement
-        xcDelta = x - xc
-        ycDelta = y - yc
-        heading = atan2(ycDelta, xcDelta)
+        xDelta = x - xc
+        yDelta = y - yc
+        currentHeading = atan2(yDelta, xDelta)
 
-        # difference between previous and current
-        turningAngle = heading - prevHeading
+        # difference between current and previous
+        turningAngle = currentHeading - prevHeading
+
+        if len(measurements) > 25:
+            print currentHeading, "\t-", prevHeading, "\t=", turningAngle
+
+        # if len(measurements[1:]) > 40:
+        #     print "turningAngle", turningAngle
 
         if (turningAngle * rotationSign) > 0: # if signs match, it means rotation in the same direction
-            print "turningAngle",  turningAngle
-            totalAngle += turningAngle
-            prevHeading = heading
+            # if len(measurements[1:]) > 40:
+            #     print "\ttotalAngle", totalAngle
+            totalAngle += abs(turningAngle)
+            if len(measurements) > 25:
+                print "\t\ttotalAngle", totalAngle
+
+            # previous can only become current if the right angle is added
+            prevHeading = currentHeading
 
 
     # if (totalAngle / pi) >= 2:
     #     print "\t", totalAngle,  totalAngle / steps
 
-    print totalAngle
-    angle = abs(totalAngle / steps)
+    #print "totalAngle", totalAngle
+    angle = abs(totalAngle / len(measurements))
+    print "angle", angle
 
+    if len(measurements) > 25:
+        exit()
     return angle, angle_trunc(totalAngle)
 
 
@@ -184,12 +197,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
         if len(measurements) >= 2:
 
-            point1 = measurements[len(measurements) - 2]
-            point2 = measurements[len(measurements) - 1]
-            point3 = target_measurement
-            rotationDirection = calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1])
-            turnAngle.append(rotationDirection)
-            rotationSign = getRotationSign(turnAngle)
+            # point1 = measurements[len(measurements) - 2]
+            # point2 = measurements[len(measurements) - 1]
+            # point3 = target_measurement
 
             # y1Delta = point2[1] - point1[1]
             # hypotenuse1 = distance_between(point1, point2)
@@ -206,6 +216,16 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             # start only after n measurements
             if len(measurements) > 20:
+
+                point1 = measurements[len(measurements) - 16]
+                point2 = measurements[len(measurements) - 8]
+                point3 = target_measurement
+
+                rotationDirection = calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1])
+                turnAngle.append(rotationDirection)
+                rotationSign = getRotationSign(turnAngle)
+                #print "rotationSign", rotationSign
+
                 # estimate radius and center using least squares
                 radius, xc, yc = least_squares(x, y)
                 # get estimated turning and total angle traveled from measured start
@@ -286,17 +306,17 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 #     xy_estimate = newR.x, newR.y
 
                 # try to find the shortest straight path from hunter position to predicted target position
-                steps = 1
-                while True:
-                    # check how many steps it will take to get there for Hunter
-                    if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
-                        break
-                    steps += 1
-
-                    totalAngle += rotationSign * turning
-                    estimated_x = xc + radius * cos(totalAngle)
-                    estimated_y = yc + radius * sin(totalAngle)
-                    xy_estimate = estimated_x, estimated_y
+                # steps = 1
+                # while True:
+                #     # check how many steps it will take to get there for Hunter
+                #     if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                #         break
+                #     steps += 1
+                #
+                #     totalAngle += rotationSign * turning
+                #     estimated_x = xc + radius * cos(totalAngle)
+                #     estimated_y = yc + radius * sin(totalAngle)
+                #     xy_estimate = estimated_x, estimated_y
 
 
     measurements.append(target_measurement)

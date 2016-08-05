@@ -30,6 +30,14 @@ hunterbee.color('brown')
 hunterbee.shapesize(0.3, 0.3, 0.3)
 
 
+# converts any negative angle to positive; positive angle will remain positive
+# e.g.: -1.57079632679 will be converted to 4.71238898038 (270 degrees)
+def convertNegativeAngleToPositive(angle):
+
+    return radians(degrees(angle) % 360)
+
+
+
 def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
 
     from matplotlib import pyplot as p

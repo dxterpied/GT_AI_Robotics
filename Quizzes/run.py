@@ -15,7 +15,17 @@ from math import *
 # print atan2(1, 1)  # 0.785398163397
 # print atan2(-1, -1) # -2.35619449019
 #print atan2(0, -1)   # 3.14159265359
-print atan2(-1, 1)  # -0.785398163397
+
+print atan2(1, 0)                           # 1.57079632679
+print degrees(atan2(1, 0)) % 360            # 90.0
+print radians(degrees(atan2(1, 0)) % 360)   # 1.57079632679
+
+# negative angle conversion to positive
+print atan2(-1, 0)                          # -1.57079632679
+print degrees(atan2(-1, 0)) % 360           # 270.0
+print radians(degrees(atan2(-1, 0)) % 360)  # 4.71238898038
+
+
 
 
 # def mult(x, y):

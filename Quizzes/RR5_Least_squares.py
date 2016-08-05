@@ -111,8 +111,8 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
     prevHeading = firstHeading
     totalAngle = 0.
 
-    if len(measurements) > 25:
-        print "currentHeading - prevHeading = turningAngle", "rotationSign", rotationSign
+    # if len(measurements) > 25:
+    #     print "currentHeading - prevHeading = turningAngle", "rotationSign", rotationSign
     #print "len(measurements[1:])", len(measurements[1:])
     for coords in measurements[1:]:
         x, y = coords
@@ -124,11 +124,13 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
         # difference between current and previous
         if currentHeading < 0. and abs(currentHeading) > pi/2 and prevHeading > 0. and prevHeading > pi/2:
             turningAngle = 2 * pi + currentHeading - prevHeading
+        elif currentHeading > 0. and currentHeading > pi/2 and prevHeading < 0. and abs(prevHeading) > pi/2:
+            turningAngle = -(2 * pi + currentHeading - prevHeading)
         else:
             turningAngle = currentHeading - prevHeading
 
-        if len(measurements) > 25:
-            print currentHeading, "\t-", "(", prevHeading, ")", "\t=", turningAngle
+        # if len(measurements) > 25:
+        #     print currentHeading, "\t-", "(", prevHeading, ")", "\t=", turningAngle
 
         # if len(measurements[1:]) > 40:
         #     print "turningAngle", turningAngle
@@ -137,8 +139,8 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
             # if len(measurements[1:]) > 40:
             #     print "\ttotalAngle", totalAngle
             totalAngle += abs(turningAngle)
-            if len(measurements) > 25:
-                print "\t\ttotalAngle", totalAngle
+            # if len(measurements) > 25:
+            #     print "\t\ttotalAngle", totalAngle
 
             # previous can only become current if the right angle is added
             prevHeading = currentHeading
@@ -151,8 +153,8 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
     angle = abs(totalAngle / len(measurements))
     print "angle", angle
 
-    if angle > .27:
-        exit()
+    # if angle > .27:
+    #     exit()
     return angle, angle_trunc(totalAngle)
 
 

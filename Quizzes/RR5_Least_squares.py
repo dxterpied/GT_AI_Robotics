@@ -1,13 +1,9 @@
 import matplotlib
 matplotlib.use('TkAgg')
-
-from filterpy.kalman.sigma_points import *
 import turtle
 from robot import *
-from scipy.linalg import inv, cholesky
-from filterpy.kalman import unscented_transform
-from filterpy.common import dot3
 from numpy import *
+import random
 
 # Ilya:
 # this one uses circular regression.
@@ -178,7 +174,62 @@ def getRotationSign(rotationAngles):
 
 
 
+
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+    xy_estimate = target_measurement
+
+    if OTHER is None:
+        distances = []
+        distances.append(1.5) # just append an estimate for now
+        angles = []
+        measurements = []
+        xy_estimate = target_measurement
+        turnAngle = [] # contains all angles from measurements
+        x = []
+        x.append(target_measurement[0])
+        y = []
+        y.append(target_measurement[1])
+        estimated_coords = []
+    else:
+        distances, angles, measurements, xy_estimate, turnAngle, x, y, estimated_coords = OTHER
+
+        # collect measurements
+        x.append(target_measurement[0])
+        y.append(target_measurement[1])
+
+        if len(measurements) >= 20:
+            # estimate radius and center using least squares
+            radius, xc, yc = least_squares(x, y)
+
+            bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
+            bumblebee.stamp()
+
+            print radius
+
+            # stay at the same ange of the first measurement
+            xcDelta = measurements[0][0] - xc
+            ycDelta = measurements[0][1] - yc
+            angle = atan2(ycDelta, xcDelta)
+
+            angle = random.gauss(angle, 0.05)
+            radius = random.gauss(radius, 0.05)
+
+            # get estimated position
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
+
+
+    measurements.append(target_measurement)
+    OTHER = (distances, angles, measurements, xy_estimate, turnAngle, x, y, estimated_coords)
+    turning = angle_trunc( get_heading(hunter_position, xy_estimate) - hunter_heading ) # turn towards the target
+    distance = distance_between(hunter_position, xy_estimate)
+
+    return turning, distance, OTHER
+
+
+
+def next_move_straight_line_2(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
 
     if OTHER is None:

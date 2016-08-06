@@ -263,6 +263,25 @@ def normalize_angle(x):
     return x
 
 # state transition function
+def fx_1(X, dt):
+    x = X[0]
+    y = X[1]
+    heading = X[2]
+    velocity = X[3]
+    turning = X[4]
+
+    heading = heading + turning
+    x =  x + dt * cos(heading)
+    y =  y + dt * sin(heading)
+
+    state = [x, y, heading, velocity, turning]
+
+    print state
+    return state
+
+
+
+
 def fx(X, dt):
     x = X[0]
     y = X[1]
@@ -271,14 +290,18 @@ def fx(X, dt):
     turning = X[4]
 
     if abs(turning) < 0.0001:
-        x =  x + velocity * dt * cos(heading)   #x[0] + dt * cos(heading)
-        y =  y + velocity * dt * sin(heading)
+        x =  x +  dt * cos(heading)   #x[0] + dt * cos(heading)
+        y =  y +  dt * sin(heading)
     else:
-        x =  x + velocity/turning * ( sin(heading + turning*dt) - sin(heading))   #x[0] + dt * cos(heading)
-        y =  y + velocity/turning * (-cos(heading + turning*dt) + cos(heading))
-        heading = heading + turning * dt
+        # x =  x + velocity/turning * ( sin(heading + turning*dt) - sin(heading))   #x[0] + dt * cos(heading)
+        # y =  y + velocity/turning * (-cos(heading + turning*dt) + cos(heading))
+        # heading = heading + turning * dt
+        heading = heading + turning
+        x =  x +  dt * cos(heading)   #x[0] + dt * cos(heading)
+        y =  y +  dt * sin(heading)
 
     state = [x, y, heading, velocity, turning]
+    print state
     return state
 
 

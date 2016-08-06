@@ -229,13 +229,12 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 rotationDirection = calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1])
                 turnAngle.append(rotationDirection)
                 rotationSign = getRotationSign(turnAngle)
-                #print "rotationSign", rotationSign
 
                 # estimate radius and center using least squares
                 radius, xc, yc = least_squares(x, y)
                 # get estimated turning and total angle traveled from measured start
                 turning, totalAngle = getTurnAngle(measurements, rotationSign, xc, yc)
-                #print turning # it's around .26; needs to be .2
+
 
                 # get estimated position
                 estimated_x = xc + radius * cos(totalAngle)

@@ -547,8 +547,8 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
-demo_grading(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading(hunter, target, next_move_straight_line)
 
 # scores = []
 # fails = 0

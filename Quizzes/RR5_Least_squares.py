@@ -204,14 +204,14 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
             bumblebee.stamp()
 
-            print radius
+            #print radius
 
-            # stay at the same ange of the first measurement
+            # stay at the angle of the first measurement
             xcDelta = measurements[0][0] - xc
             ycDelta = measurements[0][1] - yc
             angle = atan2(ycDelta, xcDelta)
 
-            angle = random.gauss(angle, 0.05)
+            angle = random.gauss(angle, 0.02)
             radius = random.gauss(radius, 0.05)
 
             # get estimated position
@@ -620,11 +620,11 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.penup()
 
     prediction = turtle.Turtle()
-    prediction.shape('arrow')
+    prediction.shape('circle')
     prediction.color('blue')
     prediction.resizemode('user')
-    prediction.shapesize(0.2, 0.2, 0.2)
-
+    prediction.shapesize(0.3, 0.3, 0.3)
+    prediction.penup()
 
     noise = turtle.Turtle()
     noise.shape('circle')
@@ -632,6 +632,8 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     noise.resizemode('user')
     noise.shapesize(0.2, 0.2, 0.2)
     #noise.penup()
+
+    prediction_handle = None
 
     # We will use your next_move_fcn until we catch the target or time expires.
     while not caught and ctr < 1000:
@@ -669,8 +671,11 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
         broken_robot.stamp()
 
+        if prediction_handle is not None:
+            prediction.clearstamp(prediction_handle)
+
         prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-        prediction.stamp()
+        prediction_handle = prediction.stamp()
 
         # if ctr > 43:
         #     noise.goto(target_measurement[0] * size_multiplier, target_measurement[1] * size_multiplier - 200)

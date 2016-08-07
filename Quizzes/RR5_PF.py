@@ -207,9 +207,12 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             rotationSign = getRotationSign(turnAngle)
 
             # estimate radius and center using least squares
-            radius, xc, yc = least_squares(x, y)
+            radius, xc, yc = least_squares(x, y) # actual radius is 7.175; this estimate is about 7.62; that's bad but we don't have anything better...
+            #print "radius", radius # prints about 7.62; actual is 7.175
+
             # get estimated turning and total angle traveled from measured start
             turning, totalAngle = getTurnAngle(coords, rotationSign, xc, yc)
+            #print "turning", turning # prints about 0.21; actual is 0.2
 
             distance = 2 * radius * sin(turning/2) # chord distance calculation
             #print "distance", distance # gives about 1.65; correct one is 1.5

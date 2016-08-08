@@ -168,6 +168,8 @@ def getRotationSign(rotationAngles):
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
+    numberOfSkippedSteps = 30
+
     xy_estimate = None
 
     if OTHER is None:
@@ -196,7 +198,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
 
-        elif len(coords) > 30:
+        elif len(coords) > numberOfSkippedSteps:
 
             point1 = coords[len(coords) - 16]
             point2 = coords[len(coords) - 8]
@@ -209,34 +211,50 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # estimate radius and center using least squares
             radius, xc, yc = least_squares(x, y) # actual radius is 7.175; this estimate is about 7.62; that's bad but we don't have anything better...
             #print "radius", radius # prints about 7.62; actual is 7.175
-
             # get estimated turning and total angle traveled from measured start
             turning, totalAngle = getTurnAngle(coords, rotationSign, xc, yc)
             #print "turning", turning # prints about 0.21; actual is 0.2
-
             distance = 2 * radius * sin(turning/2) # chord distance calculation
             #print "distance", distance # gives about 1.65; correct one is 1.5
 
 
-            xcDelta = target_measurement[0] - xc
-            ycDelta = target_measurement[1] - yc
-            angle = atan2(ycDelta, xcDelta)
-            estimated_x = xc + radius * cos(angle)
-            estimated_y = yc + radius * sin(angle)
 
             # create particles only after approximate turning and distance are known
             if len(particles) == 0:
-                # get the heading to measurement based on predicted center
+
+                # create particles based on the first predicted location
+                x0Delta = x[0] - xc # using first measured x
+                y0Delta = y[1] - yc # using first measured y
+                angle = atan2(y0Delta, x0Delta) # first heading from the predicted center based on the first measurement
+                # put the first measured point on the estimated circumference
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+                # create particles with the starting location of the first predicted point
                 createParticles(estimated_x, estimated_y, rotationSign * turning, distance)
 
-            Z = senseToLandmarks(estimated_x, estimated_y)
-            xy_pf = particle_filter(Z, rotationSign * turning, distance)
-            xy_estimate = xy_pf[0], xy_pf[1]
+                # now, advance this for the number of skipped steps to catch up the estimations
+                for i in range(numberOfSkippedSteps):
+                    Z = senseToLandmarks(estimated_x, estimated_y)
+                    xy_pf = particle_filter(Z, rotationSign * turning, distance)
+                    # get new estimated measurements based on the predicted turn angle and distance (not actual measurements)
+                    angle = angle_trunc(angle + (rotationSign * turning))
+                    estimated_x = xc + radius * cos(angle)
+                    estimated_y = yc + radius * sin(angle)
 
-            xcDelta = xy_pf[0] - xc
-            ycDelta = xy_pf[1] - yc
-            totalAngle = atan2(ycDelta, xcDelta)
 
+            else:
+                xcDelta = target_measurement[0] - xc
+                ycDelta = target_measurement[1] - yc
+                angle = atan2(ycDelta, xcDelta)
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+
+                Z = senseToLandmarks(estimated_x, estimated_y)
+                xy_pf = particle_filter(Z, rotationSign * turning, distance)
+
+                xcDelta = xy_pf[0] - xc
+                ycDelta = xy_pf[1] - yc
+                totalAngle = atan2(ycDelta, xcDelta)
 
             # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
             # bumblebee.stamp()
@@ -246,8 +264,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             xy_estimate = newR.x, newR.y
 
             # try to find the shortest straight path from hunter position to predicted target position
-
-
             steps = 1
             while True:
                 # check how many steps it will take to get there for Hunter
@@ -445,9 +461,10 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
     #prediction.penup()
-    broken_robot.penup()
+    #broken_robot.penup()
     #End of Visualization
 
+    handle = 0.
     # We will use your next_move_fcn until we catch the target or time expires.
     while not caught and ctr < 1000:
 
@@ -485,10 +502,10 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
-
+        broken_robot.clearstamp(handle)
         broken_robot.setheading(target_bot.heading*180/pi)
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
-        broken_robot.stamp()
+        handle = broken_robot.stamp()
         prediction.setheading(target_bot.heading*180/pi)
         prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
         prediction.stamp()
@@ -547,8 +564,8 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-demo_grading_visual(hunter, target, next_move_straight_line)
-#demo_grading(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading(hunter, target, next_move_straight_line)
 
 # scores = []
 # fails = 0

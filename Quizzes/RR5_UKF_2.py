@@ -371,6 +371,102 @@ def getRotationSign(rotationAngles):
         return -1
 
 
+def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
+
+    from matplotlib import pyplot as p
+    x = r_[x]
+    y = r_[y]
+    if x_actual is not None:
+        x_actual = r_[x_actual]
+    if y_actual is not None:
+        y_actual = r_[y_actual]
+    # coordinates of the barycenter
+    x_m = mean(x)
+    y_m = mean(y)
+    # calculation of the reduced coordinates
+    u = x - x_m
+    v = y - y_m
+
+    # linear system defining the center in reduced coordinates (uc, vc):
+    #    Suu * uc +  Suv * vc = (Suuu + Suvv)/2
+    #    Suv * uc +  Svv * vc = (Suuv + Svvv)/2
+    Suv  = sum(u*v)
+    Suu  = sum(u**2)
+    Svv  = sum(v**2)
+    Suuv = sum(u**2 * v)
+    Suvv = sum(u * v**2)
+    Suuu = sum(u**3)
+    Svvv = sum(v**3)
+
+    # Solving the linear system
+    A = array([ [ Suu, Suv ], [Suv, Svv]])
+    B = array([ Suuu + Suvv, Svvv + Suuv ])/2.0
+    uc, vc = linalg.solve(A, B)
+    # center coordinates
+    xc = x_m + uc
+    yc = y_m + vc
+    # Calculation of all distances from the center (xc_1, yc_1)
+    Ri_1      = sqrt((x - xc)**2 + (y - yc)**2) # distance of given points from center
+    radius    = mean(Ri_1)
+
+    if show_plot:
+        theta_fit = linspace(-pi, pi, 180)
+        x_fit = xc + radius * cos(theta_fit)
+        y_fit = yc + radius * sin(theta_fit)
+        # center
+        p.plot([xc], [yc], 'bD', mec='y', mew=1)
+        # calculated circle
+        p.plot(x_fit, y_fit, label="calculated", lw=2)
+        if x_actual is not None:
+            # actual circle points
+            p.plot(x_actual, y_actual, color='black', label='actual', ms=8, mec='b', mew=1)
+        # data points given
+        p.plot(x, y, 'ro', label='data', ms=8, mec='b', mew=1)
+        p.legend(loc='best',labelspacing=0.1 )
+        p.grid()
+        p.xlabel('x')
+        p.ylabel('y')
+        p.title('Least Squares Circle')
+        p.savefig("circle_png")
+        p.show()
+
+
+    return radius, xc, yc
+
+# calculate the average turn angle
+def getTurnAngle(measurements, rotationSign, xc, yc):
+    angle = 0.
+
+    # get the very first heading angle (measured). It's a ball park to get started
+    xDelta = measurements[0][0] - xc
+    yDelta = measurements[0][1] - yc
+    firstHeading = atan2(yDelta, xDelta)
+    prevHeading = firstHeading
+    totalAngle = 0.
+
+    for coords in measurements[1:]:
+        x, y = coords
+        # get heading to measurement
+        xDelta = x - xc
+        yDelta = y - yc
+        currentHeading = atan2(yDelta, xDelta)
+
+        # difference between current and previous
+        if currentHeading < 0. and abs(currentHeading) > pi/2 and prevHeading > 0. and prevHeading > pi/2:
+            turningAngle = 2 * pi + currentHeading - prevHeading
+        elif currentHeading > 0. and currentHeading > pi/2 and prevHeading < 0. and abs(prevHeading) > pi/2:
+            turningAngle = -(2 * pi + currentHeading - prevHeading)
+        else:
+            turningAngle = currentHeading - prevHeading
+
+        if (turningAngle * rotationSign) > 0: # if signs match, it means rotation in the same direction
+            totalAngle += abs(turningAngle)
+            # previous can only become current if the right angle is added
+            prevHeading = currentHeading
+
+    angle = abs(totalAngle / len(measurements))
+    return angle, angle_trunc(totalAngle)
+
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 

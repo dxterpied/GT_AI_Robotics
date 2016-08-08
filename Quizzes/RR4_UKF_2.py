@@ -720,15 +720,16 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 
 # scores = []
 # fails = 0
+# measurement_noise = .05
 # for i in range(1000):
 #     print i
 #
 #     target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
-#     measurement_noise = .05 * target.distance
-#     target.set_noise(0.0, 0.0, measurement_noise)
+#     target.set_noise(0.0, 0.0, measurement_noise * target.distance)
 #     hunter = robot(-10.0, -5.0, 0.0)
-#
+#     #print "measurement_noise", measurement_noise
 #     score = demo_grading(hunter, target, next_move_straight_line)
+#     #measurement_noise += 0.01
 #
 #     if score == 1000:
 #         fails += 1

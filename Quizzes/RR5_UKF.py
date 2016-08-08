@@ -13,7 +13,9 @@ from numpy import *
 # attempts to solve RR5 using UKF from KalmanPy
 # based on RR4_UKF.py ---------------------------------------
 
-# Fails miserably........... Need something else, maybe least squared fit.
+# uses UKF + least squares fit.
+
+# Fails miserably... it's completely mad...
 
 turtle.setup(800, 800)
 window = turtle.Screen()
@@ -345,10 +347,107 @@ def getRotationSign(rotationAngles):
 
 
 
+def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
+
+    from matplotlib import pyplot as p
+    x = r_[x]
+    y = r_[y]
+    if x_actual is not None:
+        x_actual = r_[x_actual]
+    if y_actual is not None:
+        y_actual = r_[y_actual]
+    # coordinates of the barycenter
+    x_m = mean(x)
+    y_m = mean(y)
+    # calculation of the reduced coordinates
+    u = x - x_m
+    v = y - y_m
+
+    # linear system defining the center in reduced coordinates (uc, vc):
+    #    Suu * uc +  Suv * vc = (Suuu + Suvv)/2
+    #    Suv * uc +  Svv * vc = (Suuv + Svvv)/2
+    Suv  = sum(u*v)
+    Suu  = sum(u**2)
+    Svv  = sum(v**2)
+    Suuv = sum(u**2 * v)
+    Suvv = sum(u * v**2)
+    Suuu = sum(u**3)
+    Svvv = sum(v**3)
+
+    # Solving the linear system
+    A = array([ [ Suu, Suv ], [Suv, Svv]])
+    B = array([ Suuu + Suvv, Svvv + Suuv ])/2.0
+    uc, vc = linalg.solve(A, B)
+    # center coordinates
+    xc = x_m + uc
+    yc = y_m + vc
+    # Calculation of all distances from the center (xc_1, yc_1)
+    Ri_1      = sqrt((x - xc)**2 + (y - yc)**2) # distance of given points from center
+    radius    = mean(Ri_1)
+
+    if show_plot:
+        theta_fit = linspace(-pi, pi, 180)
+        x_fit = xc + radius * cos(theta_fit)
+        y_fit = yc + radius * sin(theta_fit)
+        # center
+        p.plot([xc], [yc], 'bD', mec='y', mew=1)
+        # calculated circle
+        p.plot(x_fit, y_fit, label="calculated", lw=2)
+        if x_actual is not None:
+            # actual circle points
+            p.plot(x_actual, y_actual, color='black', label='actual', ms=8, mec='b', mew=1)
+        # data points given
+        p.plot(x, y, 'ro', label='data', ms=8, mec='b', mew=1)
+        p.legend(loc='best',labelspacing=0.1 )
+        p.grid()
+        p.xlabel('x')
+        p.ylabel('y')
+        p.title('Least Squares Circle')
+        p.savefig("circle_png")
+        p.show()
+
+
+    return radius, xc, yc
+
+# calculate the average turn angle
+def getTurnAngle(measurements, rotationSign, xc, yc):
+    angle = 0.
+
+    # get the very first heading angle (measured). It's a ball park to get started
+    xDelta = measurements[0][0] - xc
+    yDelta = measurements[0][1] - yc
+    firstHeading = atan2(yDelta, xDelta)
+    prevHeading = firstHeading
+    totalAngle = 0.
+
+    for coords in measurements[1:]:
+        x, y = coords
+        # get heading to measurement
+        xDelta = x - xc
+        yDelta = y - yc
+        currentHeading = atan2(yDelta, xDelta)
+
+        # difference between current and previous
+        if currentHeading < 0. and abs(currentHeading) > pi/2 and prevHeading > 0. and prevHeading > pi/2:
+            turningAngle = 2 * pi + currentHeading - prevHeading
+        elif currentHeading > 0. and currentHeading > pi/2 and prevHeading < 0. and abs(prevHeading) > pi/2:
+            turningAngle = -(2 * pi + currentHeading - prevHeading)
+        else:
+            turningAngle = currentHeading - prevHeading
+
+        if (turningAngle * rotationSign) > 0: # if signs match, it means rotation in the same direction
+            totalAngle += abs(turningAngle)
+            # previous can only become current if the right angle is added
+            prevHeading = currentHeading
+
+    angle = abs(totalAngle / len(measurements))
+    return angle, angle_trunc(totalAngle)
+
+
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     predictedPosition = [0, 0]
-    xy_estimate = None
+    numberOfSkippedSteps = 20
 
     if OTHER is None:
         distances = []
@@ -358,15 +457,35 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         steps = 0
         turnAngle = []
         ukf = None
+        x = []
+        x.append(target_measurement[0])
+        y = []
+        y.append(target_measurement[1])
+
     else:
-        distances, angles, coords, xy_estimate, steps, turnAngle, ukf= OTHER
+        distances, angles, coords, xy_estimate, steps, turnAngle, ukf, x, y = OTHER
+
+        # collect measurements
+        x.append(target_measurement[0])
+        y.append(target_measurement[1])
+
+        xy_estimate = target_measurement
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
 
-        elif len(coords) >= 2:
+        elif len(coords) >= 2 and len(coords) <= numberOfSkippedSteps:
+            radius, xc, yc = least_squares(x, y) # actual radius is 7.175; this estimate is about 7.62; that's bad but we don't have anything better...
+            xcDelta = target_measurement[0] - xc
+            ycDelta = target_measurement[1] - yc
+            angle = angle_trunc(atan2(ycDelta, xcDelta))
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
+
+        elif len(coords) > numberOfSkippedSteps:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = target_measurement
@@ -374,6 +493,11 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # this is done to determine clock wise or counter clock wise rotation
             turnAngle.append(calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1]))
             rotationSign = getRotationSign(turnAngle)
+
+            # estimate radius and center using least squares
+            radius, xc, yc = least_squares(x, y)
+            # get estimated turning and total angle traveled from measured start
+            turning, totalAngle = getTurnAngle(coords, rotationSign, xc, yc)
 
             y1Delta = point2[1] - point1[1]
             hypotenuse1 = distance_between(point1, point2)
@@ -390,26 +514,49 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
-            avgAngle = sum(angles)/len(angles)
+            #avgAngle = sum(angles)/len(angles)
 
             if ukf is None:
-                points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+                # create particles based on the first predicted location
+                x0Delta = x[0] - xc # using first measured x
+                y0Delta = y[1] - yc # using first measured y
+                angle = angle_trunc(atan2(y0Delta, x0Delta)) # first heading from the predicted center based on the first measurement
+                # put the first measured point on the estimated circumference
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
 
+                points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
                 ukf = UKF(dim_x = 3, dim_z = 3, fx=fx, hx=Hx, points=points,
                           x_mean_fn=state_mean, z_mean_fn=z_mean,
                           residual_x= residual_x, residual_z= residual_h)
-
-                ukf.x = np.array([target_measurement[0], target_measurement[1], headingAngle2])
+                ukf.x = np.array([estimated_x, estimated_y, angle])
                 ukf.P = np.diag([1., 1., 1.])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
                 ukf.Q = np.diag([1., 1., 1.])  # Q must not be zeroes!!! .001 is the best for this case
 
+                # now, advance this for the number of skipped steps to catch up the estimations
+                for i in range(numberOfSkippedSteps):
 
-            ukf.predict(dt = avgDT, fx_args = rotationSign * avgAngle)
-            z = [target_measurement[0], target_measurement[1], headingAngle2]
-            ukf.update(z)
+                    ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
+                    z = [estimated_x, estimated_y, angle]
+                    ukf.update(z)
 
-            newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
+                    # get new estimated measurements based on the predicted turn angle and distance (not actual measurements)
+                    angle = angle_trunc(angle + (rotationSign * turning))
+                    estimated_x = xc + radius * cos(angle)
+                    estimated_y = yc + radius * sin(angle)
+            else:
+                xcDelta = target_measurement[0] - xc
+                ycDelta = target_measurement[1] - yc
+                angle = angle_trunc(atan2(ycDelta, xcDelta))
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+
+                ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
+                z = [estimated_x, estimated_y, angle]
+                ukf.update(z)
+
+            newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * turning, avgDT)
             newR.move_in_circle()
             predictedPosition = newR.x, newR.y
             xy_estimate = newR.x, newR.y
@@ -423,21 +570,30 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 newR.move_in_circle()
                 xy_estimate = newR.x, newR.y
 
+            # make final estimate to lie on the estimated circumference
+            xDelta = newR.x - xc
+            yDelta = newR.y - yc
+            angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+            # put the first measured point on the estimated circumference
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
+
 
     coords.append(target_measurement)
-    OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle, ukf)
+    OTHER = (distances, angles, coords, xy_estimate, steps, turnAngle, ukf, x, y)
     if xy_estimate is None:
         xy_estimate = target_measurement
 
-    distance2 = distance_between(hunter_position, predictedPosition)
+    #distance2 = distance_between(hunter_position, predictedPosition)
 
-    if distance2 <= max_distance:
-        turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
-        distance = distance2
-        OTHER = (distances, angles, coords, None, steps, turnAngle, ukf)
-    else:
-        turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading)
-        distance = distance_between(hunter_position, xy_estimate)
+    # if distance2 <= max_distance:
+    #     turning = angle_trunc(get_heading(hunter_position, predictedPosition) - hunter_heading)
+    #     distance = distance2
+    #     OTHER = (distances, angles, coords, None, steps, turnAngle, ukf, x, y)
+    # else:
+    turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading)
+    distance = distance_between(hunter_position, xy_estimate)
 
 
     return turning, distance, OTHER
@@ -538,13 +694,16 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.resizemode('user')
     broken_robot.shapesize(0.2, 0.2, 0.2)
     prediction = turtle.Turtle()
-    prediction.shape('arrow')
+    prediction.shape('circle')
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
     #prediction.penup()
-    broken_robot.penup()
+    #broken_robot.penup()
     #End of Visualization
+
+    broken_handle = 0.
+    prediction_handle = 0.
 
     # We will use your next_move_fcn until we catch the target or time expires.
     while not caught and ctr < 1000:
@@ -581,12 +740,14 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
 
-        broken_robot.setheading(target_bot.heading*180/pi)
+
+        broken_robot.clearstamp(broken_handle)
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
-        broken_robot.stamp()
-        prediction.setheading(target_bot.heading*180/pi)
+        broken_handle = broken_robot.stamp()
+
+        prediction.clearstamp(prediction_handle)
         prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-        prediction.stamp()
+        prediction_handle = prediction.stamp()
 
         ctr += 1
         if ctr >= 1000:

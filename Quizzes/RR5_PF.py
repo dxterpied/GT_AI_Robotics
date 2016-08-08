@@ -168,6 +168,197 @@ def getRotationSign(rotationAngles):
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
+    numberOfSkippedSteps = 60
+    xy_estimate = None
+
+    if OTHER is None:
+        distances = []
+        angles = []
+        coords = []
+        xy_estimate = target_measurement
+        steps = 0
+        xy_pf = (0, 0)
+        turnAngle = []
+        x = []
+        x.append(target_measurement[0])
+        y = []
+        y.append(target_measurement[1])
+
+    else:
+        distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle, x, y = OTHER
+        # collect measurements
+        x.append(target_measurement[0])
+        y.append(target_measurement[1])
+
+        if len(coords) == 1:
+            hypotenuse1 = distance_between(coords[0], target_measurement)
+            distances.append(hypotenuse1)
+            xy_estimate = target_measurement
+        elif len(coords) >= 2 and len(coords) <= numberOfSkippedSteps:
+            radius, xc, yc = least_squares(x, y) # actual radius is 7.175; this estimate is about 7.62; that's bad but we don't have anything better...
+            xcDelta = target_measurement[0] - xc
+            ycDelta = target_measurement[1] - yc
+            angle = angle_trunc(atan2(ycDelta, xcDelta))
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
+
+        elif len(coords) > numberOfSkippedSteps:
+            point1 = coords[len(coords) - 16]
+            point2 = coords[len(coords) - 8]
+            point3 = target_measurement
+
+            rotationDirection = calculateRotationDirection(point1[0], point1[1], point2[0], point2[1], point3[0], point3[1])
+            turnAngle.append(rotationDirection)
+            rotationSign = getRotationSign(turnAngle)
+
+            # estimate radius and center using least squares
+            radius, xc, yc = least_squares(x, y) # actual radius is 7.175; this estimate is about 7.62; that's bad but we don't have anything better...
+            #print "radius", radius # prints about 7.62; actual is 7.175
+            # get estimated turning and total angle traveled from measured start
+            turning, totalAngle = getTurnAngle(coords, rotationSign, xc, yc)
+            #print "turning", turning # prints about 0.21; actual is 0.2
+            distance = 2 * radius * sin(turning/2) # chord distance calculation
+            #print "distance", distance # gives about 1.65; correct one is 1.5
+
+            # create particles only after approximate turning and distance are known
+            if len(particles) == 0:
+                # create particles based on the first predicted location
+                x0Delta = x[0] - xc # using first measured x
+                y0Delta = y[1] - yc # using first measured y
+                angle = angle_trunc(atan2(y0Delta, x0Delta)) # first heading from the predicted center based on the first measurement
+                # put the first measured point on the estimated circumference
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+                # create particles with the starting location of the first predicted point
+                createParticles(estimated_x, estimated_y, rotationSign * turning, distance)
+
+                # now, advance this for the number of skipped steps to catch up the estimations
+                for i in range(numberOfSkippedSteps):
+                    Z = senseToLandmarks(estimated_x, estimated_y)
+                    xy_pf = particle_filter(Z, rotationSign * turning, distance)
+                    # get new estimated measurements based on the predicted turn angle and distance (not actual measurements)
+                    angle = angle_trunc(angle + (rotationSign * turning))
+                    estimated_x = xc + radius * cos(angle)
+                    estimated_y = yc + radius * sin(angle)
+            else:
+                xcDelta = target_measurement[0] - xc
+                ycDelta = target_measurement[1] - yc
+                angle = angle_trunc(atan2(ycDelta, xcDelta))
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+
+                Z = senseToLandmarks(estimated_x, estimated_y)
+                xy_pf = particle_filter(Z, rotationSign * turning, distance)
+
+                xcDelta = xy_pf[0] - xc
+                ycDelta = xy_pf[1] - yc
+                totalAngle = angle_trunc(atan2(ycDelta, xcDelta))
+
+            # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
+            # bumblebee.stamp()
+
+            newR = robot(xy_pf[0], xy_pf[1], totalAngle, rotationSign * turning, distance)
+            newR.move_in_circle()
+
+            # try to find the shortest straight path from hunter position to predicted target position
+            if xy_estimate is None:
+                # broken_robot = turtle.Turtle()
+                # broken_robot.shape('turtle')
+                # broken_robot.color('red')
+                # #broken_robot.resizemode('user')
+                # broken_robot.shapesize(0.2, 0.2, 0.2)
+                steps = 1
+                while True:
+                    #time.sleep(0.1)
+                    xy_estimate = newR.x, newR.y
+                    # check how many steps it will take to get there for Hunter
+                    # broken_robot.setheading(headingAngle2 * 180/pi)
+                    # broken_robot.goto(newR.x * 20, newR.y * 20 - 200)
+                    # broken_robot.stamp()
+                    if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                        break
+                    steps += 1
+
+                    newR.move_in_circle()
+                    # put this estimate on the predicted circumference
+                    xDelta = newR.x - xc
+                    yDelta = newR.y - yc
+                    angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+                    # put the first measured point on the estimated circumference
+                    estimated_x = xc + radius * cos(angle)
+                    estimated_y = yc + radius * sin(angle)
+                    xy_estimate = estimated_x, estimated_y
+
+
+                # make final estimate to lie on the estimated circumference
+                xDelta = newR.x - xc
+                yDelta = newR.y - yc
+                angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+                # put the first measured point on the estimated circumference
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+                xy_estimate = estimated_x, estimated_y
+
+            else:
+                steps -= 1
+                if steps <= 0:
+                    xy_estimate = None
+
+
+            # while True:
+            #     # check how many steps it will take to get there for Hunter
+            #     if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+            #         break
+            #     steps += 1
+            #     newR.move_in_circle()
+            #
+            #     # put this estimate on the predicted circumference
+            #     xDelta = newR.x - xc
+            #     yDelta = newR.y - yc
+            #     angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+            #     # put the first measured point on the estimated circumference
+            #     estimated_x = xc + radius * cos(angle)
+            #     estimated_y = yc + radius * sin(angle)
+            #     xy_estimate = estimated_x, estimated_y
+
+
+            # put this estimate on the predicted circumference
+            # xDelta = newR.x - xc
+            # yDelta = newR.y - yc
+            # angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+            # # put the first measured point on the estimated circumference
+            # estimated_x = xc + radius * cos(angle)
+            # estimated_y = yc + radius * sin(angle)
+            # xy_estimate = estimated_x, estimated_y
+
+            # steps = 1
+            # while True:
+            #     # check how many steps it will take to get there for Hunter
+            #     if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+            #         break
+            #     steps += 1
+            #
+            #     totalAngle += rotationSign * turning
+            #     estimated_x = xc + radius * cos(totalAngle)
+            #     estimated_y = yc + radius * sin(totalAngle)
+            #     xy_estimate = estimated_x, estimated_y
+
+
+    coords.append(target_measurement)
+
+    OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle, x, y)
+    if xy_estimate is None:
+        xy_estimate = target_measurement
+
+    turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
+    distance = distance_between(hunter_position, xy_estimate)
+
+    return turning, distance, OTHER
+
+
+def next_move_straight_line_1(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+
     numberOfSkippedSteps = 30
 
     if OTHER is None:
@@ -581,8 +772,8 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
-demo_grading(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading(hunter, target, next_move_straight_line)
 
 # scores = []
 # fails = 0

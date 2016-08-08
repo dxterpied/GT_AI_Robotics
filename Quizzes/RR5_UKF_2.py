@@ -13,6 +13,8 @@ from numpy import *
 # attempts to solve RR5 using UKF from KalmanPy
 # based on RR4_UKF.py ---------------------------------------
 
+# uses modified UKF with params based on EKF
+
 # Fails miserably...........
 
 turtle.setup(800, 800)
@@ -276,7 +278,6 @@ def fx_1(X, dt):
 
     state = [x, y, heading, velocity, turning]
 
-    print state
     return state
 
 

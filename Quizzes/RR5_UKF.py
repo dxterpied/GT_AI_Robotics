@@ -13,7 +13,9 @@ from numpy import *
 # attempts to solve RR5 using UKF from KalmanPy
 # based on RR4_UKF.py ---------------------------------------
 
-# Fails miserably........... Need something else, maybe least squared fit.
+# uses UKF + least squares fit.
+
+# Fails miserably... it's completely mad...
 
 turtle.setup(800, 800)
 window = turtle.Screen()
@@ -445,7 +447,7 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
 
     predictedPosition = [0, 0]
-    xy_estimate = None
+    numberOfSkippedSteps = 20
 
     if OTHER is None:
         distances = []
@@ -467,12 +469,23 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
+        xy_estimate = target_measurement
+
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
             xy_estimate = target_measurement
 
-        elif len(coords) >= 2:
+        elif len(coords) >= 2 and len(coords) <= numberOfSkippedSteps:
+            radius, xc, yc = least_squares(x, y) # actual radius is 7.175; this estimate is about 7.62; that's bad but we don't have anything better...
+            xcDelta = target_measurement[0] - xc
+            ycDelta = target_measurement[1] - yc
+            angle = angle_trunc(atan2(ycDelta, xcDelta))
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
+
+        elif len(coords) > numberOfSkippedSteps:
             point1 = coords[len(coords) - 2]
             point2 = coords[len(coords) - 1]
             point3 = target_measurement
@@ -501,24 +514,47 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             distances.append(hypotenuse2)
 
             avgDT = sum(distances)/len(distances)
-            avgAngle = sum(angles)/len(angles)
+            #avgAngle = sum(angles)/len(angles)
 
             if ukf is None:
-                points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+                # create particles based on the first predicted location
+                x0Delta = x[0] - xc # using first measured x
+                y0Delta = y[1] - yc # using first measured y
+                angle = angle_trunc(atan2(y0Delta, x0Delta)) # first heading from the predicted center based on the first measurement
+                # put the first measured point on the estimated circumference
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
 
+                points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
                 ukf = UKF(dim_x = 3, dim_z = 3, fx=fx, hx=Hx, points=points,
                           x_mean_fn=state_mean, z_mean_fn=z_mean,
                           residual_x= residual_x, residual_z= residual_h)
-
-                ukf.x = np.array([target_measurement[0], target_measurement[1], headingAngle2])
+                ukf.x = np.array([estimated_x, estimated_y, angle])
                 ukf.P = np.diag([1., 1., 1.])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
                 ukf.Q = np.diag([1., 1., 1.])  # Q must not be zeroes!!! .001 is the best for this case
 
+                # now, advance this for the number of skipped steps to catch up the estimations
+                for i in range(numberOfSkippedSteps):
 
-            ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
-            z = [target_measurement[0], target_measurement[1], headingAngle2]
-            ukf.update(z)
+                    ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
+                    z = [estimated_x, estimated_y, angle]
+                    ukf.update(z)
+
+                    # get new estimated measurements based on the predicted turn angle and distance (not actual measurements)
+                    angle = angle_trunc(angle + (rotationSign * turning))
+                    estimated_x = xc + radius * cos(angle)
+                    estimated_y = yc + radius * sin(angle)
+            else:
+                xcDelta = target_measurement[0] - xc
+                ycDelta = target_measurement[1] - yc
+                angle = angle_trunc(atan2(ycDelta, xcDelta))
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+
+                ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
+                z = [estimated_x, estimated_y, angle]
+                ukf.update(z)
 
             newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * turning, avgDT)
             newR.move_in_circle()
@@ -533,6 +569,15 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 steps += 1
                 newR.move_in_circle()
                 xy_estimate = newR.x, newR.y
+
+            # make final estimate to lie on the estimated circumference
+            xDelta = newR.x - xc
+            yDelta = newR.y - yc
+            angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+            # put the first measured point on the estimated circumference
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
 
 
     coords.append(target_measurement)
@@ -649,13 +694,16 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.resizemode('user')
     broken_robot.shapesize(0.2, 0.2, 0.2)
     prediction = turtle.Turtle()
-    prediction.shape('arrow')
+    prediction.shape('circle')
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
     #prediction.penup()
-    broken_robot.penup()
+    #broken_robot.penup()
     #End of Visualization
+
+    broken_handle = 0.
+    prediction_handle = 0.
 
     # We will use your next_move_fcn until we catch the target or time expires.
     while not caught and ctr < 1000:
@@ -692,12 +740,14 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
 
-        broken_robot.setheading(target_bot.heading*180/pi)
+
+        broken_robot.clearstamp(broken_handle)
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
-        broken_robot.stamp()
-        prediction.setheading(target_bot.heading*180/pi)
+        broken_handle = broken_robot.stamp()
+
+        prediction.clearstamp(prediction_handle)
         prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-        prediction.stamp()
+        prediction_handle = prediction.stamp()
 
         ctr += 1
         if ctr >= 1000:

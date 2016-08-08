@@ -6,12 +6,12 @@ from numpy import *
 import turtle
 from collections import Counter
 
-# Ilya: this PF is not even close........
+# Ilya: this PF got a little better but still needs work.....
 
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 20.0  #change Size of animation
-N = 1000
+N = 500
 measurement_noise = 1.0
 particles = []
 
@@ -170,8 +170,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
     numberOfSkippedSteps = 30
 
-    xy_estimate = None
-
     if OTHER is None:
         distances = []
         angles = []
@@ -192,6 +190,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
+        xy_estimate = target_measurement
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
@@ -199,7 +198,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             xy_estimate = target_measurement
 
         elif len(coords) > numberOfSkippedSteps:
-
             point1 = coords[len(coords) - 16]
             point2 = coords[len(coords) - 8]
             point3 = target_measurement
@@ -225,7 +223,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 # create particles based on the first predicted location
                 x0Delta = x[0] - xc # using first measured x
                 y0Delta = y[1] - yc # using first measured y
-                angle = atan2(y0Delta, x0Delta) # first heading from the predicted center based on the first measurement
+                angle = angle_trunc(atan2(y0Delta, x0Delta)) # first heading from the predicted center based on the first measurement
                 # put the first measured point on the estimated circumference
                 estimated_x = xc + radius * cos(angle)
                 estimated_y = yc + radius * sin(angle)
@@ -245,7 +243,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             else:
                 xcDelta = target_measurement[0] - xc
                 ycDelta = target_measurement[1] - yc
-                angle = atan2(ycDelta, xcDelta)
+                angle = angle_trunc(atan2(ycDelta, xcDelta))
                 estimated_x = xc + radius * cos(angle)
                 estimated_y = yc + radius * sin(angle)
 
@@ -254,7 +252,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
                 xcDelta = xy_pf[0] - xc
                 ycDelta = xy_pf[1] - yc
-                totalAngle = atan2(ycDelta, xcDelta)
+                totalAngle = angle_trunc(atan2(ycDelta, xcDelta))
 
             # bumblebee.goto(xy_pf[0] * size_multiplier, xy_pf[1] * size_multiplier - 200)
             # bumblebee.stamp()
@@ -271,8 +269,25 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                     break
                 steps += 1
                 newR.move_in_circle()
-                xy_estimate = newR.x, newR.y
 
+                # put this estimate on the predicted circumference
+                xDelta = newR.x - xc
+                yDelta = newR.y - yc
+                angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+                # put the first measured point on the estimated circumference
+                estimated_x = xc + radius * cos(angle)
+                estimated_y = yc + radius * sin(angle)
+                xy_estimate = estimated_x, estimated_y
+
+
+            # put this estimate on the predicted circumference
+            xDelta = newR.x - xc
+            yDelta = newR.y - yc
+            angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+            # put the first measured point on the estimated circumference
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
 
             # steps = 1
             # while True:
@@ -288,10 +303,10 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
 
     coords.append(target_measurement)
+
     OTHER = (distances, angles, coords, xy_estimate, steps, xy_pf, turnAngle, x, y)
     turning = angle_trunc(get_heading(hunter_position, xy_estimate) - hunter_heading) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
-
 
     return turning, distance, OTHER
 
@@ -456,7 +471,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.resizemode('user')
     broken_robot.shapesize(0.2, 0.2, 0.2)
     prediction = turtle.Turtle()
-    prediction.shape('arrow')
+    prediction.shape('circle')
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
@@ -465,6 +480,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     #End of Visualization
 
     handle = 0.
+    prediction_handle = 0.
     # We will use your next_move_fcn until we catch the target or time expires.
     while not caught and ctr < 1000:
 
@@ -506,9 +522,10 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         broken_robot.setheading(target_bot.heading*180/pi)
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
         handle = broken_robot.stamp()
+        prediction.clearstamp(prediction_handle)
         prediction.setheading(target_bot.heading*180/pi)
         prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-        prediction.stamp()
+        prediction_handle = prediction.stamp()
 
         ctr += 1
         if ctr >= 1000:

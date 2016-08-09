@@ -175,7 +175,7 @@ def getRotationSign(rotationAngles):
 
 
 
-def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+def next_move_straight_line_2(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
 
     if OTHER is None:
@@ -229,7 +229,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
 
 
-def next_move_straight_line_2(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+def next_move_straight_line_1(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
 
     if OTHER is None:
@@ -383,7 +383,7 @@ def next_move_straight_line_2(hunter_position, hunter_heading, target_measuremen
 
 
 
-def next_move_straight_line_1(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
 
     if OTHER is None:

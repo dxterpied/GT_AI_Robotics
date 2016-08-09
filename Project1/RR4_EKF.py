@@ -14,7 +14,6 @@ def EKF_Predict(X = None, P = None, dt = 0.):
     # Extended Kalman Filter Motion Estimate for nonlinear X state modeled with constant velocity and angular velocity
     max_speed = 1.5 # taken from problem in this case
     max_turn_rate = pi/4 # max of 45deg/sec
-
     # Various motion noise for Q
     x_var = y_var = max_speed    # set for max speed
     heading_var = max_turn_rate    # Assuming max turn in a step
@@ -35,7 +34,7 @@ def EKF_Predict(X = None, P = None, dt = 0.):
 
     if abs(turning) < 0.0001: # Avoid divide by zero, use as if no turning
         # Using a linear FX for this case of no turning
-        FX = matrix([[x + v * cos(heading)],   # basic no turn geometry
+        X = matrix([[x + v * cos(heading)],   # basic no turn geometry
                      [y + v * sin(heading)],   # basic no turn geometry
                      [        heading          ],   # no turning so theta = theta
                      [          v            ],   # velocity is constant
@@ -45,14 +44,11 @@ def EKF_Predict(X = None, P = None, dt = 0.):
             # x = x + integral(v*cos(theta + d_theta*dt) - v*cos(theta))
             # y = y + integral(v*sin(theta + d_theta*dt) - v*sin(theta))
             # theta = theta + d_theta*dt
-        FX = matrix([[x + v/turning * ( sin(heading + turning ) - sin(heading))],
+        X = matrix([[x + v/turning * ( sin(heading + turning ) - sin(heading))],
                     [ y + v/turning * (-cos(heading + turning) + cos(heading))],
                     [                   heading + turning                    ],
                     [                           v                             ],
                     [                       turning                           ]])
-
-    # Since X = F(X), we can just set X = FX
-    X = FX
 
     # Break out new estimated statespace for readability
     x, y, heading, v, turning  = X[0,0], X[1,0], X[2,0], X[3,0], X[4,0]
@@ -62,22 +58,16 @@ def EKF_Predict(X = None, P = None, dt = 0.):
     #   JF = |       ...                   ...       |
     #        |  dF(X[0])/dX[n]  ...  dF(X[n])/dX[n]  |
     # Notice diagonals will all be 1 and lower triangle has no correlation (=0)
-    JF = matrix([
-    [1.,
-        0.,
-            v/turning * (cos(heading + turning ) - cos(heading)),
-                1./turning * (sin(heading + turning ) - sin(heading)),
-                    -v/(turning**2) * (sin(heading + turning ) - sin(heading)) + v/turning * dt * cos(heading + turning )],
-    [0.,
-        1.,
-            v/turning * (sin(heading + turning ) - sin(heading)),
-                1./turning * (-cos(heading + turning ) + cos(heading)),
-                    -v/(turning**2) * (-cos(heading + turning ) + cos(heading)) + v/turning * dt * sin(heading + turning )],
-    [0., 0., 1., 0., dt],
-    [0., 0., 0., 1., 0.],
-    [0., 0., 0., 0., 1.]])
+    JF = eye(5)
+    JF[0,2] =   v/turning * (cos(heading + turning) - cos(heading))
+    JF[0,3] =  1./turning * (sin(heading + turning) - sin(heading))
+    JF[0,4] = - v/(turning**2) * (sin(heading + turning) - sin(heading)) + v/turning * cos(heading + turning)
+    JF[1,2] =   v/turning * (sin(heading + turning) - sin(heading))
+    JF[1,3] =  1./turning * (-cos(heading + turning) + cos(heading))
+    JF[1,4] = - v/(turning**2) * (-cos(heading + turning) + cos(heading)) + v/turning * sin(heading + turning)
+    JF[2,4] = dt
 
-    # Q is the Motion Uncertainty. y Matrix, I'll use max step changes for now.  Assuming no correlation to motion noise for now
+    # Q is the Motion Uncertainty Matrix. I'll use max step changes for now. Assuming no correlation to motion noise for now
     Q = diag([x_var**2, y_var**2, heading_var**2, v_var**2, turning_var**2])
     # Update Probability Matrix
     P = JF * P * JF.T + Q
@@ -86,7 +76,7 @@ def EKF_Predict(X = None, P = None, dt = 0.):
     return estimate_xy, X, P
 
 
-def EKF_Update(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
+def EKF_Update(measurement=[0.,0.], X=None, P=None, noise_est=0):
     # Extended Kalman Filter Measurement Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
 
@@ -96,8 +86,6 @@ def EKF_Update(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
     #   ie try 2x-5x the gauss variation
     if noise_est: xy_noise_var = noise_est
     else: xy_noise_var = 20.
-
-    if not dt: dt = 1.0 # time step
 
     if type(X) == type(None): # Initialize X statespace
         X = matrix([[0.],  # x
@@ -168,7 +156,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     else:
         last_est_xy, X, P = OTHER
 
-    est_target_xy, X, P = EKF_Update(target_measurement, X, P, 1., noise_est)
+    est_target_xy, X, P = EKF_Update(target_measurement, X, P, noise_est)
     # Best guess as to true target coordinates now
     next_est_target_xy, X, P = EKF_Predict(X, P, dt = 1.)
 
@@ -188,7 +176,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
     turning = angle_trunc(get_heading(hunter_position, hunter_to_xy) - hunter_heading)
     distance = min(dist_to_target, max_distance)
-    OTHER = [next_est_target_xy, X, P]
+    OTHER = next_est_target_xy, X, P
 
     return turning, distance, OTHER
 

@@ -14,17 +14,13 @@ import pylab
 def EKF_Predict(X = None, P = None, dt = 0.):
     # Extended Kalman Filter Motion Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
-
-    if not dt: dt = 1.0 # time step
-
     max_speed = 1.5 # taken from problem in this case
     max_turn_rate = pi/8 # max of 22.5deg/sec
-
     # Various motion noise for Q
-    x_var = y_var = max_speed*dt    # set for max speed
-    theta_var = max_turn_rate*dt    # Assuming max turn in a step
+    x_var = y_var = max_speed    # set for max speed
+    heading_var = max_turn_rate    # Assuming max turn in a step
     v_var = max_speed               # set for max speed
-    d_theta_var = .05               # assuming low acceleration
+    turning_var = .05               # assuming low acceleration
 
     if type(X) == type(None): # Initialize X statespace
         X = matrix([[0.],  # x
@@ -36,31 +32,28 @@ def EKF_Predict(X = None, P = None, dt = 0.):
         P = diag([1000., 1000., 2*pi, 100., 2*pi])
 
     # Break out statespace for readability
-    x, y, theta, v, d_theta = X[0,0], X[1,0], X[2,0], X[3,0], X[4,0]
+    x, y, heading, v, turning = X[0,0], X[1,0], X[2,0], X[3,0], X[4,0]
 
-    if abs(d_theta) < 0.0001: # Avoid divide by zero, use as if no turning
+    if abs(turning) < 0.0001: # Avoid divide by zero, use as if no turning
         # Using a linear FX for this case of no turning
-        FX = matrix([[x + v * dt * cos(theta)],   # basic no turn geometry
-                     [y + v * dt * sin(theta)],   # basic no turn geometry
-                     [        theta          ],   # no turning so theta = theta
+        X = matrix([[x + v * cos(heading)],   # basic no turn geometry
+                     [y + v * sin(heading)],   # basic no turn geometry
+                     [        heading          ],   # no turning so theta = theta
                      [          v            ],   # velocity is constant
                      [     0.0000001         ]])  # Avoid divide by zero in JF
     else: # Take d_theta into account with nonlinear FX
         # FX is the nonlinear F(X) that predicts motion update
-            # x = x + integral(v*cos(theta + d_theta*dt) - v*cos(theta))
-            # y = y + integral(v*sin(theta + d_theta*dt) - v*sin(theta))
-            # theta = theta + d_theta*dt
-        FX = matrix([[x + v/d_theta * ( sin(theta + d_theta*dt) - sin(theta))],
-                    [ y + v/d_theta * (-cos(theta + d_theta*dt) + cos(theta))],
-                    [                   theta + d_theta*dt                   ],
+            # x = x + integral(v*cos(theta + d_theta) - v*cos(theta))
+            # y = y + integral(v*sin(theta + d_theta) - v*sin(theta))
+            # theta = theta + d_theta
+        X = matrix([[x + v/turning * ( sin(heading + turning) - sin(heading))],
+                    [ y + v/turning * (-cos(heading + turning) + cos(heading))],
+                    [                   heading + turning                  ],
                     [                           v                            ],
-                    [                       d_theta                         ]])
-
-    # Since X = F(X), we can just set X = FX
-    X = FX
+                    [                       turning                         ]])
 
     # Break out new estimated statespace for readability
-    x, y, theta, v, d_theta = X[0,0], X[1,0], X[2,0], X[3,0], X[4,0]
+    x, y, heading, v, turning = X[0,0], X[1,0], X[2,0], X[3,0], X[4,0]
 
     # JF is the linearized F(X) matrix, to get JF(X), we do partial derivatives
     #        |  dF(X[0])/dX[0]  ...  dF(X[n])/dX[0]  |
@@ -68,26 +61,24 @@ def EKF_Predict(X = None, P = None, dt = 0.):
     #        |  dF(X[0])/dX[n]  ...  dF(X[n])/dX[n]  |
     # Notice diagonals will all be 1 and lower triangle has no correlation (=0)
     JF = eye(5)
-    JF[0,2] =   v/d_theta * (cos(theta + d_theta*dt) - cos(theta))
-    JF[0,3] =  1./d_theta * (sin(theta + d_theta*dt) - sin(theta))
-    JF[0,4] = - v/(d_theta**2) * (sin(theta + d_theta*dt) - sin(theta)) + v/d_theta * dt * cos(theta + d_theta*dt)
-    JF[1,2] =   v/d_theta * (sin(theta + d_theta*dt) - sin(theta))
-    JF[1,3] =  1./d_theta * (-cos(theta + d_theta*dt) + cos(theta))
-    JF[1,4] = - v/(d_theta**2) * (-cos(theta + d_theta*dt) + cos(theta)) + v/d_theta * dt * sin(theta + d_theta*dt)
+    JF[0,2] =   v/turning * (cos(heading + turning) - cos(heading))
+    JF[0,3] =  1./turning * (sin(heading + turning) - sin(heading))
+    JF[0,4] = - v/(turning**2) * (sin(heading + turning) - sin(heading)) + v/turning * cos(heading + turning)
+    JF[1,2] =   v/turning * (sin(heading + turning) - sin(heading))
+    JF[1,3] =  1./turning * (-cos(heading + turning) + cos(heading))
+    JF[1,4] = - v/(turning**2) * (-cos(heading + turning) + cos(heading)) + v/turning * sin(heading + turning)
     JF[2,4] = dt
 
     # Q is the Motion Uncertainty Matrix. I'll use max step changes for now. Assuming no correlation to motion noise for now
-    Q = diag([x_var**2, y_var**2, theta_var**2, v_var**2, d_theta_var**2])
-
+    Q = diag([x_var**2, y_var**2, heading_var**2, v_var**2, turning_var**2])
     # Update Probability Matrix
     P = JF * P * JF.T + Q
-
     estimate_xy = [X[0,0], X[1,0]]
 
     return estimate_xy, X, P
 
 
-def EKF_Update(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
+def EKF_Update(measurement=[0.,0.], X=None, P=None, noise_est=0):
     # Extended Kalman Filter Measurement Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
 
@@ -97,8 +88,6 @@ def EKF_Update(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
     #   ie try 2x-5x the gauss variation
     if noise_est: xy_noise_var = noise_est
     else: xy_noise_var = 20.
-
-    if not dt: dt = 1.0 # time step
 
     if type(X) == type(None): # Initialize X statespace
         X = matrix([[0.],  # x
@@ -164,7 +153,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     else: # not the first time, update my history
         last_est_xy, X, P = OTHER
 
-    est_target_xy, X, P = EKF_Update(target_measurement, X, P, 1., noise_est)
+    est_target_xy, X, P = EKF_Update(target_measurement, X, P, noise_est)
     next_est_target_xy, X, P = EKF_Predict(X, P, dt=1.)
 
     # Uses new estimate to predict the next estimated target location
@@ -384,7 +373,31 @@ target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -10.0, 0.0)
 
 #print demo_grading(hunter, target, next_move)
-turtle_demo(hunter, target, next_move)#, None)
+#turtle_demo(hunter, target, next_move)#, None)
+
+scores = []
+fails = 0
+for i in range(100):
+    print i
+    target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, measurement_noise)
+    hunter = robot(-10.0, -20.0, 0.0)
+    score = demo_grading(hunter, target, next_move)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
+
+
+# average score:  575.35
+# minimum score:  127
+# maximum score:  964
+# fails:  80
 
 
 

@@ -6,12 +6,13 @@ from numpy import *
 import turtle
 from collections import Counter
 
-# Ilya: this PF got a little better but still needs work.....
+# Ilya: this is based on RR5_PF  but attempts to improve by adding fresh random particles
+# unsuccessful as well.........
 
 # it appears 4 landmarks is optimal; decreasing landmarks degrades performance; increasing does not seem to have any positive impact
 landmarks  = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
 size_multiplier= 20.0  #change Size of animation
-N = 500
+N = 100
 measurement_noise = 1.0
 particles = []
 
@@ -231,12 +232,12 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 estimated_x = xc + radius * cos(angle)
                 estimated_y = yc + radius * sin(angle)
                 # create particles with the starting location of the first predicted point
-                createParticles(estimated_x, estimated_y, rotationSign * turning, distance)
+                createParticles(estimated_x, estimated_y, rotationSign * turning, distance, N)
 
                 # now, advance this for the number of skipped steps to catch up the estimations
                 for i in range(numberOfSkippedSteps):
                     Z = senseToLandmarks(estimated_x, estimated_y)
-                    xy_pf = particle_filter(Z, rotationSign * turning, distance)
+                    xy_pf = particle_filter(Z, rotationSign * turning, distance, None, None)
                     # get new estimated measurements based on the predicted turn angle and distance (not actual measurements)
                     angle = angle_trunc(angle + (rotationSign * turning))
                     estimated_x = xc + radius * cos(angle)
@@ -249,7 +250,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 estimated_y = yc + radius * sin(angle)
 
                 Z = senseToLandmarks(estimated_x, estimated_y)
-                xy_pf = particle_filter(Z, rotationSign * turning, distance)
+                xy_pf = particle_filter(Z, rotationSign * turning, distance, estimated_x, estimated_y)
 
                 xcDelta = xy_pf[0] - xc
                 ycDelta = xy_pf[1] - yc
@@ -262,51 +263,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             newR.move_in_circle()
             xy_estimate = newR.x, newR.y
 
-            # try to find the shortest straight path from hunter position to predicted target position
-            # if xy_estimate is None:
-            #     # broken_robot = turtle.Turtle()
-            #     # broken_robot.shape('turtle')
-            #     # broken_robot.color('red')
-            #     # #broken_robot.resizemode('user')
-            #     # broken_robot.shapesize(0.2, 0.2, 0.2)
-            #     steps = 1
-            #     while True:
-            #         #time.sleep(0.1)
-            #         xy_estimate = newR.x, newR.y
-            #         # check how many steps it will take to get there for Hunter
-            #         # broken_robot.setheading(headingAngle2 * 180/pi)
-            #         # broken_robot.goto(newR.x * 20, newR.y * 20 - 200)
-            #         # broken_robot.stamp()
-            #         if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
-            #             break
-            #         steps += 1
-            #
-            #         newR.move_in_circle()
-            #         # put this estimate on the predicted circumference
-            #         xDelta = newR.x - xc
-            #         yDelta = newR.y - yc
-            #         angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
-            #         # put the first measured point on the estimated circumference
-            #         estimated_x = xc + radius * cos(angle)
-            #         estimated_y = yc + radius * sin(angle)
-            #         xy_estimate = estimated_x, estimated_y
-            #
-            #
-            #     # make final estimate to lie on the estimated circumference
-            #     # xDelta = newR.x - xc
-            #     # yDelta = newR.y - yc
-            #     # angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
-            #     # # put the first measured point on the estimated circumference
-            #     # estimated_x = xc + radius * cos(angle)
-            #     # estimated_y = yc + radius * sin(angle)
-            #     # xy_estimate = estimated_x, estimated_y
-            #
-            # else:
-            #     steps -= 1
-            #     if steps <= 0:
-            #         xy_estimate = None
-
-
             steps = 1
             while True:
                 # check how many steps it will take to get there for Hunter
@@ -315,24 +271,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 steps += 1
                 newR.move_in_circle()
                 xy_estimate = newR.x, newR.y
-                # # put this estimate on the predicted circumference
-                # xDelta = newR.x - xc
-                # yDelta = newR.y - yc
-                # angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
-            #     # put the first measured point on the estimated circumference
-            #     estimated_x = xc + radius * cos(angle)
-            #     estimated_y = yc + radius * sin(angle)
-            #     xy_estimate = estimated_x, estimated_y
-
-
-            # put this estimate on the predicted circumference
-            # xDelta = newR.x - xc
-            # yDelta = newR.y - yc
-            # angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
-            # # put the first measured point on the estimated circumference
-            # estimated_x = xc + radius * cos(angle)
-            # estimated_y = yc + radius * sin(angle)
-            # xy_estimate = estimated_x, estimated_y
 
             # steps = 1
             # while True:
@@ -345,6 +283,16 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             #     estimated_x = xc + radius * cos(totalAngle)
             #     estimated_y = yc + radius * sin(totalAngle)
             #     xy_estimate = estimated_x, estimated_y
+
+            # put this estimate on the predicted circumference
+            xDelta = newR.x - xc
+            yDelta = newR.y - yc
+            angle = angle_trunc(atan2(yDelta, xDelta)) # first heading from the predicted center based on the first measurement
+            # put the first measured point on the estimated circumference
+            estimated_x = xc + radius * cos(angle)
+            estimated_y = yc + radius * sin(angle)
+            xy_estimate = estimated_x, estimated_y
+
 
 
     coords.append(target_measurement)
@@ -519,7 +467,7 @@ def get_heading(hunter_position, target_position):
 
 
 
-def createParticles(worldX, worldY, turning, distance):
+def createParticles(worldX, worldY, turning, distance, N):
     # create new particles
     for i in range(N):
         r = robot(random.uniform(worldX - 25, worldX + 25),
@@ -605,33 +553,38 @@ def distance_between(point1, point2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-def particle_filter(targetMeasurementToLandmarks, averageTurning, averageDistance):
+def particle_filter(targetMeasurementToLandmarks, turning, distance, x, y):
     global particles
+
+    # add some fresh particles before resampling
+    if x is not None:
+        createParticles(x, y, turning, distance, 3)
 
     # PREDICT by moving
     p2 = []
-    for i in range(N):
-        newParticle = move(particles[i].x, particles[i].y, averageTurning, averageDistance, particles[i].heading, particles[i].distance_noise, particles[i].turning_noise, particles[i].measurement_noise)
+    for i in range(len(particles)):
+        newParticle = move(particles[i].x, particles[i].y, turning, distance, particles[i].heading, particles[i].distance_noise, particles[i].turning_noise, particles[i].measurement_noise)
         p2.append(newParticle)
     particles = p2
 
     # UPDATE by creating weights
     w = []
-    for i in range(N):
+    for i in range(len(particles)):
         particle = particles[i]
         mp = calculateWeight( particle.x, particle.y, targetMeasurementToLandmarks)
         w.append(  mp )
 
+
     # RESAMPLING
     p3 = []
-    index = int(random.random() * N)
+    index = int(random.random() * len(particles))
     beta = 0.0
     mw = max(w)
-    for i in range(N):
+    for i in range(len(particles)):
         beta += random.random() * 2.0 * mw
         while beta > w[index]:
             beta -= w[index]
-            index = (index + 1) % N
+            index = (index + 1) % len(particles)
         p3.append( particles[index] )
     particles = p3
     # end resampling
@@ -778,7 +731,7 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 
 # scores = []
 # fails = 0
-# for i in range(1000):
+# for i in range(100):
 #     print i
 #     particles = []
 #     target = robot(0.0, 10.0, 0.0, -2*pi / 30, 1.5)

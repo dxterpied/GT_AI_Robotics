@@ -1,5 +1,4 @@
 # taken from https://github.com/lhaberke/AI_Robotics_FinalProject/StudentMain.py
-
 # ----------
 # Part Four
 #
@@ -68,26 +67,20 @@ def EKF_Predict(X = None, P = None, dt = 0.):
         0.,
             v/turning * (cos(heading + turning ) - cos(heading)),
                 1./turning * (sin(heading + turning ) - sin(heading)),
-                    -v/(turning**2) * (sin(heading + turning ) - sin(heading)) \
-                    + v/turning * dt * cos(heading + turning )],
+                    -v/(turning**2) * (sin(heading + turning ) - sin(heading)) + v/turning * dt * cos(heading + turning )],
     [0.,
         1.,
             v/turning * (sin(heading + turning ) - sin(heading)),
                 1./turning * (-cos(heading + turning ) + cos(heading)),
-                    -v/(turning**2) * (-cos(heading + turning ) + cos(heading)) \
-                    + v/turning * dt * sin(heading + turning )],
+                    -v/(turning**2) * (-cos(heading + turning ) + cos(heading)) + v/turning * dt * sin(heading + turning )],
     [0., 0., 1., 0., dt],
     [0., 0., 0., 1., 0.],
     [0., 0., 0., 0., 1.]])
 
-    # Q is the Motion Uncertainty
-    # y Matrix, I'll use max step changes for now.
-    #       Assuming no correlation to motion noise for now
+    # Q is the Motion Uncertainty. y Matrix, I'll use max step changes for now.  Assuming no correlation to motion noise for now
     Q = diag([x_var**2, y_var**2, heading_var**2, v_var**2, turning_var**2])
-
     # Update Probability Matrix
     P = JF * P * JF.T + Q
-
     estimate_xy = [X[0,0], X[1,0]]
 
     return estimate_xy, X, P
@@ -348,7 +341,7 @@ def turtle_demo(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 
 
 target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-measurement_noise = .05*target.distance
+measurement_noise = .05 * target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -10.0, 0.0)
 

@@ -1,69 +1,17 @@
-
 # taken from https://github.com/lhaberke/AI_Robotics_FinalProject/StudentMainBonus.py
-
 # ----------
 # Part Five
 #
-
+import matplotlib
+matplotlib.use('TkAgg')
 from robot import *
 from math import *
 import turtle
-import matplotlib
-matplotlib.use('TkAgg')
 from numpy import zeros, eye, diag, sin, cos, linalg, pi, matrix
 import pylab
 
 
-def next_move(hunter_position, hunter_heading, target_measurement,
-              max_distance, OTHER = None):
-    # This function will be called after each time the target moves.
-
-    # ************************* My Code Start *******************
-
-    # Measurement filter needed since it is noisy.   Using None as:
-    # [target_measurements, hunter_positions, hunter_headings, P]
-    # where P is our uncertainty matrix
-
-    noise_est = 60. # should be greater than noise variance
-    if not OTHER: # first time calling this function, set up my OTHER variables.
-        last_est_xy = target_measurement[:]
-        X = None
-        P = None
-        OTHER = [last_est_xy, X, P]
-    else: # not the first time, update my history
-        last_est_xy, X, P = OTHER[:]
-
-    est_target_xy, X, P = \
-            EKF_Measurement(target_measurement, X, P, 1., noise_est)
-            #EKF.EKF_Measurement(target_measurement, X, P, 1., noise_est)
-    # Best guess as to true target coordinates now
-    #print 'est: ', est_target_xy, ', meas: ', target_measurement
-    #next_est_target_xy, X, P = EKF.EKF_Motion(X, P, dt=1.)
-    next_est_target_xy, X, P = EKF_Motion(X, P, dt=1.)
-    # Uses new estimate to predict the next estimated target location
-
-    hunter_to_xy = next_est_target_xy # works if target will be within range
-    dist_to_target = distance_between(next_est_target_xy, hunter_position)
-    X_next, P_next = X.copy(), P.copy()
-
-    for D in range(int(dist_to_target / (max_distance))):
-        # to catch target, look ahead D moves and go that way
-        # Don't update P since we have no real information to update with
-        #hunter_to_xy, X_next, _ = EKF.EKF_Motion(X_next, P_next, 1.)
-        hunter_to_xy, X_next, _ = EKF_Motion(X_next, P_next, 1.)
-    #print hunter_to_xy
-    turning = angle_trunc(get_heading(hunter_position, hunter_to_xy) - hunter_heading)
-    distance = min(dist_to_target, max_distance)
-    OTHER = [next_est_target_xy, X, P]
-    # ************************** My Code End ********************
-
-
-    # The OTHER variable is a place for you to store any historical information about
-    # the progress of the hunt (or maybe some localization information). Your return format
-    # must be as follows in order to be graded properly.
-    return turning, distance, OTHER
-
-def EKF_Motion(X = None, P = None, dt = 0.):
+def EKF_Predict(X = None, P = None, dt = 0.):
     # Extended Kalman Filter Motion Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
 
@@ -122,16 +70,13 @@ def EKF_Motion(X = None, P = None, dt = 0.):
     JF = eye(5)
     JF[0,2] =   v/d_theta * (cos(theta + d_theta*dt) - cos(theta))
     JF[0,3] =  1./d_theta * (sin(theta + d_theta*dt) - sin(theta))
-    JF[0,4] = - v/(d_theta**2) * (sin(theta + d_theta*dt) - sin(theta)) \
-               + v/d_theta * dt * cos(theta + d_theta*dt)
+    JF[0,4] = - v/(d_theta**2) * (sin(theta + d_theta*dt) - sin(theta)) + v/d_theta * dt * cos(theta + d_theta*dt)
     JF[1,2] =   v/d_theta * (sin(theta + d_theta*dt) - sin(theta))
     JF[1,3] =  1./d_theta * (-cos(theta + d_theta*dt) + cos(theta))
-    JF[1,4] = - v/(d_theta**2) * (-cos(theta + d_theta*dt) + cos(theta)) \
-               + v/d_theta * dt * sin(theta + d_theta*dt)
+    JF[1,4] = - v/(d_theta**2) * (-cos(theta + d_theta*dt) + cos(theta)) + v/d_theta * dt * sin(theta + d_theta*dt)
     JF[2,4] = dt
 
-    # Q is the Motion Uncertainty Matrix, I'll use max step changes for now.
-    #       Assuming no correlation to motion noise for now
+    # Q is the Motion Uncertainty Matrix. I'll use max step changes for now. Assuming no correlation to motion noise for now
     Q = diag([x_var**2, y_var**2, theta_var**2, v_var**2, d_theta_var**2])
 
     # Update Probability Matrix
@@ -142,7 +87,7 @@ def EKF_Motion(X = None, P = None, dt = 0.):
     return estimate_xy, X, P
 
 
-def EKF_Measurement(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
+def EKF_Update(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
     # Extended Kalman Filter Measurement Estimate for nonlinear X state
     #       I am modeling with a constant velocity and yaw rate
 
@@ -196,22 +141,46 @@ def EKF_Measurement(measurement=[0.,0.], X=None, P=None, dt=0, noise_est=0):
                 [0.,    0.,    0.,    0.,  0.001]])
 
     I = eye(5)
-
     S = JH * P * JH.T + R
-
     # Kalman factor - correction matrix
     K = (P * JH.T) * linalg.inv(S)
-
     # Y is the error matrix (measurement - estimate)
     Y = Z - HF
     X = X + (K * Y)
-
     # Probability matrix will get more precise with measurement
     P = (I - (K * JH)) * P
-
     estimate_xy = [X[0,0], X[1,0]]
 
     return estimate_xy, X, P
+
+
+def next_move(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
+    noise_est = 60. # should be greater than noise variance
+    if not OTHER: # first time calling this function, set up my OTHER variables.
+        last_est_xy = target_measurement
+        X = None
+        P = None
+        OTHER = last_est_xy, X, P
+    else: # not the first time, update my history
+        last_est_xy, X, P = OTHER
+
+    est_target_xy, X, P = EKF_Update(target_measurement, X, P, 1., noise_est)
+    next_est_target_xy, X, P = EKF_Predict(X, P, dt=1.)
+
+    # Uses new estimate to predict the next estimated target location
+    hunter_to_xy = next_est_target_xy # works if target will be within range
+    dist_to_target = distance_between(next_est_target_xy, hunter_position)
+    X_next, P_next = X.copy(), P.copy()
+
+    for D in range(int(dist_to_target / (max_distance))):
+        # to catch target, look ahead D moves and go that way
+        # Don't update P since we have no real information to update with
+        hunter_to_xy, X_next, _ = EKF_Predict(X_next, P_next, 1.)
+    turning = angle_trunc(get_heading(hunter_position, hunter_to_xy) - hunter_heading)
+    distance = min(dist_to_target, max_distance)
+    OTHER = next_est_target_xy, X, P
+    return turning, distance, OTHER
+
 
 
 def EKF_Example():
@@ -233,10 +202,10 @@ def EKF_Example():
     for i in range(100):
         measurement = [random.gauss(float(i), meas_sigma),
                        random.gauss(float(2*i), meas_sigma)]
-        estimate, X, P = EKF_Measurement(measurement, X, P, 1., noise_est)
+        estimate, X, P = EKF_Update(measurement, X, P, 1., noise_est)
         xmot.append(estimate[0])
         ymot.append(estimate[1])
-        estimate, X, P = EKF_Motion(X, P, 1.)
+        estimate, X, P = EKF_Predict(X, P, 1.)
         xmeas.append(estimate[0])
         ymeas.append(estimate[1])
         sum_error += sqrt((float(i)-estimate[0])**2+(float(2*i)-estimate[1])**2)
@@ -305,7 +274,7 @@ def turtle_demo(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.showturtle()
     measuredbroken_robot = turtle.Turtle()
     measuredbroken_robot.shape('circle')
-    measuredbroken_robot.color('red')
+    measuredbroken_robot.color('yellow')
     measuredbroken_robot.penup()
     measuredbroken_robot.resizemode('user')
     measuredbroken_robot.shapesize(0.1, 0.1, 0.1)
@@ -316,7 +285,7 @@ def turtle_demo(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     EKF_broken_robot.resizemode('user')
     EKF_broken_robot.shapesize(0.1, 0.1, 0.1)
     broken_robot.pendown()
-    chaser_robot.pendown()
+    chaser_robot.penup()
     EKF_broken_robot.pendown()
     #End of Visualization
     # We will use your next_move_fcn until we catch the target or time expires.
@@ -327,7 +296,7 @@ def turtle_demo(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         target_position = (target_bot.x, target_bot.y)
         separation = distance_between(hunter_position, target_position)
         min_sep = min(min_sep,separation)
-        print 'step: %5d, separation: %5f, min sep: %5f' % (ctr, separation, min_sep)
+        #print 'step: %5d, separation: %5f, min sep: %5f' % (ctr, separation, min_sep)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."
             caught = True

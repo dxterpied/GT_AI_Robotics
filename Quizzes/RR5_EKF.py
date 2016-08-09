@@ -22,9 +22,9 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         last_est_xy = None #target_measurement[:]
         X = None
         P = None
-        OTHER = [X, P]
+        OTHER = last_est_xy, X, P
     else: # not the first time, update my history
-        X, P = OTHER
+        last_est_xy, X, P = OTHER
 
     est_target_xy, X, P = EKF_Measurement(target_measurement, X, P, 1., noise_est)
 
@@ -43,7 +43,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
 
     turning = angle_trunc(get_heading(hunter_position, hunter_to_xy) - hunter_heading)
     distance = min(dist_to_target, max_distance)
-    OTHER = [X, P]
+    OTHER = next_est_target_xy, X, P
     return turning, distance, OTHER
 
 
@@ -334,10 +334,10 @@ def turtle_demo(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
 
-        #measured_estimate = OTHER[0]
-        # EKF_broken_robot.setheading(target_bot.heading*180/pi)
-        # EKF_broken_robot.goto(measured_estimate[0]*size_multiplier, measured_estimate[1]*size_multiplier-100)
-        # EKF_broken_robot.stamp()
+        measured_estimate = OTHER[0]
+        EKF_broken_robot.setheading(target_bot.heading*180/pi)
+        EKF_broken_robot.goto(measured_estimate[0]*size_multiplier, measured_estimate[1]*size_multiplier-100)
+        EKF_broken_robot.stamp()
         measuredbroken_robot.setheading(target_bot.heading*180/pi)
         measuredbroken_robot.goto(target_measurement[0]*size_multiplier, target_measurement[1]*size_multiplier-100)
         measuredbroken_robot.stamp()

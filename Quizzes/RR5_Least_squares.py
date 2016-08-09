@@ -235,12 +235,10 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # get estimated turning and total angle traveled from measured start
             turning, totalAngle = getTurnAngle(measurements, rotationSign, xc, yc)
 
-
             # get estimated position
             estimated_x = xc + radius * cos(totalAngle)
             estimated_y = yc + radius * sin(totalAngle)
             xy_estimate = estimated_x, estimated_y
-
 
             bumblebee.clearstamp(bumblebee_handle)
             bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)

@@ -35,7 +35,7 @@ def h_cv(x):
 
 points = MerweScaledSigmaPoints(n=4, alpha=.1, beta=2., kappa=-1)
 
-exit()
+
 ukf = UKF(dim_x=4, dim_z=2, fx=f_cv, hx=h_cv, dt=dt, points=points)
 
 ukf.x = np.array([0., 0., 0., 0.])

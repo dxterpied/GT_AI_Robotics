@@ -278,6 +278,7 @@ def fx(x, dt, turning):
 
 
 def Hx(x):
+    print "x", x
     result = x[0], x[1] , x[2] # x, y, heading
     return result
 
@@ -539,6 +540,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
                     ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
                     z = [estimated_x, estimated_y, angle]
+                    print "z", z
                     ukf.update(z)
 
                     # get new estimated measurements based on the predicted turn angle and distance (not actual measurements)

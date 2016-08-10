@@ -400,7 +400,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                           residual_x= residual_x, residual_z= residual_h)
 
                 ukf.x = np.array([target_measurement[0], target_measurement[1], headingAngle2])
-                ukf.P = np.diag([1., 1., 1.])
+                ukf.P = np.diag([.9, .9, .9])
                 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
                 ukf.Q = np.diag([1., 1., 1.])  # Q must not be zeroes!!! .001 is the best for this case
 

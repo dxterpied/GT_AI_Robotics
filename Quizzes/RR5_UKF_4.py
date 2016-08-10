@@ -10,6 +10,7 @@ from filterpy.kalman import unscented_transform
 from filterpy.common import dot3
 from numpy import *
 from filterpy.kalman import UnscentedKalmanFilter as UKF
+import random
 
 # attempts to solve RR5 using UKF from KalmanPy
 # based on RR4_UKF.py ---------------------------------------
@@ -50,15 +51,14 @@ def normalize_angle(x):
 
 # state transition function
 def fx(x, dt, distance, turning):
-    previousHeading = x[2]
-    heading = previousHeading + turning
+    heading = x[2] + turning
     x1 = x[0] + distance * cos(heading)
     y1 = x[1] + distance * sin(heading)
     state = [x1, y1, heading]
     return state
 
 
-def Hx(x, z):
+def Hx(x):
 
     # what is x????
     # x is self.sigmas_f[i]. self.sigmas_f contains
@@ -67,13 +67,13 @@ def Hx(x, z):
 
     # error if returning z: numpy.linalg.linalg.LinAlgError: 3-th leading minor not positive definite
     #return z[0], z[1], z[2]
-
-    return x
+    return (random.gauss(x[0], 2.), random.gauss(x[1], 2.))
+    #return x
 
 
 def residual_h(a, b):
     y = a - b
-    for i in range(0, len(y), 3):
+    for i in range(0, len(y), 2):
         y[i + 1] = normalize_angle(y[i + 1])
     return y
 
@@ -86,36 +86,26 @@ def residual_x(a, b):
 
 # sigmas here has three columns - for x, y, and heading
 def state_mean(sigmas, Wm):
-    x = np.zeros(sigmas.shape[1])
+    x = np.zeros(3)
 
-    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
-    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
-
-    sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
-    sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
+    sum_sin = np.sum(np.dot(np.sin(sigmas[:, 2]), Wm))
+    sum_cos = np.sum(np.dot(np.cos(sigmas[:, 2]), Wm))
+    x[0] = np.sum(np.dot(sigmas[:, 0], Wm))
+    x[1] = np.sum(np.dot(sigmas[:, 1], Wm))
     x[2] = atan2(sum_sin, sum_cos)
-
     return x
 
 
-# sigmas here has two columns - one for x and one for y
 def z_mean(sigmas, Wm):
-    x = np.zeros(sigmas.shape[1])
+    z_count = sigmas.shape[1]
+    x = np.zeros(z_count)
 
-    # for z in range(0, z_count, 2):
-    #     sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
-    #     sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
-    #
-    #     x[z] = np.sum(np.dot(sigmas[:,z], Wm))
-    #     x[z+1] = atan2(sum_sin, sum_cos)
+    for z in range(0, z_count, 2):
+        sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
+        sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
 
-    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
-    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
-
-    sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
-    sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
-    x[2] = atan2(sum_sin, sum_cos)
-
+        x[z] = np.sum(np.dot(sigmas[:,z], Wm))
+        x[z+1] = atan2(sum_sin, sum_cos)
     return x
 
 
@@ -152,6 +142,18 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     else:
         distances, angles, coords, xy_estimate, steps, turnAngle, ukf= OTHER
 
+        if ukf is None:
+            points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+            ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
+                      dt=1.0, points=points, x_mean_fn=state_mean,
+                      z_mean_fn=z_mean, residual_x=residual_x,
+                      residual_z=residual_h)
+
+            ukf.x = np.array([target_measurement[0], target_measurement[1], 0.0])
+            ukf.P = np.diag([.9, .9, .9])
+            ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+            ukf.Q = np.eye(3) * 0.0001  # Q must not be zeroes!!! .001 is the best for this case
+
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
@@ -183,38 +185,26 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            if ukf is None:
-                points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
 
-                ukf = UKF(dim_x = 3, dim_z = 3, dt=1., fx=fx, hx=Hx, points=points,
-                          x_mean_fn=state_mean, z_mean_fn=z_mean,
-                          residual_x= residual_x, residual_z= residual_h)
-
-                #ukf.x = np.array([target_measurement[0], target_measurement[1], headingAngle2])
-                ukf.x = np.array([0.0, 15.0, 0.0]) # actual
-                ukf.P = np.diag([.9, .9, .9])
-                ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
-                ukf.Q = np.diag([1., 1., 1.])  # Q must not be zeroes!!! .001 is the best for this case
-
-
-            #ukf.predict(dt = 1., fx_args = (avgDT, rotationSign * avgAngle))
             ukf.predict(dt = 1., fx_args = (1.5, 2*pi / 30))
-            z = [target_measurement[0], target_measurement[1], headingAngle2]
-            ukf.update(z, hx_args=z)
+            z = target_measurement[0], target_measurement[1]
+            ukf.update(z)
+            xy_estimate = ukf.x[0], ukf.x[1]
+            #print "after update", ukf.x[0], ukf.x[1], ukf.x[2]
 
-            newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
-            newR.move_in_circle()
-            predictedPosition = newR.x, newR.y
-            xy_estimate = newR.x, newR.y
-
-            steps = 1
-            while True:
-                # check how many steps it will take to get there for Hunter
-                if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
-                    break
-                steps += 1
-                newR.move_in_circle()
-                xy_estimate = newR.x, newR.y
+            # newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
+            # newR.move_in_circle()
+            # predictedPosition = newR.x, newR.y
+            # xy_estimate = newR.x, newR.y
+            #
+            # steps = 1
+            # while True:
+            #     # check how many steps it will take to get there for Hunter
+            #     if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+            #         break
+            #     steps += 1
+            #     newR.move_in_circle()
+            #     xy_estimate = newR.x, newR.y
 
 
     coords.append(target_measurement)
@@ -346,7 +336,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     #End of Visualization
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 31:
+    while not caught and ctr < 1000:
 
         # if ctr >= 43:
         #     #time.sleep(0.5)
@@ -396,10 +386,10 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         if ctr >= 1000:
             print "It took too many steps to catch the target."
 
-    print x
-    print y
-    print x_actual
-    print y_actual
+    # print x
+    # print y
+    # print x_actual
+    # print y_actual
     return caught
 
 

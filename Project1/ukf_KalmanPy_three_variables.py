@@ -7,7 +7,10 @@ import turtle
 import random
 from robot import *
 
-# using 3 variables here, not one; this does not work as supposed.....
+# using 3 variables here for x (state) - [x1, y1, heading]
+# this works until measurement noise starts going greater than 0.2 * target.distance
+# approximately after noise exceeds 0.2, it fails to converge
+
 
 turtle.setup(800, 800)
 window = turtle.Screen()
@@ -27,7 +30,7 @@ measured_robot.shapesize(0.2, 0.2, 0.2)
 
 
 target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
-measurement_noise = 2.0 * target.distance
+measurement_noise = 0.1 * target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -5.0, 0.0)
 
@@ -40,17 +43,16 @@ def normalize_angle(x):
 
 
 # x are sigma points
-def fx(x, dt, distance, turning):
-    heading = x[2] + turning
-    x1 = x[0] + distance * cos(heading)
-    y1 = x[1] + distance * sin(heading)
+def fx(sigmas, dt, distance, turning):
+    heading = sigmas[2] + turning
+    x1 = sigmas[0] + distance * cos(heading)
+    y1 = sigmas[1] + distance * sin(heading)
     state = [x1, y1, heading]
     return state
 
 
-# x are sigma points
-def Hx(x):
-    return x[0], x[1]
+def Hx(sigmas):
+    return sigmas[0], sigmas[1]
 
 
 def residual_h(a, b):
@@ -77,7 +79,7 @@ def state_mean(sigmas, Wm):
     x[2] = atan2(sum_sin, sum_cos)
     return x
 
-# this could be incorrect for this problem
+# sigmas here has two columns - one for x and one for y
 def z_mean(sigmas, Wm):
     z_count = sigmas.shape[1]
     x = np.zeros(z_count)
@@ -110,14 +112,14 @@ ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
 ukf.x = np.array([target_measurement[0], target_measurement[1], 0.0]) # actual
 ukf.P = np.diag([.9, .9, .9])
 ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
-ukf.Q = np.eye(3) * 0.0001  # Q must not be zeroes!!! .001 is the best for this case
+ukf.Q = np.eye(3) * 0.001  # Q must not be zeroes!!! .001 is the best for this case
 
 state = ukf.x.copy()
 size_multiplier = 20
 
 for i in range(300):
 
-    ukf.predict(dt = 1., fx_args = (1.5, 2*pi / 30))
+    ukf.predict(dt = 1., fx_args = (1.5, turning))
     z = target_measurement[0], target_measurement[1]
     ukf.update(z)
 

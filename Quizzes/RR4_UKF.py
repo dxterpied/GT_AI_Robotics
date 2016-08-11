@@ -261,18 +261,17 @@ def normalize_angle(x):
     return x
 
 # state transition function
-def fx(x, dt, turning):
+def fx(x, distance, turning):
     previousHeading = x[2]
     heading = previousHeading + turning
-    x1 = x[0] + dt * cos(heading)
-    y1 = x[1] + dt * sin(heading)
+    x1 = x[0] + distance * cos(heading)
+    y1 = x[1] + distance * sin(heading)
     state = [x1, y1, heading]
     return state
 
 
-def Hx(x):
-    result = x[0], x[1] , x[2] # x, y, heading
-    return result
+def Hx(sigmas):
+    return sigmas[0], sigmas[1] # x, y
 
 
 def residual_h(a, b):
@@ -291,35 +290,33 @@ def residual_x(a, b):
 # sigmas here has three columns - for x, y, and heading
 def state_mean(sigmas, Wm):
     x = np.zeros(sigmas.shape[1])
-
-    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
-    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
-
     sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
     sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
+    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
+    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
     x[2] = atan2(sum_sin, sum_cos)
-
     return x
 
 
 # sigmas here has two columns - one for x and one for y
 def z_mean(sigmas, Wm):
-    x = np.zeros(sigmas.shape[1])
+    # x = np.zeros(sigmas.shape[1])
+    # x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
+    # x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
+    # sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
+    # sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
+    # x[2] = atan2(sum_sin, sum_cos)
+    # return x
 
-    # for z in range(0, z_count, 2):
-    #     sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
-    #     sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
-    #
-    #     x[z] = np.sum(np.dot(sigmas[:,z], Wm))
-    #     x[z+1] = atan2(sum_sin, sum_cos)
+    z_count = sigmas.shape[1]
+    x = np.zeros(z_count)
 
-    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
-    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
+    for z in range(0, z_count, 2):
+        sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
+        sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
 
-    sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
-    sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
-    x[2] = atan2(sum_sin, sum_cos)
-
+        x[z] = np.sum(np.dot(sigmas[:,z], Wm))
+        x[z+1] = atan2(sum_sin, sum_cos)
     return x
 
 
@@ -356,6 +353,16 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
     else:
         distances, angles, coords, xy_estimate, steps, turnAngle, ukf = OTHER
 
+        if ukf is None: # initialize UKF object for the first time
+            points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+            ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx, points=points,
+                      x_mean_fn=state_mean, z_mean_fn=z_mean,
+                      residual_x= residual_x, residual_z= residual_h)
+            ukf.x = np.array([target_measurement[0], target_measurement[1], 0.])
+            ukf.P = np.diag([.1, .1, .1])
+            ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+            ukf.Q = np.diag([.001, .001, .001])  # Q must not be zeroes!!! .001 is the best for this case
+
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
             distances.append(hypotenuse1)
@@ -387,21 +394,8 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             avgDT = sum(distances)/len(distances)
             avgAngle = sum(angles)/len(angles)
 
-            if ukf is None:
-                points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
-
-                ukf = UKF(dim_x = 3, dim_z = 3, fx=fx, hx=Hx, points=points,
-                          x_mean_fn=state_mean, z_mean_fn=z_mean,
-                          residual_x= residual_x, residual_z= residual_h)
-
-                ukf.x = np.array([target_measurement[0], target_measurement[1], headingAngle2])
-                ukf.P = np.diag([.1, .1, .1])
-                ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
-                ukf.Q = np.diag([.001, .001, .001])  # Q must not be zeroes!!! .001 is the best for this case
-
-
             ukf.predict(dt = avgDT, fx_args = rotationSign * avgAngle)
-            z = [target_measurement[0], target_measurement[1], headingAngle2]
+            z = [target_measurement[0], target_measurement[1]]
             ukf.update(z)
 
             newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
@@ -410,7 +404,6 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             xy_estimate = newR.x, newR.y
 
             steps = 1
-
             while True:
                 # check if hunter can catch target in straight line and calculate that point
                 if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
@@ -601,7 +594,7 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 # fails = 0
 # for i in range(1000):
 #     print i
-#     target = robot(0.0, 0.0, 0.0, -2*pi / 30, 1.5)
+#     target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
 #     target.set_noise(0.0, 0.0, measurement_noise)
 #     hunter = robot(-10.0, -20.0, 0.0)
 #     score = demo_grading(hunter, target, next_move_straight_line)

@@ -58,7 +58,7 @@ def fx(x, dt, distance, turning):
     return state
 
 
-def Hx(x):
+def Hx(sigmas):
 
     # what is x????
     # x is self.sigmas_f[i]. self.sigmas_f contains
@@ -67,8 +67,8 @@ def Hx(x):
 
     # error if returning z: numpy.linalg.linalg.LinAlgError: 3-th leading minor not positive definite
     #return z[0], z[1], z[2]
-    return (random.gauss(x[0], 2.), random.gauss(x[1], 2.))
-    #return x
+    #return (random.gauss(x[0], 2.), random.gauss(x[1], 2.))
+    return sigmas[0], sigmas[1]
 
 
 def residual_h(a, b):
@@ -87,7 +87,6 @@ def residual_x(a, b):
 # sigmas here has three columns - for x, y, and heading
 def state_mean(sigmas, Wm):
     x = np.zeros(3)
-
     sum_sin = np.sum(np.dot(np.sin(sigmas[:, 2]), Wm))
     sum_cos = np.sum(np.dot(np.cos(sigmas[:, 2]), Wm))
     x[0] = np.sum(np.dot(sigmas[:, 0], Wm))

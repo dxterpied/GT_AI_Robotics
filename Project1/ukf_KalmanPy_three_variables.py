@@ -30,7 +30,7 @@ measured_robot.shapesize(0.2, 0.2, 0.2)
 
 
 target = robot(0.0, 15.0, 0.0, 2*pi / 30, 1.5)
-measurement_noise = 0.1 * target.distance
+measurement_noise = 2 * target.distance
 target.set_noise(0.0, 0.0, measurement_noise)
 hunter = robot(-10.0, -5.0, 0.0)
 
@@ -95,8 +95,7 @@ def z_mean(sigmas, Wm):
 
 dt = 1.0
 turning = 2 * np.pi / 30
-sigma_vel=0.1
-sigma_steer= np.radians(1)
+
 sigma_range= 0.3
 sigma_bearing=0.1
 
@@ -111,7 +110,8 @@ ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,
 
 ukf.x = np.array([target_measurement[0], target_measurement[1], 0.0]) # actual
 ukf.P = np.diag([.9, .9, .9])
-ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+# ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+ukf.R = np.diag( [5., 5.] )
 ukf.Q = np.eye(3) * 0.001  # Q must not be zeroes!!! .001 is the best for this case
 
 state = ukf.x.copy()

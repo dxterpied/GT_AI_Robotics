@@ -268,24 +268,21 @@ def normalize_angle(x):
     return x
 
 # state transition function
-def fx(x, dt, turning):
-    previousHeading = x[2]
-    heading = previousHeading + turning
-    x1 = x[0] + dt * cos(heading)
-    y1 = x[1] + dt * sin(heading)
+def fx(x, dt, distance, turning):
+    heading = x[2] + turning
+    x1 = x[0] + distance * cos(heading)
+    y1 = x[1] + distance * sin(heading)
     state = [x1, y1, heading]
     return state
 
 
-def Hx(x):
-    print "x", x
-    result = x[0], x[1] , x[2] # x, y, heading
-    return result
+def Hx(sigmas):
+    return sigmas[0], sigmas[1]
 
 
 def residual_h(a, b):
     y = a - b
-    for i in range(0, len(y), 3):
+    for i in range(0, len(y), 2):
         y[i + 1] = normalize_angle(y[i + 1])
     return y
 
@@ -298,38 +295,26 @@ def residual_x(a, b):
 
 # sigmas here has three columns - for x, y, and heading
 def state_mean(sigmas, Wm):
-    x = np.zeros(sigmas.shape[1])
-
-    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
-    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
-
-    sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
-    sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
+    x = np.zeros(3)
+    sum_sin = np.sum(np.dot(np.sin(sigmas[:, 2]), Wm))
+    sum_cos = np.sum(np.dot(np.cos(sigmas[:, 2]), Wm))
+    x[0] = np.sum(np.dot(sigmas[:, 0], Wm))
+    x[1] = np.sum(np.dot(sigmas[:, 1], Wm))
     x[2] = atan2(sum_sin, sum_cos)
-
     return x
 
 
-# sigmas here has two columns - one for x and one for y
 def z_mean(sigmas, Wm):
-    x = np.zeros(sigmas.shape[1])
+    z_count = sigmas.shape[1]
+    x = np.zeros(z_count)
 
-    # for z in range(0, z_count, 2):
-    #     sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
-    #     sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
-    #
-    #     x[z] = np.sum(np.dot(sigmas[:,z], Wm))
-    #     x[z+1] = atan2(sum_sin, sum_cos)
+    for z in range(0, z_count, 2):
+        sum_sin = np.sum(np.dot(np.sin(sigmas[:, z+1]), Wm))
+        sum_cos = np.sum(np.dot(np.cos(sigmas[:, z+1]), Wm))
 
-    x[0] = np.sum( np.dot(sigmas[:, 0], Wm) )
-    x[1] = np.sum( np.dot(sigmas[:, 1], Wm) )
-
-    sum_sin = np.sum( np.dot( np.sin(sigmas[:, 2] ), Wm) )
-    sum_cos = np.sum( np.dot( np.cos(sigmas[:, 2] ), Wm) )
-    x[2] = atan2(sum_sin, sum_cos)
-
+        x[z] = np.sum(np.dot(sigmas[:,z], Wm))
+        x[z+1] = atan2(sum_sin, sum_cos)
     return x
-
 
 # cross product
 def calculateRotationDirection(Ax, Ay, Bx, By, Cx, Cy):
@@ -526,21 +511,33 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 estimated_x = xc + radius * cos(angle)
                 estimated_y = yc + radius * sin(angle)
 
+
                 points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
-                ukf = UKF(dim_x = 3, dim_z = 3, fx=fx, hx=Hx, points=points,
-                          x_mean_fn=state_mean, z_mean_fn=z_mean,
-                          residual_x= residual_x, residual_z= residual_h)
-                ukf.x = np.array([estimated_x, estimated_y, angle])
-                ukf.P = np.diag([1., 1., 1.])
-                ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
-                ukf.Q = np.diag([1., 1., 1.])  # Q must not be zeroes!!! .001 is the best for this case
+                ukf = UKF(dim_x = 3, dim_z = 2, fx=fx, hx=Hx,points=points, x_mean_fn=state_mean,
+                          z_mean_fn=z_mean, residual_x=residual_x,
+                          residual_z=residual_h)
+
+                ukf.x = np.array([target_measurement[0], target_measurement[1], 0.0])
+                ukf.P = np.diag([.9, .9, .9])
+                # ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+                ukf.R = np.diag( [5., 5.] )
+                ukf.Q = np.eye(3) * 0.001  # Q must not be zeroes!!! .001 is the best for this case
+
+                # points = MerweScaledSigmaPoints(n=3, alpha=.00001, beta=2, kappa=0, subtract=residual_x)
+                # ukf = UKF(dim_x = 3, dim_z = 3, fx=fx, hx=Hx, points=points,
+                #           x_mean_fn=state_mean, z_mean_fn=z_mean,
+                #           residual_x= residual_x, residual_z= residual_h)
+                # ukf.x = np.array([estimated_x, estimated_y, angle])
+                # ukf.P = np.diag([1., 1., 1.])
+                # ukf.R = np.diag( [sigma_range**2, sigma_bearing**2, 3.] )
+                # ukf.Q = np.diag([1., 1., 1.])  # Q must not be zeroes!!! .001 is the best for this case
 
                 # now, advance this for the number of skipped steps to catch up the estimations
                 for i in range(numberOfSkippedSteps):
 
-                    ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
-                    z = [estimated_x, estimated_y, angle]
-                    print "z", z
+                    ukf.predict(dt = 1.0, fx_args = (avgDT, rotationSign * turning))
+                    # z = [estimated_x, estimated_y, angle]
+                    z = x[i], y[i]
                     ukf.update(z)
 
                     # get new estimated measurements based on the predicted turn angle and distance (not actual measurements)
@@ -554,8 +551,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 estimated_x = xc + radius * cos(angle)
                 estimated_y = yc + radius * sin(angle)
 
-                ukf.predict(dt = avgDT, fx_args = rotationSign * turning)
-                z = [estimated_x, estimated_y, angle]
+                ukf.predict(dt = 1.0, fx_args = (avgDT, rotationSign * turning))
+                # z = [estimated_x, estimated_y, angle]
+                z = target_measurement[0], target_measurement[1]
                 ukf.update(z)
 
             newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * turning, avgDT)

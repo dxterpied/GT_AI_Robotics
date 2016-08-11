@@ -59,15 +59,6 @@ def fx(x, dt, distance, turning):
 
 
 def Hx(sigmas):
-
-    # what is x????
-    # x is self.sigmas_f[i]. self.sigmas_f contains
-
-    #result = x[0], x[1] , x[2] # x, y, heading
-
-    # error if returning z: numpy.linalg.linalg.LinAlgError: 3-th leading minor not positive definite
-    #return z[0], z[1], z[2]
-    #return (random.gauss(x[0], 2.), random.gauss(x[1], 2.))
     return sigmas[0], sigmas[1]
 
 
@@ -150,8 +141,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             ukf.x = np.array([target_measurement[0], target_measurement[1], 0.0])
             ukf.P = np.diag([.9, .9, .9])
-            ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
-            ukf.Q = np.eye(3) * 0.0001  # Q must not be zeroes!!! .001 is the best for this case
+            # ukf.R = np.diag( [sigma_range**2, sigma_bearing**2] )
+            ukf.R = np.diag( [5., 5.] )
+            ukf.Q = np.eye(3) * 0.001  # Q must not be zeroes!!! .001 is the best for this case
 
         if len(coords) == 1:
             hypotenuse1 = distance_between(coords[0], target_measurement)
@@ -191,19 +183,19 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             xy_estimate = ukf.x[0], ukf.x[1]
             #print "after update", ukf.x[0], ukf.x[1], ukf.x[2]
 
-            # newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
-            # newR.move_in_circle()
-            # predictedPosition = newR.x, newR.y
-            # xy_estimate = newR.x, newR.y
-            #
-            # steps = 1
-            # while True:
-            #     # check how many steps it will take to get there for Hunter
-            #     if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
-            #         break
-            #     steps += 1
-            #     newR.move_in_circle()
-            #     xy_estimate = newR.x, newR.y
+            newR = robot(ukf.x[0], ukf.x[1], ukf.x[2], rotationSign * avgAngle, avgDT)
+            newR.move_in_circle()
+            predictedPosition = newR.x, newR.y
+            xy_estimate = newR.x, newR.y
+
+            steps = 1
+            while True:
+                # check how many steps it will take to get there for Hunter
+                if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
+                    break
+                steps += 1
+                newR.move_in_circle()
+                xy_estimate = newR.x, newR.y
 
 
     coords.append(target_measurement)
@@ -326,13 +318,15 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.resizemode('user')
     broken_robot.shapesize(0.2, 0.2, 0.2)
     prediction = turtle.Turtle()
-    prediction.shape('arrow')
+    prediction.shape('circle')
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
     #prediction.penup()
-    broken_robot.penup()
+    #broken_robot.penup()
     #End of Visualization
+    broken_handle = 0.
+    prediction_handle = 0.
 
     # We will use your next_move_fcn until we catch the target or time expires.
     while not caught and ctr < 1000:
@@ -374,12 +368,13 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # The target continues its (nearly) circular motion.
         target_bot.move_in_circle()
 
-        broken_robot.setheading(target_bot.heading*180/pi)
+        broken_robot.clearstamp(broken_handle)
         broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
-        broken_robot.stamp()
-        prediction.setheading(target_bot.heading*180/pi)
+        broken_handle = broken_robot.stamp()
+
+        prediction.clearstamp(prediction_handle)
         prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-        prediction.stamp()
+        prediction_handle = prediction.stamp()
 
         ctr += 1
         if ctr >= 1000:

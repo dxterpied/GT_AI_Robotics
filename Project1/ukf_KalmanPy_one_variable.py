@@ -123,31 +123,58 @@ ukf.Q = np.eye(3) * 0.0001
 state = ukf.x.copy()
 size_multiplier = 20
 
-for i in range(1, len(x)):
+# actual center: -0.75, 22.1357733407
+# actual radius: 7.17507917513
+
+average_x = sum(x_actual[:4]) / 4
+average_y = sum(y_actual[:4]) / 4
+
+# print "average_x", average_x, "average_y", average_y
+
+
+xc = -0.75
+yc = 22.1357733407
+radius = 7.17507917513
+
+xcDelta = average_x - xc
+ycDelta = average_y - yc
+angle = atan2(ycDelta, xcDelta)
+estimated_x = xc + radius * cos(angle)
+estimated_y = yc + radius * sin(angle)
+
+measured_robot.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+measured_robot.stamp()
+
+
+#for i in range(1, len(x)):
+for i in range(4):
 
     state = x_actual[i], y_actual[i]
+
+
+
     #state = move(state, dt, turning)
 
     ukf.predict(dt = 1., fx_args = (1.5, 2*pi / 30))
 
-    print "after predict", ukf.x[0], ukf.x[1]
+    #print "after predict", ukf.x[0], ukf.x[1]
 
     #z = sense(state)
     z = x[i], y[i]
     # z = x[i], y[i]
     ukf.update(z)
 
-    print "after update", ukf.x[0], ukf.x[1], "actual", state
+    #print "after update", ukf.x[0], ukf.x[1], "actual", state
 
 
-    measured_robot.goto(x[i] * size_multiplier, y[i] * size_multiplier - 200)
-    measured_robot.stamp()
+    # measured_robot.goto(x[i] * size_multiplier, y[i] * size_multiplier - 200)
+    # measured_robot.stamp()
 
     target_robot.goto(state[0] * size_multiplier, state[1] * size_multiplier - 200)
     target_robot.stamp()
 
-    predicted_robot.goto(ukf.x[0] * size_multiplier, ukf.x[1] * size_multiplier - 200)
-    predicted_robot.stamp()
+    # predicted_robot.goto(ukf.x[0] * size_multiplier, ukf.x[1] * size_multiplier - 200)
+    # predicted_robot.stamp()
 
 
 turtle.getscreen()._root.mainloop()

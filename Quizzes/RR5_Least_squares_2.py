@@ -7,7 +7,8 @@ import random
 
 # Ilya:
 # this one uses circular regression.
-# This is an extension of RR5_Least_squares.py with the new idea of averaging totalAngle in getTurnAngle()
+# This is an extension of RR5_Least_squares.py with the new idea of averaging the initial heading angle in getTurnAngle()
+# still needs work; not done yet
 
 size_multiplier = 25.
 target = robot(0.0, 0.0, 0.0, 2*pi / 30, 1.5)
@@ -130,23 +131,19 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
     #print "average_angle", average_angle # angle prediction is pretty accurate: ~0.20
 
     # average the first three headings; this will be the initial heading angle
+
     totalAngle = sum(total_angles[:3]) / 3. # initial averaged heading
+    #print "\tInitial heading", totalAngle, total_angles[:3]
 
     # calculate the destination angle starting from the first averaged angle
     for i in range(len(measurements)):
         totalAngle += abs(average_angle)
 
-    # average the first three angles
-    #print total_angles[0:len(total_angles) - 1]
+    #print "totalAngle", totalAngle
 
-    #print "total_angles", total_angles
-    #print totalAngle
 
-    #exit()
-
-    #print "totalAngle", angle_trunc(totalAngle), angle_trunc(temp)
-
-    return average_angle, angle_trunc(totalAngle)
+    #return average_angle, angle_trunc(totalAngle)
+    return average_angle, totalAngle
 
 
 # calculate the average turn angle
@@ -252,14 +249,16 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # get estimated turning and total angle traveled from measured start
             turning, totalAngle = getTurnAngle(measurements, rotationSign, xc, yc)
 
+            print "totalAngle", totalAngle
+
             # get estimated position
             estimated_x = xc + radius * cos(totalAngle)
             estimated_y = yc + radius * sin(totalAngle)
             xy_estimate = estimated_x, estimated_y
 
-            # bumblebee.clearstamp(bumblebee_handle)
-            # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
-            # bumblebee_handle = bumblebee.stamp()
+            bumblebee.clearstamp(bumblebee_handle)
+            bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
+            bumblebee_handle = bumblebee.stamp()
             hunterbee.clearstamp(hunterbee_handle)
             hunterbee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
             hunterbee_handle = hunterbee.stamp()

@@ -128,7 +128,7 @@ def getTurnAngle(measurements, rotationSign, xc, yc):
 
     # this is the average turning angle
     average_angle = abs(totalAngle / len(measurements))
-    #print "average_angle", average_angle # angle prediction is pretty accurate: ~0.20
+    print "average_angle", average_angle # angle prediction is pretty accurate: ~0.20
 
     # average the first three headings; this will be the initial heading angle
 
@@ -458,7 +458,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
 # scores = []

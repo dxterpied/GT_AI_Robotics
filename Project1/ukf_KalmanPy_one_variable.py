@@ -147,7 +147,7 @@ measured_robot.stamp()
 
 
 #for i in range(1, len(x)):
-for i in range(4):
+for i in range(30):
 
     state = x_actual[i], y_actual[i]
 
@@ -167,8 +167,8 @@ for i in range(4):
     #print "after update", ukf.x[0], ukf.x[1], "actual", state
 
 
-    # measured_robot.goto(x[i] * size_multiplier, y[i] * size_multiplier - 200)
-    # measured_robot.stamp()
+    measured_robot.goto(x[i] * size_multiplier, y[i] * size_multiplier - 200)
+    measured_robot.stamp()
 
     target_robot.goto(state[0] * size_multiplier, state[1] * size_multiplier - 200)
     target_robot.stamp()

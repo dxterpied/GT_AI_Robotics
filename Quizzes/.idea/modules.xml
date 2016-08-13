@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$USER_HOME$/Downloads/AI_Robotics_FinalProject-master/.idea/AI_Robotics_FinalProject-master.iml" filepath="$USER_HOME$/Downloads/AI_Robotics_FinalProject-master/.idea/AI_Robotics_FinalProject-master.iml" />
+      <module fileurl="file://$USER_HOME$/Kalman/.idea/Kalman.iml" filepath="$USER_HOME$/Kalman/.idea/Kalman.iml" />
       <module fileurl="file://$PROJECT_DIR$/../ProblemSets/.idea/ProblemSets.iml" filepath="$PROJECT_DIR$/../ProblemSets/.idea/ProblemSets.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Project1/.idea/Project1.iml" filepath="$PROJECT_DIR$/../Project1/.idea/Project1.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/Quizzes.iml" filepath="$PROJECT_DIR$/.idea/Quizzes.iml" />

@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/../Quizzes/RR4.py" line="627" mnemonic="4" />
+    <bookmark url="file://$PROJECT_DIR$/../Quizzes/RR4.py" line="529" mnemonic="4" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3f50a319-9b9c-476e-9fd6-c80aacbd1cde" name="Default" comment="saving">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Quizzes/test.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/EV3.iml" afterPath="$PROJECT_DIR$/.idea/EV3.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../ProblemSets/.idea/ProblemSets.iml" afterPath="$PROJECT_DIR$/../ProblemSets/.idea/ProblemSets.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Project1/.idea/Project1.iml" afterPath="$PROJECT_DIR$/../Project1/.idea/Project1.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Quizzes/.idea/Quizzes.iml" afterPath="$PROJECT_DIR$/../Quizzes/.idea/Quizzes.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Quizzes/.idea/modules.xml" afterPath="$PROJECT_DIR$/../Quizzes/.idea/modules.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Quizzes/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../Quizzes/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Quizzes/RR5.py" afterPath="$PROJECT_DIR$/../Quizzes/RR5.py" />
     </list>
     <ignored path="EV3.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -36,38 +30,33 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="RR5.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../Quizzes/RR5.py">
+      <file leaf-file-name="RR5_UKF_4.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_UKF_4.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="126" column="40" selection-start-line="126" selection-start-column="40" selection-end-line="126" selection-end-column="40" />
-              <folding>
-                <element signature="e#0#68#0" expanded="true" />
-              </folding>
+              <caret line="127" column="0" selection-start-line="127" selection-start-column="0" selection-end-line="127" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="robot.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../Quizzes/robot.py">
+      <file leaf-file-name="ukf_KalmanPy_one_variable.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy_one_variable.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="82" column="72" selection-start-line="82" selection-start-column="72" selection-end-line="82" selection-end-column="72" />
-              <folding>
-                <element signature="e#0#18#0" expanded="true" />
-                <marker date="1467412054000" expanded="true" signature="1287:1528" placeholder="..." />
-              </folding>
+            <state vertical-scroll-proportion="0.33544305">
+              <caret line="113" column="42" selection-start-line="113" selection-start-column="42" selection-end-line="113" selection-end-column="42" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/../Quizzes/test.py">
+      <file leaf-file-name="RR5_UKF.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_UKF.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="9.121622">
-              <caret line="352" column="0" selection-start-line="352" selection-start-column="0" selection-end-line="352" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="550" column="52" selection-start-line="550" selection-start-column="52" selection-end-line="550" selection-end-column="52" />
               <folding>
-                <element signature="e#439#458#0" expanded="true" />
+                <element signature="e#11485#13314#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -90,9 +79,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/infrared.py" />
-        <option value="$PROJECT_DIR$/../Quizzes/RR1.py" />
-        <option value="$PROJECT_DIR$/../Quizzes/particleFilterRobot1.py" />
         <option value="$PROJECT_DIR$/../Quizzes/particleFilterRobotParticles.py" />
         <option value="$PROJECT_DIR$/../Quizzes/particleFilterNewParticle.py" />
         <option value="$PROJECT_DIR$/../ProblemSets/ProblemSet2.py" />
@@ -129,6 +115,21 @@
         <option value="$PROJECT_DIR$/../Project1/kalman2_circlular_movement.py" />
         <option value="$PROJECT_DIR$/../Quizzes/RR5.py" />
         <option value="$PROJECT_DIR$/../Quizzes/test.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR5_UKF_2.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/run.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/least_squares.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR5_Least_squares.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR5_PF.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR5_UKF_3.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR4_UKF_2.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR5_EKF.py" />
+        <option value="$PROJECT_DIR$/../Project1/RR5_EKF.py" />
+        <option value="$PROJECT_DIR$/../Project1/RR4_EKF.py" />
+        <option value="$PROJECT_DIR$/../Project1/UKF.py" />
+        <option value="$PROJECT_DIR$/../Project1/ukf_KalmanPy_linear.py" />
+        <option value="$PROJECT_DIR$/../Project1/ukf_KalmanPy_one_variable.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR5_UKF_4.py" />
+        <option value="$PROJECT_DIR$/../Quizzes/RR5_UKF.py" />
       </list>
     </option>
   </component>
@@ -162,6 +163,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
@@ -177,13 +179,12 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Quizzes" />
+              <option name="myItemId" value="Project1" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -192,8 +193,129 @@
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="ToolWindowRun.ShowToolbar" value="false" />
   </component>
-  <component name="RunManager" selected="Python.test">
-    <configuration default="false" name="three_variable_Kalman" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/RR4_EKF.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/RR5_EKF.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Quizzes/RR5_Least_squares.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Quizzes/RR5_PF.py</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/Final_project_report1.pdf</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/Final_project_report2.pdf</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/Final_project_report3.pdf</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/Final_project_report4.pdf</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/temp.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/temp2.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Quizzes/RR5_PF_2.py</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/../Project1/report4.pdf</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
+  </component>
+  <component name="RunManager" selected="Python.ukf_KalmanPy_one_variable">
+    <configuration default="false" name="ukf_KalmanPy_1" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -205,12 +327,12 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="Project1" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/three_variable_Kalman.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/ukf_KalmanPy_1.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="kalman2_circlular_movement" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="ukf_KalmanPy" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -222,12 +344,12 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="Project1" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/kalman2_circlular_movement.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/ukf_KalmanPy.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="kalman2" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="ukf_KalmanPy_one_variable" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -239,12 +361,12 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="Project1" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/kalman2.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/ukf_KalmanPy_one_variable.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="RR5" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="RR5_UKF" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -256,12 +378,12 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="Quizzes" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Quizzes/RR5.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Quizzes/RR5_UKF.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="test" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="RR5_UKF_4" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -273,7 +395,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="Quizzes" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Quizzes/test.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Quizzes/RR5_UKF_4.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -401,19 +523,19 @@
       <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python.three_variable_Kalman" />
-      <item index="1" class="java.lang.String" itemvalue="Python.kalman2_circlular_movement" />
-      <item index="2" class="java.lang.String" itemvalue="Python.kalman2" />
-      <item index="3" class="java.lang.String" itemvalue="Python.RR5" />
-      <item index="4" class="java.lang.String" itemvalue="Python.test" />
+      <item index="0" class="java.lang.String" itemvalue="Python.ukf_KalmanPy_1" />
+      <item index="1" class="java.lang.String" itemvalue="Python.ukf_KalmanPy" />
+      <item index="2" class="java.lang.String" itemvalue="Python.ukf_KalmanPy_one_variable" />
+      <item index="3" class="java.lang.String" itemvalue="Python.RR5_UKF" />
+      <item index="4" class="java.lang.String" itemvalue="Python.RR5_UKF_4" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.test" />
-        <item index="1" class="java.lang.String" itemvalue="Python.RR5" />
-        <item index="2" class="java.lang.String" itemvalue="Python.kalman2" />
-        <item index="3" class="java.lang.String" itemvalue="Python.kalman2_circlular_movement" />
-        <item index="4" class="java.lang.String" itemvalue="Python.three_variable_Kalman" />
+        <item index="0" class="java.lang.String" itemvalue="Python.ukf_KalmanPy_one_variable" />
+        <item index="1" class="java.lang.String" itemvalue="Python.RR5_UKF" />
+        <item index="2" class="java.lang.String" itemvalue="Python.RR5_UKF_4" />
+        <item index="3" class="java.lang.String" itemvalue="Python.ukf_KalmanPy" />
+        <item index="4" class="java.lang.String" itemvalue="Python.ukf_KalmanPy_1" />
       </list>
     </recent_temporary>
   </component>
@@ -427,60 +549,6 @@
       <created>1464011788269</created>
       <option name="number" value="Default" />
       <updated>1464011788269</updated>
-    </task>
-    <task id="LOCAL-00005" summary="saving">
-      <created>1466294772930</created>
-      <option name="number" value="00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1466294772930</updated>
-    </task>
-    <task id="LOCAL-00006" summary="saving">
-      <created>1466294851915</created>
-      <option name="number" value="00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1466294851915</updated>
-    </task>
-    <task id="LOCAL-00007" summary="saving">
-      <created>1466294892934</created>
-      <option name="number" value="00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1466294892934</updated>
-    </task>
-    <task id="LOCAL-00008" summary="saving">
-      <created>1466302935618</created>
-      <option name="number" value="00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1466302935618</updated>
-    </task>
-    <task id="LOCAL-00009" summary="saving">
-      <created>1466366635048</created>
-      <option name="number" value="00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1466366635048</updated>
-    </task>
-    <task id="LOCAL-00010" summary="saving">
-      <created>1466379843171</created>
-      <option name="number" value="00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1466379843171</updated>
-    </task>
-    <task id="LOCAL-00011" summary="saving">
-      <created>1466468004293</created>
-      <option name="number" value="00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1466468004293</updated>
-    </task>
-    <task id="LOCAL-00012" summary="saving">
-      <created>1466471631238</created>
-      <option name="number" value="00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1466471631238</updated>
-    </task>
-    <task id="LOCAL-00013" summary="saving">
-      <created>1466555602345</created>
-      <option name="number" value="00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1466555602345</updated>
     </task>
     <task id="LOCAL-00014" summary="saving">
       <created>1466556405361</created>
@@ -722,7 +790,61 @@
       <option name="project" value="LOCAL" />
       <updated>1468373957554</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="saving">
+      <created>1470518513894</created>
+      <option name="number" value="00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1470518513894</updated>
+    </task>
+    <task id="LOCAL-00055" summary="saving">
+      <created>1470522523097</created>
+      <option name="number" value="00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1470522523098</updated>
+    </task>
+    <task id="LOCAL-00056" summary="saving">
+      <created>1470531781990</created>
+      <option name="number" value="00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1470531781990</updated>
+    </task>
+    <task id="LOCAL-00057" summary="saving">
+      <created>1470534519712</created>
+      <option name="number" value="00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1470534519712</updated>
+    </task>
+    <task id="LOCAL-00058" summary="saving">
+      <created>1470535535638</created>
+      <option name="number" value="00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1470535535638</updated>
+    </task>
+    <task id="LOCAL-00059" summary="saving">
+      <created>1470598275449</created>
+      <option name="number" value="00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1470598275449</updated>
+    </task>
+    <task id="LOCAL-00060" summary="saving">
+      <created>1470695728781</created>
+      <option name="number" value="00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1470695728781</updated>
+    </task>
+    <task id="LOCAL-00061" summary="saving">
+      <created>1470703590849</created>
+      <option name="number" value="00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1470703590849</updated>
+    </task>
+    <task id="LOCAL-00062" summary="saving">
+      <created>1470789920816</created>
+      <option name="number" value="00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1470789920816</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -731,21 +853,21 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21944444" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959327" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2173913" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23422159" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29593268" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.41514727" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959327" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -771,203 +893,18 @@
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="15" />
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="23" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-tk/Tkinter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.0710382">
-          <caret line="2293" column="0" selection-start-line="2293" selection-start-column="0" selection-end-line="2293" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/particleFilterRobotWeight.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.8869936">
-          <caret line="80" column="55" selection-start-line="80" selection-start-column="55" selection-end-line="80" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/KalmanFilter2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.2793177">
-          <caret line="12" column="59" selection-start-line="12" selection-start-column="59" selection-end-line="12" selection-end-column="59" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/KalmanFilter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.19189766">
-          <caret line="6" column="71" selection-start-line="6" selection-start-column="71" selection-end-line="6" selection-end-column="71" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../ProblemSets/ProblemSet3_Move.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.99321264">
-          <caret line="184" column="0" selection-start-line="184" selection-start-column="0" selection-end-line="184" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../ProblemSets/ProblemSet3_Sense.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.15158372">
-          <caret line="69" column="0" selection-start-line="69" selection-start-column="0" selection-end-line="69" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../ProblemSets/ProblemSet2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.38235295">
-          <caret line="202" column="24" selection-start-line="202" selection-start-column="24" selection-end-line="202" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../ProblemSets/ProblemSet3.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.754797">
-          <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/particleFilterRobot1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.67153287">
-          <caret line="116" column="17" selection-start-line="116" selection-start-column="17" selection-end-line="116" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/particleFilterError2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="7.024887">
-          <caret line="208" column="4" selection-start-line="208" selection-start-column="4" selection-end-line="208" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/particleFilterError.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4">
-          <caret line="72" column="44" selection-start-line="72" selection-start-column="44" selection-end-line="72" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/particleFilterResampling.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.96801704">
-          <caret line="117" column="26" selection-start-line="117" selection-start-column="26" selection-end-line="117" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/ParticleFilter_Working.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.2793177">
-          <caret line="102" column="86" selection-start-line="102" selection-start-column="86" selection-end-line="102" selection-end-column="86" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/ParticleFilter_Not_Working.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="103" column="0" selection-start-line="98" selection-start-column="0" selection-end-line="103" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/KalmanFilter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="14" column="2" selection-start-line="14" selection-start-column="2" selection-end-line="14" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/Turtle.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.89806676">
-          <caret line="43" column="50" selection-start-line="43" selection-start-column="50" selection-end-line="43" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/particleFilterRunMultipleTimes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="186" column="2" selection-start-line="186" selection-start-column="2" selection-end-line="186" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/RR1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4015444">
-          <caret line="57" column="0" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/RR3.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="9.440154">
-          <caret line="360" column="19" selection-start-line="360" selection-start-column="19" selection-end-line="360" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/turtle2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/ekf_internal.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.0675673">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/DogSimulation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.028957529">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/particle_filter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.63706565">
-          <caret line="30" column="12" selection-start-line="30" selection-start-column="12" selection-end-line="30" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/pf_internal.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.656371">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/smoothing_internal.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.8822394">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/ukf_internal.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-12.175675">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Kalman-and-Bayesian-Filters-in-Python/code/538.json">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.60931176">
@@ -993,9 +930,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.46332046">
           <caret line="401" column="22" selection-start-line="0" selection-start-column="0" selection-end-line="689" selection-end-column="0" />
-          <folding>
-            <element signature="e#5184#8597#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1003,16 +938,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.9034749">
           <caret line="466" column="39" selection-start-line="466" selection-start-column="39" selection-end-line="466" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/RR2_PF.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.21814671">
-          <caret line="321" column="23" selection-start-line="321" selection-start-column="23" selection-end-line="321" selection-end-column="23" />
-          <folding>
-            <element signature="e#0#68#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1065,19 +990,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/least_squares_circle.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.3745174">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../Project1/garbage.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1085,7 +1001,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.3088803">
           <caret line="149" column="8" selection-start-line="149" selection-start-column="8" selection-end-line="149" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1093,7 +1008,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.3918919">
           <caret line="194" column="47" selection-start-line="194" selection-start-column="47" selection-end-line="194" selection-end-column="47" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1101,9 +1015,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-4.6037736">
           <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-          <folding>
-            <element signature="e#38#56#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1111,7 +1022,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-2.1226416">
           <caret line="52" column="55" selection-start-line="52" selection-start-column="55" selection-end-line="52" selection-end-column="55" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1119,7 +1029,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="1.090566">
           <caret line="205" column="0" selection-start-line="205" selection-start-column="0" selection-end-line="205" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1127,38 +1036,287 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="4.4584904">
           <caret line="268" column="34" selection-start-line="268" selection-start-column="34" selection-end-line="268" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.02189781">
+          <caret line="126" column="0" selection-start-line="126" selection-start-column="0" selection-end-line="126" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/particleFilterRobotWeight.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.02189781">
+          <caret line="80" column="55" selection-start-line="80" selection-start-column="55" selection-end-line="80" selection-end-column="55" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR2_PF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.47445256">
+          <caret line="321" column="1" selection-start-line="321" selection-start-column="1" selection-end-line="321" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-tk/turtle.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33161953">
+          <caret line="1238" column="0" selection-start-line="1238" selection-start-column="0" selection-end-line="1238" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/numpy/lib/function_base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33204633">
+          <caret line="667" column="0" selection-start-line="667" selection-start-column="0" selection-end-line="667" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.028957529">
+          <caret line="260" column="57" selection-start-line="260" selection-start-column="57" selection-end-line="260" selection-end-column="57" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.82625484">
+          <caret line="39" column="58" selection-start-line="39" selection-start-column="58" selection-end-line="39" selection-end-column="58" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/circle_png.png">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/circle_residu1.png">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/least_squares_circle.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="2.4324324">
+          <caret line="115" column="58" selection-start-line="115" selection-start-column="58" selection-end-line="115" selection-end-column="58" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/least_squares.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.23166023">
+          <caret line="13" column="22" selection-start-line="13" selection-start-column="22" selection-end-line="13" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_UKF_3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.2722008">
+          <caret line="581" column="35" selection-start-line="581" selection-start-column="35" selection-end-line="581" selection-end-column="35" />
+          <folding>
+            <element signature="e#1187#9225#0" expanded="false" />
+            <element signature="e#10383#10935#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_PF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.49227798">
+          <caret line="219" column="0" selection-start-line="219" selection-start-column="0" selection-end-line="219" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#68#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR4_UKF_2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.28301886">
+          <caret line="309" column="62" selection-start-line="309" selection-start-column="62" selection-end-line="309" selection-end-column="62" />
+          <folding>
+            <element signature="e#0#42#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_Least_squares.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="285" column="36" selection-start-line="285" selection-start-column="36" selection-end-line="285" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/numpy/matrixlib/defmatrix.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33333334">
+          <caret line="174" column="0" selection-start-line="174" selection-start-column="0" selection-end-line="174" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_EKF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7151899">
+          <caret line="45" column="36" selection-start-line="45" selection-start-column="36" selection-end-line="45" selection-end-column="36" />
+          <folding>
+            <element signature="e#1796#5541#0" expanded="false" />
+            <element signature="e#5625#8147#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/RR4_EKF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.835443">
+          <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+          <folding>
+            <element signature="e#8735#10542#0" expanded="false" />
+            <element signature="e#10619#14067#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/RR5_EKF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.061181433">
+          <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
+          <folding>
+            <element signature="e#7812#8934#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_learn2_digested.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.3396227">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.329114">
+          <caret line="42" column="74" selection-start-line="42" selection-start-column="74" selection-end-line="42" selection-end-column="74" />
+          <folding>
+            <element signature="e#0#18#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/UKF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.664557">
+          <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+          <folding>
+            <element signature="e#1#35#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy_2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.70253164">
+          <caret line="320" column="34" selection-start-line="320" selection-start-column="34" selection-end-line="320" selection-end-column="34" />
+          <folding>
+            <element signature="e#0#42#0" expanded="false" />
+            <element signature="e#1091#9129#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy_linear.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.0759493">
+          <caret line="34" column="0" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="4.050633">
+          <caret line="128" column="37" selection-start-line="128" selection-start-column="37" selection-end-line="128" selection-end-column="37" />
+          <folding>
+            <element signature="e#0#18#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy_1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.25316456">
+          <caret line="105" column="50" selection-start-line="0" selection-start-column="0" selection-end-line="133" selection-end-column="35" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../Quizzes/robot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="82" column="72" selection-start-line="82" selection-start-column="72" selection-end-line="82" selection-end-column="72" />
+        <state vertical-scroll-proportion="2.329114">
+          <caret line="75" column="0" selection-start-line="75" selection-start-column="0" selection-end-line="75" selection-end-column="0" />
           <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <marker date="1467412054000" expanded="true" signature="1287:1528" placeholder="..." />
+            <element signature="e#0#18#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5.py">
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_UKF_2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="126" column="40" selection-start-line="126" selection-start-column="40" selection-end-line="126" selection-end-column="40" />
+        <state vertical-scroll-proportion="-0.1308017">
+          <caret line="301" column="0" selection-start-line="301" selection-start-column="0" selection-end-line="301" selection-end-column="0" />
           <folding>
-            <element signature="e#0#68#0" expanded="true" />
+            <element signature="e#1187#9186#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../Quizzes/test.py">
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR4_UKF.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="9.121622">
-          <caret line="352" column="0" selection-start-line="352" selection-start-column="0" selection-end-line="352" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.35232067">
+          <caret line="265" column="39" selection-start-line="265" selection-start-column="39" selection-end-line="265" selection-end-column="39" />
           <folding>
-            <element signature="e#439#458#0" expanded="true" />
+            <element signature="e#0#42#0" expanded="false" />
+            <element signature="e#1099#9137#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_UKF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="550" column="52" selection-start-line="550" selection-start-column="52" selection-end-line="550" selection-end-column="52" />
+          <folding>
+            <element signature="e#11485#13314#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Quizzes/RR5_UKF_4.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="127" column="0" selection-start-line="127" selection-start-column="0" selection-end-line="127" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy_one_variable.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33544305">
+          <caret line="113" column="42" selection-start-line="113" selection-start-column="42" selection-end-line="113" selection-end-column="42" />
+          <folding />
         </state>
       </provider>
     </entry>

@@ -177,8 +177,6 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
     ycDelta = average_y - yc
     startingHeading = atan2(ycDelta, xcDelta)
 
-    print "\tstarting angle", startingHeading, "average_angle", average_angle
-
     estimated_x = xc + radius * cos(startingHeading)
     estimated_y = yc + radius * sin(startingHeading)
 
@@ -186,15 +184,17 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
     predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
     predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
-    totalAngle = startingHeading
-    # calculate the destination angle starting from the first averaged angle
+    # calculate the destination angle starting from the first averaged heading
 
-    totalAngle = startingHeading + average_angle * len(measurements)
+    #print "\tstarting heading", startingHeading  #, "average_angle", average_angle
+    addedAngle = average_angle * len(measurements)
+    #print average_angle, " * ", len(measurements), " = ", addedAngle
+    totalAngle = startingHeading + addedAngle
+    #print "\tstarting heading ", startingHeading, " + ", "added angle", addedAngle, " = ", totalAngle
 
     # for i in range(len(measurements)):
     #     totalAngle += average_angle
 
-    #return average_angle, angle_trunc(totalAngle)
     return average_angle, totalAngle
 
 
@@ -301,19 +301,17 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # get estimated turning and total angle traveled from measured start
             turning, totalAngle = getTurnAngle(measurements, rotationSign, radius, xc, yc)
 
-            print "totalAngle", totalAngle
-
             # get estimated position
             estimated_x = xc + radius * cos(totalAngle)
             estimated_y = yc + radius * sin(totalAngle)
             xy_estimate = estimated_x, estimated_y
 
-            bumblebee.clearstamp(bumblebee_handle)
-            bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
-            bumblebee_handle = bumblebee.stamp()
-            hunterbee.clearstamp(hunterbee_handle)
-            hunterbee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-            hunterbee_handle = hunterbee.stamp()
+            # bumblebee.clearstamp(bumblebee_handle)
+            # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
+            # bumblebee_handle = bumblebee.stamp()
+            # hunterbee.clearstamp(hunterbee_handle)
+            # hunterbee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+            # hunterbee_handle = hunterbee.stamp()
 
             #try to find the shortest straight path from hunter position to predicted target position
             steps = 1
@@ -511,27 +509,26 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-# scores = []
-# fails = 0
-# for i in range(1000):
-#     print i
-#     particles = []
-#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-#     target.set_noise(0.0, 0.0, 2.0 * target.distance)
-#     hunter = robot(-10.0, -10.0, 0.0)
-#     score = demo_grading(hunter, target, next_move_straight_line)
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, 2.0 * target.distance)
+    hunter = robot(-10.0, -10.0, 0.0)
+    score = demo_grading(hunter, target, next_move_straight_line)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
 
 
 # average score:  441.4
@@ -676,7 +673,7 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 
 # [437, 249, 186, 128]
 
-turtle.getscreen()._root.mainloop()
+#turtle.getscreen()._root.mainloop()
 
 
 

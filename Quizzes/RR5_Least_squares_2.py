@@ -47,8 +47,8 @@ predicted_initial_heading_handle = 0.
 target_x = target.x
 target_y = target.y
 
-actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
-actual_initial_heading.stamp()
+# actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
+# actual_initial_heading.stamp()
 
 
 test_measurements = [ [], [], [], [] ]
@@ -126,7 +126,6 @@ def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
 
 # calculate the average turn angle
 def getTurnAngle(measurements, rotationSign, radius, xc, yc):
-    time.sleep(.5)
     global predicted_initial_heading_handle
     # get the very first heading angle (measured).
     xDelta = measurements[0][0] - xc
@@ -164,7 +163,7 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
     #print "average_angle", average_angle # angle prediction is pretty accurate: ~0.20
 
     # average the first three headings; this will be the initial heading angle
-    numOfPoints = 3
+    numOfPoints = 1
     average_x = 0
     average_y = 0
     for i in range(numOfPoints):
@@ -180,9 +179,9 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
     estimated_x = xc + radius * cos(startingHeading)
     estimated_y = yc + radius * sin(startingHeading)
 
-    predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
-    predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-    predicted_initial_heading_handle = predicted_initial_heading.stamp()
+    # predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
+    # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+    # predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
     # calculate the destination angle starting from the first averaged heading
 
@@ -376,7 +375,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_robot.shape('turtle')
     broken_robot.color('green')
     broken_robot.resizemode('user')
-    broken_robot.shapesize(0.3, 0.3, 0.3)
+    broken_robot.shapesize(0.9, 0.9, 0.9)
     #broken_robot.penup()
 
     prediction = turtle.Turtle()
@@ -509,33 +508,51 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-    target.set_noise(0.0, 0.0, 2.0 * target.distance)
-    hunter = robot(-10.0, -10.0, 0.0)
-    score = demo_grading(hunter, target, next_move_straight_line)
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+#     target.set_noise(0.0, 0.0, 2.0 * target.distance)
+#     hunter = robot(-10.0, -10.0, 0.0)
+#     score = demo_grading(hunter, target, next_move_straight_line)
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# average score:  405.133333333
+# minimum score:  36
+# maximum score:  898
+# fails:  970
 
-
+# with 4 first measurements
 # average score:  441.4
 # minimum score:  31
 # maximum score:  967
 # fails:  975
 
+
+# with 1 first measurement
+# average score:  505.263157895
+# minimum score:  55
+# maximum score:  998
+# fails:  962
+
+
+# with 2 first measurements
+# average score:  410.136363636
+# minimum score:  34
+# maximum score:  943
+# fails:  956
 
 # x_actual = [0.0, 1.4672214011007085, 2.83753958756461, 4.0510650791270315, 5.054760988665319, 5.80476098866532, 6.268286480227742, 6.4250791751292216, 6.268286480227741, 5.804760988665318, 5.054760988665317, 4.051065079127029, 2.837539587564608, 1.4672214011007072, -8.881784197001252e-16, -1.5000000000000009, -2.9672214011007103, -4.337539587564613, -5.551065079127038, -6.554760988665329, -7.304760988665335, -7.768286480227762, -7.925079175129248, -7.768286480227774, -7.3047609886653575, -6.55476098866536, -5.551065079127074, -4.3375395875646525, -2.9672214011007503, -1.500000000000041, -4.107825191113079e-14]
 # y_actual = [15.0, 15.31186753622664, 15.92197250084034, 16.80365037927905, 17.91836761749514, 19.217405723171797, 20.643990497614528, 22.135773340666937, 23.627556183719346, 25.054140958162076, 26.353179063838734, 27.467896302054825, 28.349574180493534, 28.959679145107234, 29.271546681333874, 29.271546681333877, 28.95967914510724, 28.349574180493544, 27.46789630205484, 26.353179063838752, 25.054140958162098, 23.62755618371937, 22.13577334066696, 20.643990497614553, 19.217405723171822, 17.918367617495164, 16.803650379279073, 15.921972500840363, 15.311867536226664, 15.000000000000028, 15.000000000000032]

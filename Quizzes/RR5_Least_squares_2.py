@@ -4,6 +4,7 @@ import turtle
 from robot import *
 from numpy import *
 import random
+import time
 
 # Ilya:
 # this one uses circular regression.
@@ -51,6 +52,7 @@ actual_initial_heading.stamp()
 
 
 test_measurements = [ [], [], [], [] ]
+actual_measurements = []
 
 def distance_between(point1, point2):
     """Computes distance between point1 and point2. Points are (x, y) pairs."""
@@ -124,14 +126,15 @@ def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
 
 # calculate the average turn angle
 def getTurnAngle(measurements, rotationSign, radius, xc, yc):
+    time.sleep(.5)
     global predicted_initial_heading_handle
-    global test_measurements
-    # get the very first heading angle (measured). It's a ball park to get started
+    # get the very first heading angle (measured).
     xDelta = measurements[0][0] - xc
     yDelta = measurements[0][1] - yc
     prevHeading = atan2(yDelta, xDelta)
     firstHeading = prevHeading
     totalAngle = 0.
+    startingHeading = 0.
     total_angles = []
     total_angles.append(firstHeading)
 
@@ -143,7 +146,6 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
         currentHeading = atan2(yDelta, xDelta)
 
         total_angles.append(angle_trunc(currentHeading))
-
 
         # difference between current and previous
         if currentHeading < 0. and abs(currentHeading) > pi/2 and prevHeading > 0. and prevHeading > pi/2:
@@ -162,76 +164,35 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
     #print "average_angle", average_angle # angle prediction is pretty accurate: ~0.20
 
     # average the first three headings; this will be the initial heading angle
-    #totalAngle = sum(total_angles[:3]) / 3. # initial averaged heading
-
-    numOfPoints = 1
-    average_x = 0
-    average_y = 0
-    for i in range(numOfPoints):
-        average_x += measurements[i][0]
-        #print average_x
-        average_y += measurements[i][1]
-    average_x = average_x/numOfPoints
-    average_y = average_y/numOfPoints
-    test_measurements[0].append((average_x, average_y))
-
-
-    numOfPoints = 2
-    average_x = 0
-    average_y = 0
-    for i in range(numOfPoints):
-        average_x += measurements[i][0]
-        #print average_x
-        average_y += measurements[i][1]
-    average_x = average_x/numOfPoints
-    average_y = average_y/numOfPoints
-    test_measurements[1].append((average_x, average_y))
-
-
     numOfPoints = 3
     average_x = 0
     average_y = 0
     for i in range(numOfPoints):
         average_x += measurements[i][0]
-        #print average_x
         average_y += measurements[i][1]
     average_x = average_x/numOfPoints
     average_y = average_y/numOfPoints
-    test_measurements[2].append((average_x, average_y))
-
-
-    numOfPoints = 4
-    average_x = 0
-    average_y = 0
-    for i in range(numOfPoints):
-        average_x += measurements[i][0]
-        #print average_x
-        average_y += measurements[i][1]
-    average_x = average_x/numOfPoints
-    average_y = average_y/numOfPoints
-    test_measurements[3].append((average_x, average_y))
-
 
     xcDelta = average_x - xc
     ycDelta = average_y - yc
-    totalAngle = atan2(ycDelta, xcDelta)
+    startingHeading = atan2(ycDelta, xcDelta)
 
-    estimated_x = xc + radius * cos(totalAngle)
-    estimated_y = yc + radius * sin(totalAngle)
+    print "\tstarting angle", startingHeading, "average_angle", average_angle
+
+    estimated_x = xc + radius * cos(startingHeading)
+    estimated_y = yc + radius * sin(startingHeading)
+
     predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
     predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
     predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
-    #print "initial heading", totalAngle
-
-    #print "\tInitial heading", totalAngle, total_angles[:3]
-
+    totalAngle = startingHeading
     # calculate the destination angle starting from the first averaged angle
-    for i in range(len(measurements)):
-        totalAngle += abs(average_angle)
 
-    #print "totalAngle", totalAngle
+    totalAngle = startingHeading + average_angle * len(measurements)
 
+    # for i in range(len(measurements)):
+    #     totalAngle += average_angle
 
     #return average_angle, angle_trunc(totalAngle)
     return average_angle, totalAngle
@@ -308,7 +269,7 @@ def getRotationSign(rotationAngles):
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
     global bumblebee_handle, hunterbee_handle
-
+    global actual_measurements
 
     if OTHER is None:
         measurements = []
@@ -340,7 +301,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # get estimated turning and total angle traveled from measured start
             turning, totalAngle = getTurnAngle(measurements, rotationSign, radius, xc, yc)
 
-            #print "totalAngle", totalAngle
+            print "totalAngle", totalAngle
 
             # get estimated position
             estimated_x = xc + radius * cos(totalAngle)
@@ -369,6 +330,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
 
     measurements.append(target_measurement)
+    actual_measurements = measurements
     OTHER = (measurements, turnAngle, x, y)
     turning = angle_trunc( get_heading(hunter_position, xy_estimate) - hunter_heading ) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
@@ -438,7 +400,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_handle = 0.
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 100:
+    while not caught and ctr < 1000:
 
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
@@ -588,55 +550,133 @@ demo_grading_visual(hunter, target, next_move_straight_line)
 # actual radius: 7.17507917513
 
 
-# calcualte average statistic
+# # calcualte average statistic
+# counts = [0, 0, 0, 0]
+# for i in range(100):
+#     test_measurements = [ [], [], [], [] ]
+#     actual_measurements = []
+#
+#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+#     target.set_noise(0.0, 0.0, 2.0 * target.distance)
+#     hunter = robot(-10.0, -10.0, 0.0)
+#     score = demo_grading(hunter, target, next_move_straight_line)
+#
+#
+#     numOfPoints = 1
+#     average_x = 0
+#     average_y = 0
+#     for i in range(numOfPoints):
+#         average_x += actual_measurements[i][0]
+#         average_y += actual_measurements[i][1]
+#     average_x = average_x/numOfPoints
+#     average_y = average_y/numOfPoints
+#     test_measurements[0].append((average_x, average_y))
+#
+#     # print test_measurements[0]
+#
+#     numOfPoints = 2
+#     average_x = 0
+#     average_y = 0
+#     for i in range(numOfPoints):
+#         average_x += actual_measurements[i][0]
+#         average_y += actual_measurements[i][1]
+#
+#     average_x = average_x/numOfPoints
+#     average_y = average_y/numOfPoints
+#     test_measurements[1].append((average_x, average_y))
+#
+#     # print test_measurements[1]
+#
+#
+#     numOfPoints = 3
+#     average_x = 0
+#     average_y = 0
+#     for i in range(numOfPoints):
+#         average_x += actual_measurements[i][0]
+#         average_y += actual_measurements[i][1]
+#     average_x = average_x/numOfPoints
+#     average_y = average_y/numOfPoints
+#     test_measurements[2].append((average_x, average_y))
+#
+#     # print test_measurements[2]
+#
+#
+#     numOfPoints = 4
+#     average_x = 0
+#     average_y = 0
+#     for i in range(numOfPoints):
+#         average_x += actual_measurements[i][0]
+#         average_y += actual_measurements[i][1]
+#     average_x = average_x/numOfPoints
+#     average_y = average_y/numOfPoints
+#     test_measurements[3].append((average_x, average_y))
+#
+#     # print test_measurements[3]
+#
+#
+#     a1x = 0.
+#     a1y = 0.
+#     a2x = 0.
+#     a2y = 0.
+#     a3x = 0.
+#     a3y = 0.
+#     a4x = 0.
+#     a4y = 0.
+#
+#     # print test_measurements[0]
+#     # print test_measurements[1]
+#     # print test_measurements[2]
+#     # print test_measurements[3]
+#
+#     for i in test_measurements[0]:
+#         a1x += i[0]
+#         a1y += i[1]
+#
+#     for i in test_measurements[1]:
+#         a2x += i[0]
+#         a2y += i[1]
+#
+#     for i in test_measurements[2]:
+#         a3x += i[0]
+#         a3y += i[1]
+#
+#     for i in test_measurements[3]:
+#         a4x += i[0]
+#         a4y += i[1]
+#
+#     a1x = a1x / len(test_measurements)
+#     a1y = a1y / len(test_measurements)
+#
+#     a2x = a2x / len(test_measurements)
+#     a2y = a2y / len(test_measurements)
+#
+#     a3x = a3x / len(test_measurements)
+#     a3y = a3y / len(test_measurements)
+#
+#     a4x = a4x / len(test_measurements)
+#     a4y = a4y / len(test_measurements)
+#
+#     print "--------------------------------"
+#     print "distance between real and prediction 1:", distance_between((target_x, target_y), (a1x, a1y))
+#     print "distance between real and prediction 2:", distance_between((target_x, target_y), (a2x, a2y))
+#     print "distance between real and prediction 3:", distance_between((target_x, target_y), (a3x, a3y))
+#     print "distance between real and prediction 4:", distance_between((target_x, target_y), (a4x, a4y))
+#
+#     index = [distance_between((target_x, target_y), (a1x, a1y)),
+#             distance_between((target_x, target_y), (a2x, a2y)),
+#             distance_between((target_x, target_y), (a3x, a3y)),
+#             distance_between((target_x, target_y), (a4x, a4y))].index(min([distance_between((target_x, target_y), (a1x, a1y)),
+#             distance_between((target_x, target_y), (a2x, a2y)),
+#             distance_between((target_x, target_y), (a3x, a3y)),
+#             distance_between((target_x, target_y), (a4x, a4y))]))
+#     counts[index] += 1
+#
+# print counts
 
-a1x = 0.
-a1y = 0.
-a2x = 0.
-a2y = 0.
-a3x = 0.
-a3y = 0.
-a4x = 0.
-a4y = 0.
 
-for i in test_measurements[0]:
-    a1x += i[0]
-    a1y += i[1]
-
-for i in test_measurements[1]:
-    a2x += i[0]
-    a2y += i[1]
-
-for i in test_measurements[2]:
-    a3x += i[0]
-    a3y += i[1]
-
-for i in test_measurements[3]:
-    a4x += i[0]
-    a4y += i[1]
-
-a1x = a1x / len(test_measurements)
-a1y = a1y / len(test_measurements)
-
-a2x = a2x / len(test_measurements)
-a2y = a2y / len(test_measurements)
-
-a3x = a3x / len(test_measurements)
-a3y = a3y / len(test_measurements)
-
-a4x = a4x / len(test_measurements)
-a4y = a4y / len(test_measurements)
-
-
-print "distance between real and prediction 1:", distance_between((target_x, target_y), (a1x, a1y))
-print "distance between real and prediction 2:", distance_between((target_x, target_y), (a2x, a2y))
-print "distance between real and prediction 3:", distance_between((target_x, target_y), (a3x, a3y))
-print "distance between real and prediction 4:", distance_between((target_x, target_y), (a4x, a4y))
-
-
+# [437, 249, 186, 128]
 
 turtle.getscreen()._root.mainloop()
-
 
 
 

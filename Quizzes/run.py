@@ -36,7 +36,10 @@ print radians(degrees(atan2(-1, 0)) % 360)  # 4.71238898038
 # To go from radians to degrees: multiply by 180, divide by pi
 # To go from degrees to radians: multiply by pi, divide by 180
 
-print 1.5 / (sin(pi/30.) * 2.)
-print "1.5 / (2. * sin(pi/30.))", 1.5 / (2. * sin(pi/30.))
+# print 1.5 / (sin(pi/30.) * 2.)
+# print "1.5 / (2. * sin(pi/30.))", 1.5 / (2. * sin(pi/30.))
+
+print 2*pi / 29.6
+print 2*pi / 30.4
 
 

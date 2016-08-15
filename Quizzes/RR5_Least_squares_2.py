@@ -47,8 +47,8 @@ predicted_initial_heading_handle = 0.
 target_x = target.x
 target_y = target.y
 
-# actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
-# actual_initial_heading.stamp()
+actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
+actual_initial_heading.stamp()
 
 
 test_measurements = [ [], [], [], [] ]
@@ -158,9 +158,9 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
             totalAngle += abs(turningAngle)
             prevHeading = currentHeading
 
-    # this is the average turning angle
+    # this is the average turning angle for this round of calculations
     average_angle = abs(totalAngle / len(measurements))
-    #print "average_angle", average_angle # angle prediction is pretty accurate: ~0.20
+    print "average_angle", average_angle # angle prediction is sometimes accurate, sometimes not; actual angle is 0.209
 
     # average the first three headings; this will be the initial heading angle
     numOfPoints = 1
@@ -179,9 +179,9 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
     estimated_x = xc + radius * cos(startingHeading)
     estimated_y = yc + radius * sin(startingHeading)
 
-    # predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
-    # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-    # predicted_initial_heading_handle = predicted_initial_heading.stamp()
+    predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
+    predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+    predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
     # calculate the destination angle starting from the first averaged heading
 
@@ -278,6 +278,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y = []
         y.append(target_measurement[1])
+
     else:
         measurements, turnAngle, x, y = OTHER
 
@@ -285,7 +286,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
-        if len(measurements) > 20:
+        if len(measurements) > 60:
 
             point1 = measurements[len(measurements) - 16]
             point2 = measurements[len(measurements) - 8]
@@ -297,6 +298,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             # estimate radius and center using least squares
             radius, xc, yc = least_squares(x, y)
+
             # get estimated turning and total angle traveled from measured start
             turning, totalAngle = getTurnAngle(measurements, rotationSign, radius, xc, yc)
 

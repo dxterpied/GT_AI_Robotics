@@ -175,28 +175,24 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
     # this is the average turning angle for this round of calculations
     average_angle = abs(totalAngle / len(measurements))
 
-    number_of_steps = 2*pi / average_angle
-
+    number_of_steps = round(2*pi / average_angle)
     # print "average_angle", average_angle # angle prediction is sometimes accurate, sometimes not; actual angle is 0.209
-    # print "number_of_steps", number_of_steps
+    #print "number_of_steps", number_of_steps
 
-    # average the first three headings; this will be the initial heading angle
-    numOfPoints = 1
-    average_x = 0
-    average_y = 0
-    for i in range(numOfPoints):
-        average_x += measurements[i][0]
-        average_y += measurements[i][1]
-    average_x = average_x/numOfPoints
-    average_y = average_y/numOfPoints
+    # go through each loop of measurments and calculate average first heading for each loop
+    average_angles = []
+    average_angles.append(firstHeading)
+    for i in range(1, int( len(measurements) / number_of_steps )):
+        # take 5 measurements around the assumed starting heading
+        index = int(number_of_steps * i)
+        aver = sum([total_angles[index - 2], total_angles[index - 1], total_angles[index], total_angles[index + 1], total_angles[index + 2]]) / 5
 
-    xcDelta = average_x - xc
-    ycDelta = average_y - yc
-    startingHeading = atan2(ycDelta, xcDelta)
+        average_angles.append(aver)
+
+    startingHeading = sum(average_angles) / len(average_angles)
 
     estimated_x = xc + radius * cos(startingHeading)
     estimated_y = yc + radius * sin(startingHeading)
-
     # predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
     # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
     # predicted_initial_heading_handle = predicted_initial_heading.stamp()

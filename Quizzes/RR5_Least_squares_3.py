@@ -10,6 +10,12 @@ import time
 # this one uses circular regression.
 # This is an extension of RR5_Least_squares.py with the new idea of averaging the initial heading angle in getTurnAngle()
 # still needs work; not done yet
+# it sucks:
+# average score:  385.681818182
+# minimum score:  25
+# maximum score:  989
+# fails:  978
+
 
 size_multiplier = 20.
 target = robot(0.0, 5.0, 0.0, 2*pi / 30, 1.5)
@@ -59,10 +65,17 @@ target_y = target.y
 # actual_center.goto(-0.75 * size_multiplier, 12.1357733407 * size_multiplier - 200)
 # actual_center.stamp()
 
+xDelta = target.x - 0.75
+yDelta = target.y - 12.1357733407
+actualFirstHeading = atan2(yDelta, xDelta)
+
+# print "actual first heading: ",  actualFirstHeading
+# print "-------------------------------------------"
 
 test_measurements = [ [], [], [], [] ]
 actual_measurements = []
-predicted_turning = 0.
+first_headings = []
+
 
 # actual center: -0.75, 12.1357733407
 # actual radius: 7.17507917513
@@ -139,7 +152,7 @@ def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
 
 # calculate the average turn angle
 def getTurnAngle(measurements, rotationSign, radius, xc, yc):
-    global predicted_initial_heading_handle, predicted_turning
+    global predicted_initial_heading_handle, first_headings
 
     # get the very first heading angle (measured).
     xDelta = measurements[0][0] - xc
@@ -177,22 +190,33 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
 
     number_of_steps = round(2*pi / average_angle)
     # print "average_angle", average_angle # angle prediction is sometimes accurate, sometimes not; actual angle is 0.209
-    #print "number_of_steps", number_of_steps
+    # print "number_of_steps", number_of_steps
 
     # go through each loop of measurments and calculate average first heading for each loop
     average_angles = []
     average_angles.append(firstHeading)
+    first_headings.append(firstHeading)
+    meas = 1
     for i in range(1, int( len(measurements) / number_of_steps )):
         # take 5 measurements around the assumed starting heading
-        index = int(number_of_steps * i)
-        aver = sum([total_angles[index - 2], total_angles[index - 1], total_angles[index], total_angles[index + 1], total_angles[index + 2]]) / 5
-
+        index = int(number_of_steps * i) - 1
+        #print "using ", total_angles[index], "index: ", index
+        aver = sum([total_angles[index]]) / 1
+        first_headings.append(total_angles[index])
         average_angles.append(aver)
 
+    # print "--------------------------------"
+    # print "average_angles", average_angles
+    # print "--------------------------------"
     startingHeading = sum(average_angles) / len(average_angles)
+    # print "startingHeading", startingHeading
+    #
+    # print "---------------------"
+    # print total_angles
 
     estimated_x = xc + radius * cos(startingHeading)
     estimated_y = yc + radius * sin(startingHeading)
+
     # predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
     # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
     # predicted_initial_heading_handle = predicted_initial_heading.stamp()

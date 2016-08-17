@@ -160,10 +160,10 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
 
     # this is the average turning angle for this round of calculations
     average_angle = abs(totalAngle / len(measurements))
-    print "average_angle", average_angle # angle prediction is sometimes accurate, sometimes not; actual angle is 0.209
+    # print "average_angle", average_angle # angle prediction is sometimes accurate, sometimes not; actual angle is 0.209
 
     # average the first three headings; this will be the initial heading angle
-    numOfPoints = 1
+    numOfPoints = 2
     average_x = 0
     average_y = 0
     for i in range(numOfPoints):
@@ -248,10 +248,12 @@ def getTurnAngle_1(measurements, rotationSign, xc, yc):
 
     return angle, angle_trunc(totalAngle)
 
+
 # determine rotation direction by using cross product of three points
 # returns negative or positive number depending on the direction of rotation
 def calculateRotationDirection(Ax, Ay, Bx, By, Cx, Cy):
     return ((Bx - Ax) * (Cy - By)) - ((By - Ay) * (Cx - Bx))
+
 
 def getRotationSign(rotationAngles):
     # some will be negative; some positive; count which one has more elements

@@ -5,16 +5,25 @@ from robot import *
 from numpy import *
 import random
 import time
+from scipy import optimize
 
 # Ilya:
 # this one uses circular regression.
-# This is an extension of RR5_Least_squares.py with the new idea of averaging the initial heading angle in getTurnAngle()
+# This is an extension of RR5_Least_squares_4.py with the new idea of averaging the initial heading angle in getTurnAngle()
 # still needs work; not done yet
-# it sucks:
-# average score:  385.681818182
-# minimum score:  25
-# maximum score:  989
-# fails:  978
+
+# with > 330
+# average score:  580.921568627
+# minimum score:  339
+# maximum score:  994
+# fails:  898
+
+
+# with > 350
+# average score:  584.5
+# minimum score:  366
+# maximum score:  985
+# fails:  976
 
 
 size_multiplier = 20.
@@ -60,20 +69,19 @@ predicted_initial_heading_handle = 0.
 target_x = target.x
 target_y = target.y
 
-actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
-actual_initial_heading.stamp()
-actual_center.goto(-0.75 * size_multiplier, 12.1357733407 * size_multiplier - 200)
-actual_center.stamp()
+# actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
+# actual_initial_heading.stamp()
+# actual_center.goto(-0.75 * size_multiplier, 12.1357733407 * size_multiplier - 200)
+# actual_center.stamp()
 
-xDelta = target.x - 0.75
-yDelta = target.y - 12.1357733407
-actualFirstHeading = atan2(yDelta, xDelta)
+# xDelta = target.x - 0.75
+# yDelta = target.y - 12.1357733407
+# actualFirstHeading = atan2(yDelta, xDelta)
 
 # print "actual first heading: ",  actualFirstHeading
 # print "-------------------------------------------"
 
 test_measurements = [ [], [], [], [] ]
-actual_measurements = []
 first_headings = []
 
 
@@ -87,15 +95,11 @@ def distance_between(point1, point2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
+def least_squares(x, y):
 
-    from matplotlib import pyplot as p
     x = r_[x]
     y = r_[y]
-    if x_actual is not None:
-        x_actual = r_[x_actual]
-    if y_actual is not None:
-        y_actual = r_[y_actual]
+
     # coordinates of the barycenter
     x_m = mean(x)
     y_m = mean(y)
@@ -125,33 +129,10 @@ def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
     Ri_1      = sqrt((x - xc)**2 + (y - yc)**2) # distance of given points from center
     radius    = mean(Ri_1)
 
-    if show_plot:
-        theta_fit = linspace(-pi, pi, 180)
-        x_fit = xc + radius * cos(theta_fit)
-        y_fit = yc + radius * sin(theta_fit)
-        # center
-        p.plot([xc], [yc], 'bD', mec='y', mew=1)
-        # calculated circle
-        p.plot(x_fit, y_fit, label="calculated", lw=2)
-        if x_actual is not None:
-            # actual circle points
-            p.plot(x_actual, y_actual, color='black', label='actual', ms=8, mec='b', mew=1)
-        # data points given
-        p.plot(x, y, 'ro', label='data', ms=8, mec='b', mew=1)
-        p.legend(loc='best',labelspacing=0.1 )
-        p.grid()
-        p.xlabel('x')
-        p.ylabel('y')
-        p.title('Least Squares Circle')
-        p.savefig("circle_png")
-        p.show()
-
-
     return radius, xc, yc
 
 
-# calculate the average turn angle
-def getTurnAngle(measurements, rotationSign, radius, xc, yc):
+def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
     global predicted_initial_heading_handle, first_headings
 
     # get the very first heading angle (measured).
@@ -186,49 +167,47 @@ def getTurnAngle(measurements, rotationSign, radius, xc, yc):
             prevHeading = currentHeading
 
     # this is the average turning angle for this round of calculations
-    average_angle = abs(totalAngle / len(measurements))
+    turning = abs(totalAngle / len(measurements))
+    number_of_steps = round(2*pi / turning)
+    turning = 2*pi / number_of_steps
 
-    number_of_steps = round(2*pi / average_angle)
-    # print "average_angle", average_angle # angle prediction is sometimes accurate, sometimes not; actual angle is 0.209
+    # print "turning", turning # angle prediction is sometimes accurate, sometimes not; actual angle is 0.209
     # print "number_of_steps", number_of_steps
 
-    # go through each loop of measurments and calculate average first heading for each loop
+    # go through each loop of measurements and calculate average first heading for each loop
     average_angles = []
     average_angles.append(firstHeading)
     first_headings.append(firstHeading)
-    meas = 1
     for i in range(1, int( len(measurements) / number_of_steps )):
-        # take 5 measurements around the assumed starting heading
+        # take N measurements around the assumed starting heading
         index = int(number_of_steps * i) - 1
         #print "using ", total_angles[index], "index: ", index
-        aver = sum([total_angles[index]]) / 1
-        first_headings.append(total_angles[index])
+        aver = mean([ total_angles[index] ])
         average_angles.append(aver)
 
-    # print "--------------------------------"
-    # print "average_angles", average_angles
-    # print "--------------------------------"
-    startingHeading = sum(average_angles) / len(average_angles)
-    # print "startingHeading", startingHeading
-    #
-    # print "---------------------"
-    # print total_angles
+    startingHeading = mean(average_angles)
 
-    estimated_x = xc + radius * cos(startingHeading)
-    estimated_y = yc + radius * sin(startingHeading)
+    first_headings.append(startingHeading)
+    # smooth averages over a little bit; it makes it only worse.......
+    startingHeading = mean(first_headings)
 
-    predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
-    predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-    predicted_initial_heading_handle = predicted_initial_heading.stamp()
+    # estimated_x = xc + radius * cos(startingHeading)
+    # estimated_y = yc + radius * sin(startingHeading)
+    # predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
+    # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+    # predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
-    # calculate the destination angle starting from the first averaged heading
-    #print "\tstarting heading", startingHeading  #, "average_angle", average_angle
-    addedAngle = average_angle * len(measurements)
+    return turning, startingHeading
+
+
+# calculate the heading
+def getHeading(turning, startingHeading, measurements):
+    # calculate the destination angle starting from the first heading
+    addedAngle = turning * len(measurements)
     #print average_angle, " * ", len(measurements), " = ", addedAngle
     totalAngle = startingHeading + addedAngle
-    #print "\tstarting heading ", startingHeading, " + ", "added angle", addedAngle, " = ", totalAngle
 
-    return average_angle, totalAngle
+    return totalAngle
 
 
 # determine rotation direction by using cross product of three points
@@ -250,7 +229,6 @@ def getRotationSign(rotationAngles):
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
     global bumblebee_handle, hunterbee_handle
-    global actual_measurements
 
     if OTHER is None:
         measurements = []
@@ -260,15 +238,16 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y = []
         y.append(target_measurement[1])
-
+        turning = 0.
+        startingHeading = 0.
     else:
-        measurements, turnAngle, x, y = OTHER
+        measurements, turnAngle, x, y, turning, startingHeading = OTHER
 
         # collect measurements
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
-        if len(measurements) > 60:
+        if len(measurements) > 330:
 
             point1 = measurements[len(measurements) - 16]
             point2 = measurements[len(measurements) - 8]
@@ -280,42 +259,43 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
 
             # estimate radius and center using least squares
             radius, xc, yc = least_squares(x, y)
+            radius = 0.9 * radius # least square overestimates radius by about 10%;
 
-            radius = 0.95 * radius # least square overestimates radius by about 10%; i am reducing radius by 5%
+            #print "radius", radius # actual is 7.175; estimate is about 7.5
 
-            #print "radius", radius # actual is 7.175; estimate is about 8.0
             # get estimated turning and total angle traveled from measured start
-            turning, totalAngle = getTurnAngle(measurements, rotationSign, radius, xc, yc)
+            if turning == 0. :
+                turning, startingHeading = getTurningAndHeading(measurements, rotationSign, radius, xc, yc)
+
+            totalAngle = getHeading(turning, startingHeading, measurements)
 
             # get estimated position
             estimated_x = xc + radius * cos(totalAngle)
             estimated_y = yc + radius * sin(totalAngle)
             xy_estimate = estimated_x, estimated_y
 
-            bumblebee.clearstamp(bumblebee_handle)
-            bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
-            bumblebee_handle = bumblebee.stamp()
-            hunterbee.clearstamp(hunterbee_handle)
-            hunterbee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-            hunterbee_handle = hunterbee.stamp()
+            # bumblebee.clearstamp(bumblebee_handle)
+            # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
+            # bumblebee_handle = bumblebee.stamp()
+            # hunterbee.clearstamp(hunterbee_handle)
+            # hunterbee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+            # hunterbee_handle = hunterbee.stamp()
 
             #try to find the shortest straight path from hunter position to predicted target position
             steps = 1
             while True:
-                # check how many steps it will take to get there for Hunter
                 if (steps * max_distance) >= distance_between(hunter_position, xy_estimate) or steps > 50:
                     break
                 steps += 1
 
-                totalAngle += rotationSign * turning
+                totalAngle += angle_trunc(rotationSign * turning)
                 estimated_x = xc + radius * cos(totalAngle)
                 estimated_y = yc + radius * sin(totalAngle)
                 xy_estimate = estimated_x, estimated_y
 
 
     measurements.append(target_measurement)
-    actual_measurements = measurements
-    OTHER = (measurements, turnAngle, x, y)
+    OTHER = (measurements, turnAngle, x, y, turning, startingHeading)
     turning = angle_trunc( get_heading(hunter_position, xy_estimate) - hunter_heading ) # turn towards the target
     distance = distance_between(hunter_position, xy_estimate)
 
@@ -353,7 +333,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     caught = False
     ctr = 0
 
-    turtle.setup(800, 800)
+    turtle.setup(500, 500)
 
     window = turtle.Screen()
     window.bgcolor('white')
@@ -483,26 +463,26 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-# scores = []
-# fails = 0
-# for i in range(1000):
-#     print i
-#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-#     target.set_noise(0.0, 0.0, 2.0 * target.distance)
-#     hunter = robot(-10.0, -10.0, 0.0)
-#     score = demo_grading(hunter, target, next_move_straight_line)
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, 2.0 * target.distance)
+    hunter = robot(-10.0, -10.0, 0.0)
+    score = demo_grading(hunter, target, next_move_straight_line)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "average score: ", sum(scores)/ float(len(scores))
+print "minimum score: ", min(scores)
+print "maximum score: ", max(scores)
+print "fails: ", fails
 
 
 #turtle.getscreen()._root.mainloop()

@@ -12,18 +12,13 @@ from scipy import optimize
 # This is an extension of RR5_Least_squares_4.py with the new idea of averaging the initial heading angle in getTurnAngle()
 # still needs work; not done yet
 
-# with > 330
-# average score:  580.921568627
-# minimum score:  339
-# maximum score:  994
-# fails:  898
+# with > 330 and radius = 0.9 * radius
+# average score:  581.429333333
+# minimum score:  338
+# maximum score:  995
+# fails:  625
 
 
-# with > 350
-# average score:  584.5
-# minimum score:  366
-# maximum score:  985
-# fails:  976
 
 
 size_multiplier = 20.

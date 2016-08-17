@@ -9,14 +9,9 @@ from scipy import optimize
 
 # Ilya:
 # this one uses circular regression.
-# This is an extension of RR5_Least_squares_4.py
+# This is an extension of RR5_Least_squares_5.py
 # The biggest issue is predicting the initial heading. Even with a perfect prediction of turning, a good prediction of initial heading is required
 
-# with > 330 and radius = 0.9 * radius
-# average score:  581.429333333
-# minimum score:  338
-# maximum score:  995
-# fails:  625
 
 size_multiplier = 20.
 target = robot(0.0, 5.0, 0.0, 2*pi / 30, 1.5)
@@ -75,10 +70,14 @@ actual_center.stamp()
 test_measurements = [ [], [], [], [] ]
 first_headings = []
 
+step_size = 0. # increment size in increasing heading prediction
+steps_allowed = 10. # number of steps for an increment in the starting heading increase
+measurements_to_pass = 330. # number of measurements to pass before calculating initial heading
 
 # actual center: -0.75, 12.1357733407
 # actual radius: 7.17507917513
 # actual first heading:  -1.67551608191
+# actual turning: 0.209
 
 def distance_between(point1, point2):
     """Computes distance between point1 and point2. Points are (x, y) pairs."""
@@ -222,7 +221,7 @@ def getRotationSign(rotationAngles):
 
 def next_move_straight_line(hunter_position, hunter_heading, target_measurement, max_distance, OTHER = None):
     xy_estimate = target_measurement
-    global bumblebee_handle, hunterbee_handle
+    global bumblebee_handle, hunterbee_handle, step_size, steps_allowed, measurements_to_pass
 
     if OTHER is None:
         measurements = []
@@ -241,7 +240,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
-        if len(measurements) > 330:
+        if len(measurements) > measurements_to_pass:
 
             point1 = measurements[len(measurements) - 16]
             point2 = measurements[len(measurements) - 8]
@@ -260,6 +259,19 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # get estimated turning and total angle traveled from measured start
             if turning == 0. :
                 turning, startingHeading = getTurningAndHeading(measurements, rotationSign, radius, xc, yc)
+                print "startingHeading", startingHeading
+                step_size = abs( turning/((1000 - measurements_to_pass)/steps_allowed) )
+                startingHeading = startingHeading - turning/2
+
+            elif (len(measurements) % steps_allowed) == 0:
+                startingHeading += step_size
+                print "startingHeading", startingHeading
+
+                # print "startingHeading", startingHeading
+                # print turning
+                # startingHeading = startingHeading - turning/2
+                # print "startingHeading", startingHeading
+                # exit()
 
 
             totalAngle = getHeading(turning, startingHeading, measurements)

@@ -13,7 +13,18 @@ from scipy import optimize
 # Employs the strategy of moving predicted heading in equal increments
 # The biggest issue is predicting the initial heading. Even with a perfect prediction of turning, a good prediction of initial heading is required
 
+# with steps_allowed = 15. and measurements_to_pass = 340
+# average score:  782.99378882
+# minimum score:  412
+# maximum score:  990
+# fails:  678
+
+
 # with steps_allowed = 30. and measurements_to_pass = 330
+# average score:  843.515243902
+# minimum score:  556
+# maximum score:  994
+# fails:  672
 
 
 # with steps_allowed = 30. and measurements_to_pass = 300
@@ -107,8 +118,8 @@ test_measurements = [ [], [], [], [] ]
 first_headings = []
 
 step_size = 0. # increment size in increasing heading prediction
-steps_allowed = 30. # number of steps for an increment in the starting heading increase
-measurements_to_pass = 330. # number of measurements to pass before calculating initial heading
+steps_allowed = 15. # number of steps for an increment in the starting heading increase
+measurements_to_pass = 340. # number of measurements to pass before calculating initial heading
 
 # actual center: -0.75, 12.1357733407
 # actual radius: 7.17507917513

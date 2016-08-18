@@ -12,11 +12,13 @@ from scipy import optimize
 # This is an extension of RR5_Least_squares_4.py
 # The biggest issue is predicting the initial heading. Even with a perfect prediction of turning, a good prediction of initial heading is required
 
-# with > 330 and radius = 0.9 * radius
-# average score:  581.429333333
-# minimum score:  338
-# maximum score:  995
-# fails:  625
+
+# with > 360 and radius = 0.9 * radius
+#fails:  607
+#fails:  773
+
+# with > 340 and radius = 0.9 * radius
+# fails:  724
 
 size_multiplier = 20.
 target = robot(0.0, 5.0, 0.0, 2*pi / 30, 1.5)
@@ -61,10 +63,10 @@ predicted_initial_heading_handle = 0.
 target_x = target.x
 target_y = target.y
 
-actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
-actual_initial_heading.stamp()
-actual_center.goto(-0.75 * size_multiplier, 12.1357733407 * size_multiplier - 200)
-actual_center.stamp()
+# actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
+# actual_initial_heading.stamp()
+# actual_center.goto(-0.75 * size_multiplier, 12.1357733407 * size_multiplier - 200)
+# actual_center.stamp()
 
 # xDelta = target.x - 0.75
 # yDelta = target.y - 12.1357733407
@@ -180,16 +182,16 @@ def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
     startingHeading = mean(average_angles)
 
     first_headings.append(startingHeading)
-    # smooth averages over a little bit; it makes it only worse.......
+    # smooth averages over a little bit
     startingHeading = mean(first_headings)
 
     #print "startingHeading", startingHeading # actual first heading:  -1.67551608191
 
     estimated_x = xc + radius * cos(startingHeading)
     estimated_y = yc + radius * sin(startingHeading)
-    predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
-    predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-    predicted_initial_heading_handle = predicted_initial_heading.stamp()
+    # predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
+    # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+    # predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
     return turning, startingHeading
 
@@ -241,7 +243,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
-        if len(measurements) > 330:
+        if len(measurements) > 360:
 
             point1 = measurements[len(measurements) - 16]
             point2 = measurements[len(measurements) - 8]
@@ -261,20 +263,18 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             if turning == 0. :
                 turning, startingHeading = getTurningAndHeading(measurements, rotationSign, radius, xc, yc)
 
-
-            totalAngle = getHeading(turning, startingHeading, measurements)
-
             # get estimated position
+            totalAngle = getHeading(turning, startingHeading, measurements)
             estimated_x = xc + radius * cos(totalAngle)
             estimated_y = yc + radius * sin(totalAngle)
             xy_estimate = estimated_x, estimated_y
 
-            bumblebee.clearstamp(bumblebee_handle)
-            bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
-            bumblebee_handle = bumblebee.stamp()
-            hunterbee.clearstamp(hunterbee_handle)
-            hunterbee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-            hunterbee_handle = hunterbee.stamp()
+            # bumblebee.clearstamp(bumblebee_handle)
+            # bumblebee.goto(xc * size_multiplier, yc * size_multiplier - 200)
+            # bumblebee_handle = bumblebee.stamp()
+            # hunterbee.clearstamp(hunterbee_handle)
+            # hunterbee.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+            # hunterbee_handle = hunterbee.stamp()
 
             #try to find the shortest straight path from hunter position to predicted target position
             steps = 1
@@ -457,26 +457,23 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-demo_grading_visual(hunter, target, next_move_straight_line)
+#demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-# scores = []
-# fails = 0
-# for i in range(1000):
-#     print i
-#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-#     target.set_noise(0.0, 0.0, 2.0 * target.distance)
-#     hunter = robot(-10.0, -10.0, 0.0)
-#     score = demo_grading(hunter, target, next_move_straight_line)
-#     if score == 1000:
-#         fails += 1
-#     else:
-#         scores.append(score)
-#
-# print "average score: ", sum(scores)/ float(len(scores))
-# print "minimum score: ", min(scores)
-# print "maximum score: ", max(scores)
-# print "fails: ", fails
+scores = []
+fails = 0
+for i in range(1000):
+    print i
+    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+    target.set_noise(0.0, 0.0, 2.0 * target.distance)
+    hunter = robot(-10.0, -10.0, 0.0)
+    score = demo_grading(hunter, target, next_move_straight_line)
+    if score == 1000:
+        fails += 1
+    else:
+        scores.append(score)
+
+print "fails: ", fails
 
 
 #turtle.getscreen()._root.mainloop()

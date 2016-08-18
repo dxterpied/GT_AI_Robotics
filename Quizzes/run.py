@@ -16,14 +16,14 @@ from math import *
 # print atan2(-1, -1) # -2.35619449019
 #print atan2(0, -1)   # 3.14159265359
 
-print atan2(1, 0)                           # 1.57079632679
-print degrees(atan2(1, 0)) % 360            # 90.0
-print radians(degrees(atan2(1, 0)) % 360)   # 1.57079632679
+# print atan2(1, 0)                           # 1.57079632679
+# print degrees(atan2(1, 0)) % 360            # 90.0
+# print radians(degrees(atan2(1, 0)) % 360)   # 1.57079632679
 
 # negative angle conversion to positive
-print atan2(-1, 0)                          # -1.57079632679
-print degrees(atan2(-1, 0)) % 360           # 270.0
-print radians(degrees(atan2(-1, 0)) % 360)  # 4.71238898038
+# print atan2(-1, 0)                          # -1.57079632679
+# print degrees(atan2(-1, 0)) % 360           # 270.0
+# print radians(degrees(atan2(-1, 0)) % 360)  # 4.71238898038
 
 
 
@@ -39,7 +39,18 @@ print radians(degrees(atan2(-1, 0)) % 360)  # 4.71238898038
 # print 1.5 / (sin(pi/30.) * 2.)
 # print "1.5 / (2. * sin(pi/30.))", 1.5 / (2. * sin(pi/30.))
 
-print 2*pi / 29.6
-print 2*pi / 30.4
+x = 0.0
+y = 5.0
+xc = -0.75
+yc = 12.1357733407
+radius = 7.17507917513
+
+xDelta = x - xc
+yDelta = y - yc
+actualFirstHeading = atan2(yDelta, xDelta)
+estimated_x = xc + radius * cos(actualFirstHeading)
+estimated_y = yc + radius * sin(actualFirstHeading)
+
+print "estimated_x", round(estimated_x), "estimated_y", round(estimated_y)
 
 

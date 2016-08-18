@@ -82,7 +82,7 @@ hunterbee_handle = 0.
 predicted_initial_heading = turtle.Turtle()
 predicted_initial_heading.shape('circle')
 predicted_initial_heading.color('orange')
-predicted_initial_heading.penup()
+#predicted_initial_heading.penup()
 predicted_initial_heading.shapesize(0.4, 0.4, 0.4)
 
 actual_initial_heading = turtle.Turtle()
@@ -103,23 +103,31 @@ predicted_initial_heading_handle = 0.
 target_x = target.x
 target_y = target.y
 
-# actual_initial_heading.goto(target.x * size_multiplier, target.y * size_multiplier - 200)
-# actual_initial_heading.stamp()
-# actual_center.goto(-0.75 * size_multiplier, 12.1357733407 * size_multiplier - 200)
-# actual_center.stamp()
 
-# xDelta = target.x - 0.75
-# yDelta = target.y - 12.1357733407
-# actualFirstHeading = atan2(yDelta, xDelta)
+xDelta = target.x - 0.75
+yDelta = target.y - 12.1357733407
+actualFirstHeading = atan2(yDelta, xDelta)
+estimated_x = -0.75 + 7.17507917513 * cos(actualFirstHeading)
+estimated_y = 12.1357733407 + 7.17507917513 * sin(actualFirstHeading)
+
+print "target.x", target.x, "estimated_x", estimated_x
+
 # print "actual first heading: ",  actualFirstHeading
 # print "-------------------------------------------"
+
+actual_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+actual_initial_heading.stamp()
+
+actual_center.goto(-0.75 * size_multiplier, 12.1357733407 * size_multiplier - 200)
+actual_center.stamp()
+
 
 test_measurements = [ [], [], [], [] ]
 first_headings = []
 
 step_size = 0. # increment size in increasing heading prediction
-steps_allowed = 15. # number of steps for an increment in the starting heading increase
-measurements_to_pass = 340. # number of measurements to pass before calculating initial heading
+steps_allowed = 50. # number of steps for an increment in the starting heading increase
+measurements_to_pass = 300. # number of measurements to pass before calculating initial heading
 
 # actual center: -0.75, 12.1357733407
 # actual radius: 7.17507917513
@@ -176,6 +184,8 @@ def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
     # get the very first heading angle (measured).
     xDelta = measurements[0][0] - xc
     yDelta = measurements[0][1] - yc
+    # xDelta = -0.75 - xc
+    # yDelta = 12.1357733407 - yc
     prevHeading = atan2(yDelta, xDelta)
     firstHeading = prevHeading
     totalAngle = 0.
@@ -228,6 +238,8 @@ def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
     first_headings.append(startingHeading)
     # smooth averages over a little bit; it makes it only worse.......
     startingHeading = mean(first_headings)
+
+    startingHeading = -1.67551608191 #   firstHeading
 
     #print "startingHeading", startingHeading # actual first heading:  -1.67551608191
 
@@ -301,18 +313,34 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             if turning == 0. :
                 turning, startingHeading = getTurningAndHeading(measurements, rotationSign, radius, xc, yc)
                 # print "startingHeading", startingHeading
-                step_size = abs( turning/((1000 - measurements_to_pass)/steps_allowed) )
-                startingHeading = startingHeading - turning/2
 
-            elif (len(measurements) % steps_allowed) == 0:
-                startingHeading += step_size
+                estimated_x = xc + radius * cos(startingHeading)
+                estimated_y = yc + radius * sin(startingHeading)
+                predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+
+                step_size = abs( (3 * turning) / ((1000 - measurements_to_pass)/steps_allowed) )
+                #startingHeading = startingHeading - turning/2
+
+                # startingHeading = startingHeading - 1.5 * turning
+                # estimated_x = xc + radius * cos(startingHeading)
+                # estimated_y = yc + radius * sin(startingHeading)
+                # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+
+            #print startingHeading
+
+            # elif (len(measurements) % steps_allowed) == 0:
+            #     startingHeading += step_size
                 # print "startingHeading", startingHeading
 
             # estimated_x = xc + radius * cos(startingHeading)
             # estimated_y = yc + radius * sin(startingHeading)
-            # predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
-            # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
-            # predicted_initial_heading_handle = predicted_initial_heading.stamp()
+            # actual center: -0.75, 12.1357733407
+            estimated_x = -0.75 + 7.17507917513 * cos(startingHeading)
+            estimated_y = 12.1357733407 + 7.17507917513 * sin(startingHeading)
+
+            predicted_initial_heading.clearstamp(predicted_initial_heading_handle)
+            predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
+            predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
             totalAngle = getHeading(turning, startingHeading, measurements)
 
@@ -424,12 +452,6 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # The target broadcasts its noisy measurement
         target_measurement = target_bot.sense()
 
-        # x_points.append(target_measurement[0])
-        # y_points.append(target_measurement[1])
-        # x_actual.append(target_bot.x)
-        # y_actual.append(target_bot.y)
-
-
         # This is where YOUR function will be called.
         turning, distance, OTHER = next_move_fcn(hunter_position, hunter_bot.heading, target_measurement, max_distance, OTHER)
 
@@ -449,8 +471,9 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         if prediction_handle is not None:
             prediction.clearstamp(prediction_handle)
 
-        # prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-        # prediction_handle = prediction.stamp()
+        if ctr >= 340:
+            prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
+            prediction_handle = prediction.stamp()
 
         ctr += 1
         if ctr >= 1000:
@@ -509,26 +532,26 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     return caught
 
 
-#demo_grading_visual(hunter, target, next_move_straight_line)
+demo_grading_visual(hunter, target, next_move_straight_line)
 #demo_grading(hunter, target, next_move_straight_line)
 
-scores = []
-fails = 0
-for i in range(1000):
-    print i
-    target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
-    target.set_noise(0.0, 0.0, 2.0 * target.distance)
-    hunter = robot(-10.0, -10.0, 0.0)
-    score = demo_grading(hunter, target, next_move_straight_line)
-    if score == 1000:
-        fails += 1
-    else:
-        scores.append(score)
-
-print "average score: ", sum(scores)/ float(len(scores))
-print "minimum score: ", min(scores)
-print "maximum score: ", max(scores)
-print "fails: ", fails
+# scores = []
+# fails = 0
+# for i in range(1000):
+#     print i
+#     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
+#     target.set_noise(0.0, 0.0, 2.0 * target.distance)
+#     hunter = robot(-10.0, -10.0, 0.0)
+#     score = demo_grading(hunter, target, next_move_straight_line)
+#     if score == 1000:
+#         fails += 1
+#     else:
+#         scores.append(score)
+#
+# print "average score: ", sum(scores)/ float(len(scores))
+# print "minimum score: ", min(scores)
+# print "maximum score: ", max(scores)
+# print "fails: ", fails
 
 
 #turtle.getscreen()._root.mainloop()

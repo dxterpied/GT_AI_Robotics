@@ -13,9 +13,21 @@ from scipy import optimize
 # Employs the strategy of taking the predicted first heading, stepping back and then moving predicted heading in equal increments
 # The biggest issue is predicting the initial heading. Even with a perfect prediction of turning, a good prediction of initial heading is required
 
-# with steps_allowed = 20. and measurements_to_pass = 340
-# fails:  846
+# with steps_allowed = 60. and measurements_to_pass = 340
+#fails:  885
+#fails:  860
 
+# with steps_allowed = 20. and measurements_to_pass = 340
+# fails:  870
+# fails:  855
+
+# with steps_allowed = 40. and measurements_to_pass = 340
+# fails:  858
+# fails:  885
+# fails:  863
+# fails:  868
+# fails:  896
+# fails:  893
 
 size_multiplier = 20.
 target = robot(0.0, 5.0, 0.0, 2*pi / 30, 1.5)
@@ -82,7 +94,7 @@ target_y = target.y
 # actual_center.stamp()
 
 step_size = 0. # increment size in increasing heading prediction
-steps_allowed = 20. # number of steps for an increment in the starting heading increase
+steps_allowed = 40. # number of steps for an increment in the starting heading increase
 measurements_to_pass = 340. # number of measurements to pass before calculating initial heading
 
 # actual center: -0.75, 12.1357733407
@@ -144,7 +156,7 @@ def least_squares(x, y):
 
 
 def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
-    global predicted_initial_heading_handle, first_headings
+    global first_headings
 
     # get the very first heading angle (measured).
     xDelta = measurements[0][0] - xc
@@ -193,7 +205,7 @@ def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
 
     for i in range(1, int( len(measurements) / number_of_steps )):
         index = int(number_of_steps * i) - 1
-        average_angles.append(total_angles[index])
+        average_angles.append( mean([ total_angles[index] ]) )
 
     startingHeading = mean(average_angles)
 
@@ -278,20 +290,23 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 #print "startingHeading", startingHeading
                 #print "turning", turning # actual turning: 0.209
 
-                step_size = abs( (2 * turning) / ((1000 - measurements_to_pass)/steps_allowed) )
+                # step back one turning distance
                 startingHeading = startingHeading - turning
+                # calculated the increment size
+                step_size = abs( (2 * turning) / ((1000 - measurements_to_pass)/steps_allowed) )
 
-            #     estimated_x = xc + radius * cos(startingHeading)
-            #     estimated_y = yc + radius * sin(startingHeading)
-            #     xDelta = measurements[0][0] - xc
-            #     yDelta = measurements[0][1] - yc
-            #     measured_heading = atan2(yDelta, xDelta)
-            #     m_x = xc + radius * cos(measured_heading)
-            #     m_y = yc + radius * sin(measured_heading)
-            #     predicted_x.append(estimated_x)
-            #     predicted_y.append(estimated_y)
-            #     measured_x.append(m_x)
-            #     measured_y.append(m_y)
+
+                estimated_x = xc + radius * cos(startingHeading)
+                estimated_y = yc + radius * sin(startingHeading)
+                xDelta = measurements[0][0] - xc
+                yDelta = measurements[0][1] - yc
+                measured_heading = atan2(yDelta, xDelta)
+                m_x = xc + radius * cos(measured_heading)
+                m_y = yc + radius * sin(measured_heading)
+                predicted_x.append(estimated_x)
+                predicted_y.append(estimated_y)
+                measured_x.append(m_x)
+                measured_y.append(m_y)
             #
             #     # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
             elif (len(measurements) % steps_allowed) == 0:
@@ -501,7 +516,8 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 scores = []
 fails = 0
 for i in range(1000):
-    print i
+    print i,
+    first_headings = []
     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
     target.set_noise(0.0, 0.0, 2.0 * target.distance)
     hunter = robot(-10.0, -10.0, 0.0)
@@ -514,8 +530,8 @@ for i in range(1000):
 print "fails: ", fails
 
 
-# print "predicted distance to actual: ", distance_between(actual_xy, (mean(predicted_x), mean(predicted_y)) )
-# print "measured  distance to actual: ", distance_between(actual_xy, (mean(measured_x), mean(measured_y)) )
+print "predicted distance to actual: ", distance_between(actual_xy, (mean(predicted_x), mean(predicted_y)) )
+print "measured  distance to actual: ", distance_between(actual_xy, (mean(measured_x), mean(measured_y)) )
 
 
 #turtle.getscreen()._root.mainloop()

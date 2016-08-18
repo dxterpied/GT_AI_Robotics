@@ -13,12 +13,21 @@ from scipy import optimize
 # The biggest issue is predicting the initial heading. Even with a perfect prediction of turning, a good prediction of initial heading is required
 
 
+# with > 380 and radius = 0.9 * radius
+# fails:  962
+# fails:  970
+
 # with > 360 and radius = 0.9 * radius
-#fails:  607
-#fails:  773
+# fails:  957
+
+# with  > 350 and radius = 0.9 * radius
+# fails:  956
+# fails:  986
 
 # with > 340 and radius = 0.9 * radius
-# fails:  724
+# fails:  960
+# fails:  960
+# fails:  960
 
 size_multiplier = 20.
 target = robot(0.0, 5.0, 0.0, 2*pi / 30, 1.5)
@@ -243,7 +252,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
         x.append(target_measurement[0])
         y.append(target_measurement[1])
 
-        if len(measurements) > 360:
+        if len(measurements) > 350:
 
             point1 = measurements[len(measurements) - 16]
             point2 = measurements[len(measurements) - 8]
@@ -463,7 +472,8 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
 scores = []
 fails = 0
 for i in range(1000):
-    print i
+    print i,
+    first_headings = []
     target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
     target.set_noise(0.0, 0.0, 2.0 * target.distance)
     hunter = robot(-10.0, -10.0, 0.0)

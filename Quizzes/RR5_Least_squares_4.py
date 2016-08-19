@@ -87,7 +87,7 @@ def distance_between(point1, point2):
 
 
 # this leastsq version estimates worse than the algebraic version
-# def least_squares(x, y, x_actual = None, y_actual = None, show_plot = False):
+# def least_squares(x, y):
 #
 #
 #     def calc_R(xc, yc):

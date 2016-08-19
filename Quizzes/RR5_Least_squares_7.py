@@ -140,7 +140,7 @@ def least_squares(x, y):
 
 # uses the average of all angles to calculate the first heading; it fails....
 def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
-    global first_headings
+    global first_headings, faulty_angles
 
     # get the very first heading angle (measured).
     xDelta = measurements[0][0] - xc
@@ -193,6 +193,9 @@ def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
         startingHeading = mean_of_all_angles - ( (( 0.5 * number_of_steps  - 1) * turning) )
 
     #print "startingHeading", startingHeading # actual first heading:  -1.46607657168
+
+    print total_angles
+    exit()
 
     return turning, startingHeading
 
@@ -395,10 +398,10 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_handle = 0.
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 60:
+    while not caught and ctr < 1000:
 
-        x_points.append(target_bot.x)
-        y_points.append(target_bot.y)
+        # x_points.append(target_bot.x)
+        # y_points.append(target_bot.y)
 
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
@@ -440,8 +443,8 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
             print "It took too many steps to catch the target."
 
 
-    print "x_points", x_points
-    print "y_points", y_points
+    # print "x_points", x_points
+    # print "y_points", y_points
     # print "x_actual", x_actual
     # print "y_actual", y_actual
     return caught

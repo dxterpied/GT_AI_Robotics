@@ -363,6 +363,9 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     caught = False
     ctr = 0
 
+    x_points = []
+    y_points = []
+
     window = turtle.Screen()
     window.bgcolor('white')
 
@@ -392,7 +395,10 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     broken_handle = 0.
 
     # We will use your next_move_fcn until we catch the target or time expires.
-    while not caught and ctr < 1000:
+    while not caught and ctr < 60:
+
+        x_points.append(target_bot.x)
+        y_points.append(target_bot.y)
 
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
@@ -434,8 +440,8 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
             print "It took too many steps to catch the target."
 
 
-    # print "x_points", x_points
-    # print "y_points", y_points
+    print "x_points", x_points
+    print "y_points", y_points
     # print "x_actual", x_actual
     # print "y_actual", y_actual
     return caught

@@ -78,5 +78,7 @@ x1, y1 = least_squares2(x, y)
 x_s = array([1., 7., 9.])
 x1 = least_squares3(x_s) # just an average
 
-print x1
+
+print len(x_actual)
+
 #print radius, xc, yc

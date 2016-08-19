@@ -3,6 +3,10 @@ import turtle
 from cmath import rect, phase
 from math import radians, degrees, atan2
 
+# takes degrees in radians and outputs radians
+def mean_angle(deg):
+    return phase( sum(rect(1, d) for d in deg) / len(deg) )
+
 
 size_multiplier = 100.
 
@@ -73,7 +77,7 @@ average_y = np.mean(zip(*faulty_xy)[1])
 average_turtle.goto( np.cos(atan2(average_y, average_x )) * size_multiplier, np.sin(atan2(average_y, average_x )) * size_multiplier)
 average_turtle.stamp()
 
-average_angle_turtle.goto( np.cos(np.mean(faulty_angles)) * size_multiplier, np.sin(np.mean(faulty_angles)) * size_multiplier)
+average_angle_turtle.goto( np.cos(mean_angle(faulty_angles)) * size_multiplier, np.sin(mean_angle(faulty_angles)) * size_multiplier)
 average_angle_turtle.stamp()
 
 #print zip(*faulty_xy)
@@ -85,6 +89,10 @@ print faulty_angles
 # myTurtle.setposition(0,0)
 # myTurtle.pendown()
 # myTurtle.circle(50)
+
+
+for angles in [[ radians(-20), radians(10)], faulty_angles]:
+    print 'The mean angle of', angles, 'is:', round(mean_angle(angles), 12), 'radians'
 
 turtle.getscreen()._root.mainloop()
 

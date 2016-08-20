@@ -34,7 +34,7 @@ target = robot(0.0, 5.0, 0.0, 2*pi / 30, 1.5)
 target.set_noise(0.0, 0.0, 2.0 * target.distance)
 hunter = robot(-10.0, -15.0, 0.0)
 
-turtle.setup(450, 450, 0, 600)
+turtle.setup(450, 450, 200, 200)
 bumblebee = turtle.Turtle()
 bumblebee.shape('square')
 bumblebee.color('black')
@@ -45,7 +45,7 @@ hunterbee = turtle.Turtle()
 hunterbee.shape('turtle')
 hunterbee.color('brown')
 hunterbee.shapesize(0.3, 0.3, 0.3)
-#hunterbee.penup()
+hunterbee.penup()
 bumblebee_handle = 0.
 hunterbee_handle = 0.
 
@@ -60,6 +60,14 @@ actual_initial_heading.shape('circle')
 actual_initial_heading.color('purple')
 actual_initial_heading.penup()
 actual_initial_heading.shapesize(0.4, 0.4, 0.4)
+
+
+faulty_initial_heading = turtle.Turtle()
+faulty_initial_heading.shape('circle')
+faulty_initial_heading.color('cyan')
+faulty_initial_heading.penup()
+faulty_initial_heading.shapesize(0.4, 0.4, 0.4)
+
 
 actual_center = turtle.Turtle()
 actual_center.shape('circle')
@@ -213,9 +221,6 @@ def getTurningAndHeading(measurements, rotationSign, radius, xc, yc):
     # smooth averages over a little bit; without smoothing the prediction is worse
     startingHeading = mean(first_headings)
 
-    # predicted starting heading seems to be more accurate than the measured one
-    # predicted distance to actual:  5.08044473428
-    # measured  distance to actual:  5.90970815051
     # using first measured heading as the start
     #startingHeading = firstHeading # actual heading angle: -1.46607657168
 
@@ -290,23 +295,28 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 #print "startingHeading", startingHeading
                 #print "turning", turning # actual turning: 0.209
 
+                faulty_x = xc + radius * cos(startingHeading)
+                faulty_y = yc + radius * sin(startingHeading)
+                # faulty_initial_heading.goto( faulty_x * size_multiplier, faulty_y * size_multiplier - 200)
+                # faulty_initial_heading.stamp()
+
                 # step back one turning distance
-                startingHeading = startingHeading - turning
+                startingHeading = startingHeading - 1.5 * turning
                 # calculated the increment size
-                step_size = abs( (2 * turning) / ((1000 - measurements_to_pass)/steps_allowed) )
+                step_size = abs( (3 * turning) / ((1000 - measurements_to_pass)/steps_allowed) )
 
 
-                estimated_x = xc + radius * cos(startingHeading)
-                estimated_y = yc + radius * sin(startingHeading)
-                xDelta = measurements[0][0] - xc
-                yDelta = measurements[0][1] - yc
-                measured_heading = atan2(yDelta, xDelta)
-                m_x = xc + radius * cos(measured_heading)
-                m_y = yc + radius * sin(measured_heading)
-                predicted_x.append(estimated_x)
-                predicted_y.append(estimated_y)
-                measured_x.append(m_x)
-                measured_y.append(m_y)
+                # estimated_x = xc + radius * cos(startingHeading)
+                # estimated_y = yc + radius * sin(startingHeading)
+                # xDelta = measurements[0][0] - xc
+                # yDelta = measurements[0][1] - yc
+                # measured_heading = atan2(yDelta, xDelta)
+                # m_x = xc + radius * cos(measured_heading)
+                # m_y = yc + radius * sin(measured_heading)
+                # predicted_x.append(estimated_x)
+                # predicted_y.append(estimated_y)
+                # measured_x.append(m_x)
+                # measured_y.append(m_y)
             #
             #     # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
             elif (len(measurements) % steps_allowed) == 0:
@@ -319,7 +329,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             # predicted_initial_heading.goto(estimated_x * size_multiplier, estimated_y * size_multiplier - 200)
             # predicted_initial_heading_handle = predicted_initial_heading.stamp()
 
-            # get estimated position
+            # get estimated current position
             totalAngle = getHeading(turning, startingHeading, measurements)
             estimated_x = xc + radius * cos(totalAngle)
             estimated_y = yc + radius * sin(totalAngle)
@@ -337,7 +347,7 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
             #try to find the shortest straight path from hunter position to predicted target position
             steps = 0
             while True:
-                if (steps * max_distance) > distance_between(hunter_position, xy_estimate) or steps > 50:
+                if (steps * max_distance) > distance_between(hunter_position, xy_estimate):
                     break
                 totalAngle += angle_trunc(rotationSign * turning)
                 estimated_x = xc + radius * cos(totalAngle)
@@ -401,7 +411,7 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
     prediction.color('blue')
     prediction.resizemode('user')
     prediction.shapesize(0.2, 0.2, 0.2)
-    #prediction.penup()
+    prediction.penup()
 
     noise = turtle.Turtle()
     noise.shape('circle')
@@ -448,9 +458,9 @@ def demo_grading_visual(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         if prediction_handle is not None:
             prediction.clearstamp(prediction_handle)
 
-        if ctr >= 300:
-            prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
-            prediction_handle = prediction.stamp()
+        # if ctr >= 300:
+        prediction.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 200)
+        prediction_handle = prediction.stamp()
 
         ctr += 1
         if ctr >= 1000:
@@ -530,8 +540,8 @@ for i in range(1000):
 print "fails: ", fails
 
 
-print "predicted distance to actual: ", distance_between(actual_xy, (mean(predicted_x), mean(predicted_y)) )
-print "measured  distance to actual: ", distance_between(actual_xy, (mean(measured_x), mean(measured_y)) )
+# print "predicted distance to actual: ", distance_between(actual_xy, (mean(predicted_x), mean(predicted_y)) )
+# print "measured  distance to actual: ", distance_between(actual_xy, (mean(measured_x), mean(measured_y)) )
 
 
 #turtle.getscreen()._root.mainloop()

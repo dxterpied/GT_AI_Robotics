@@ -301,9 +301,9 @@ def next_move_straight_line(hunter_position, hunter_heading, target_measurement,
                 # faulty_initial_heading.stamp()
 
                 # step back one turning distance
-                startingHeading = startingHeading - 1.5 * turning
+                startingHeading = startingHeading - 1. * turning
                 # calculated the increment size
-                step_size = abs( (3 * turning) / ((1000 - measurements_to_pass)/steps_allowed) )
+                step_size = abs( (2 * turning) / ((1000 - measurements_to_pass)/steps_allowed) )
 
 
                 # estimated_x = xc + radius * cos(startingHeading)

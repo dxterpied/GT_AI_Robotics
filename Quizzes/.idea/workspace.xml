@@ -2,15 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9ba553b9-65c6-4cbc-8603-f66a1bf3baf2" name="Default" comment="saving">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../ProblemSets/.idea/ProblemSets.iml" afterPath="$PROJECT_DIR$/../ProblemSets/.idea/ProblemSets.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Project1/.idea/Project1.iml" afterPath="$PROJECT_DIR$/../Project1/.idea/Project1.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/Quizzes.iml" afterPath="$PROJECT_DIR$/.idea/Quizzes.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/RR5_Least_squares_5.py" afterPath="$PROJECT_DIR$/RR5_Least_squares_5.py" />
     </list>
     <ignored path="Quizzes.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -31,39 +27,14 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="RR5_Least_squares_5.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/RR5_Least_squares_5.py">
+      <file leaf-file-name="angle_averaging_2.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../Project1/angle_averaging_2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="264" column="75" selection-start-line="264" selection-start-column="75" selection-end-line="264" selection-end-column="75" />
+            <state vertical-scroll-proportion="0.6277372">
+              <caret line="95" column="14" selection-start-line="95" selection-start-column="14" selection-end-line="95" selection-end-column="14" />
               <folding>
-                <element signature="e#2223#2387#0" expanded="false" />
-                <element signature="e#2420#3339#0" expanded="false" />
-                <element signature="e#3416#6170#0" expanded="false" />
-                <element signature="e#6257#6506#0" expanded="false" />
-                <element signature="e#6815#7080#0" expanded="false" />
-                <element signature="e#10267#10395#0" expanded="false" />
-                <element signature="e#10452#10726#0" expanded="false" />
-                <element signature="e#11016#14173#0" expanded="false" />
-                <element signature="e#14251#15958#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="RR5_Least_squares_4.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/RR5_Least_squares_4.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.37931034">
-              <caret line="16" column="21" selection-start-line="16" selection-start-column="21" selection-end-line="16" selection-end-column="21" />
-              <folding>
-                <element signature="e#2172#2336#0" expanded="false" />
-                <element signature="e#3127#4046#0" expanded="false" />
-                <element signature="e#7727#7992#0" expanded="false" />
-                <element signature="e#10941#11069#0" expanded="false" />
-                <element signature="e#11126#11400#0" expanded="false" />
-                <element signature="e#11690#14847#0" expanded="false" />
-                <element signature="e#14925#16632#0" expanded="false" />
+                <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#3816#3871#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -122,23 +93,26 @@
         <option value="$PROJECT_DIR$/least_squares.py" />
         <option value="$PROJECT_DIR$/RR5_UKF.py" />
         <option value="$PROJECT_DIR$/RR5_EKF.py" />
-        <option value="$PROJECT_DIR$/run.py" />
         <option value="$PROJECT_DIR$/RR5_UKF_4.py" />
         <option value="$PROJECT_DIR$/../Project1/ukf_KalmanPy_three_variables.py" />
         <option value="$PROJECT_DIR$/RR5_Least_squares.py" />
         <option value="$PROJECT_DIR$/../Project1/ukf_KalmanPy_one_variable.py" />
-        <option value="$PROJECT_DIR$/RR5_Least_squares_3.py" />
         <option value="$PROJECT_DIR$/RR5_Least_squares_2.py" />
-        <option value="$PROJECT_DIR$/RR5_Least_squares_5.py" />
+        <option value="$PROJECT_DIR$/run.py" />
+        <option value="$PROJECT_DIR$/RR5_Least_squares_3.py" />
         <option value="$PROJECT_DIR$/RR5_Least_squares_4.py" />
+        <option value="$PROJECT_DIR$/../Project1/least_squares_circle_2.py" />
+        <option value="$PROJECT_DIR$/RR5_Least_squares_7.py" />
+        <option value="$PROJECT_DIR$/../Project1/angle_averaging.py" />
+        <option value="$PROJECT_DIR$/RR5_Least_squares_6.py" />
+        <option value="$PROJECT_DIR$/../Project1/angle_averaging_2.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
-    <option name="width" value="1296" />
-    <option name="height" value="1010" />
+    <option name="y" value="23" />
+    <option name="width" value="1440" />
+    <option name="height" value="808" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -199,39 +173,14 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Quizzes" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Project1" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Quizzes" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Quizzes" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$USER_HOME$/Kalman" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Edx_AI/Edx_AI_Project3" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
-  </component>
-  <component name="Push.Settings">
-    <excluded-roots>
-      <path value="$PROJECT_DIR$/../../Kalman-and-Bayesian-Filters-in-Python" />
-    </excluded-roots>
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -239,8 +188,8 @@
       <recent name="$PROJECT_DIR$/../Project1" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RR5_Least_squares_5">
-    <configuration default="false" name="RR5_Least_squares_2" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.angle_averaging_2">
+    <configuration default="false" name="RR5_Least_squares_6" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -252,46 +201,46 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="Quizzes" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RR5_Least_squares_2.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RR5_Least_squares_6.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="RR4_UKF_2" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="least_squares_circle_2" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../Project1" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="Quizzes" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RR4_UKF_2.py" />
+      <module name="Project1" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/least_squares_circle_2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="RR5_Least_squares_3" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="angle_averaging" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../Project1" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="Quizzes" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RR5_Least_squares_3.py" />
+      <module name="Project1" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/angle_averaging.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="RR5_Least_squares_4" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="RR5_Least_squares_7" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -303,24 +252,24 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="Quizzes" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RR5_Least_squares_4.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RR5_Least_squares_7.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="RR5_Least_squares_5" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="angle_averaging_2" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../Project1" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="Quizzes" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RR5_Least_squares_5.py" />
+      <module name="Project1" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Project1/angle_averaging_2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -448,19 +397,19 @@
       <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python.RR5_Least_squares_2" />
-      <item index="1" class="java.lang.String" itemvalue="Python.RR4_UKF_2" />
-      <item index="2" class="java.lang.String" itemvalue="Python.RR5_Least_squares_3" />
-      <item index="3" class="java.lang.String" itemvalue="Python.RR5_Least_squares_4" />
-      <item index="4" class="java.lang.String" itemvalue="Python.RR5_Least_squares_5" />
+      <item index="0" class="java.lang.String" itemvalue="Python.RR5_Least_squares_6" />
+      <item index="1" class="java.lang.String" itemvalue="Python.least_squares_circle_2" />
+      <item index="2" class="java.lang.String" itemvalue="Python.angle_averaging" />
+      <item index="3" class="java.lang.String" itemvalue="Python.RR5_Least_squares_7" />
+      <item index="4" class="java.lang.String" itemvalue="Python.angle_averaging_2" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.RR5_Least_squares_5" />
-        <item index="1" class="java.lang.String" itemvalue="Python.RR5_Least_squares_4" />
-        <item index="2" class="java.lang.String" itemvalue="Python.RR5_Least_squares_3" />
-        <item index="3" class="java.lang.String" itemvalue="Python.RR5_Least_squares_2" />
-        <item index="4" class="java.lang.String" itemvalue="Python.RR4_UKF_2" />
+        <item index="0" class="java.lang.String" itemvalue="Python.angle_averaging_2" />
+        <item index="1" class="java.lang.String" itemvalue="Python.RR5_Least_squares_6" />
+        <item index="2" class="java.lang.String" itemvalue="Python.angle_averaging" />
+        <item index="3" class="java.lang.String" itemvalue="Python.RR5_Least_squares_7" />
+        <item index="4" class="java.lang.String" itemvalue="Python.least_squares_circle_2" />
       </list>
     </recent_temporary>
   </component>
@@ -474,60 +423,6 @@
       <created>1463791987829</created>
       <option name="number" value="Default" />
       <updated>1463791987829</updated>
-    </task>
-    <task id="LOCAL-00008" summary="saving">
-      <created>1468616683755</created>
-      <option name="number" value="00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1468616683755</updated>
-    </task>
-    <task id="LOCAL-00009" summary="saving">
-      <created>1468633606309</created>
-      <option name="number" value="00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1468633606309</updated>
-    </task>
-    <task id="LOCAL-00010" summary="saving">
-      <created>1468693533908</created>
-      <option name="number" value="00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1468693533908</updated>
-    </task>
-    <task id="LOCAL-00011" summary="saving">
-      <created>1468878536233</created>
-      <option name="number" value="00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1468878536233</updated>
-    </task>
-    <task id="LOCAL-00012" summary="saving">
-      <created>1468882298861</created>
-      <option name="number" value="00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1468882298861</updated>
-    </task>
-    <task id="LOCAL-00013" summary="saving">
-      <created>1468891902488</created>
-      <option name="number" value="00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1468891902488</updated>
-    </task>
-    <task id="LOCAL-00014" summary="add fix for clockwise rotation">
-      <created>1468964497264</created>
-      <option name="number" value="00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1468964497264</updated>
-    </task>
-    <task id="LOCAL-00015" summary="saving">
-      <created>1469055827280</created>
-      <option name="number" value="00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1469055827280</updated>
-    </task>
-    <task id="LOCAL-00016" summary="saving">
-      <created>1469058620968</created>
-      <option name="number" value="00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1469058620968</updated>
     </task>
     <task id="LOCAL-00017" summary="saving">
       <created>1469238545650</created>
@@ -752,69 +647,103 @@
       <updated>1471105784535</updated>
     </task>
     <task id="LOCAL-00054" summary="saving">
-      <created>1471355117789</created>
+      <created>1471114789701</created>
       <option name="number" value="00054" />
       <option name="project" value="LOCAL" />
-      <updated>1471355117790</updated>
+      <updated>1471114789701</updated>
     </task>
     <task id="LOCAL-00055" summary="saving">
-      <created>1471371673103</created>
+      <created>1471127427330</created>
       <option name="number" value="00055" />
       <option name="project" value="LOCAL" />
-      <updated>1471371673103</updated>
+      <updated>1471127427330</updated>
     </task>
     <task id="LOCAL-00056" summary="saving">
-      <created>1471452459734</created>
+      <created>1471279601542</created>
       <option name="number" value="00056" />
       <option name="project" value="LOCAL" />
-      <updated>1471452459734</updated>
+      <updated>1471279601542</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="saving">
+      <created>1471293171945</created>
+      <option name="number" value="00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1471293171945</updated>
+    </task>
+    <task id="LOCAL-00058" summary="saving">
+      <created>1471310502471</created>
+      <option name="number" value="00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1471310502471</updated>
+    </task>
+    <task id="LOCAL-00059" summary="saving">
+      <created>1471482755909</created>
+      <option name="number" value="00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1471482755909</updated>
+    </task>
+    <task id="LOCAL-00060" summary="saving">
+      <created>1471566441543</created>
+      <option name="number" value="00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1471566441543</updated>
+    </task>
+    <task id="LOCAL-00061" summary="saving">
+      <created>1471640444802</created>
+      <option name="number" value="00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1471640444802</updated>
+    </task>
+    <task id="LOCAL-00062" summary="saving">
+      <created>1471650356401</created>
+      <option name="number" value="00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1471650356401</updated>
+    </task>
+    <task id="LOCAL-00063" summary="saving">
+      <created>1471656157396</created>
+      <option name="number" value="00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1471656157396</updated>
+    </task>
+    <task id="LOCAL-00064" summary="saving">
+      <created>1471657314282</created>
+      <option name="number" value="00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1471657314282</updated>
+    </task>
+    <task id="LOCAL-00065" summary="saving">
+      <created>1471715840253</created>
+      <option name="number" value="00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1471715840253</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1296" height="1010" extended-state="6" />
-    <editor active="true" />
+    <frame x="0" y="23" width="1440" height="808" extended-state="6" />
+    <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15341812" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959327" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.38849765" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20897616" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.44319776" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39551193" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21598879" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-    </layout>
-    <layout-to-restore>
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32959327" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30294532" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.44319776" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-    </layout-to-restore>
+    </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
     <option name="RECENTLY_FILTERED_USER_GROUPS">
@@ -837,7 +766,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="16" />
+      <option name="time" value="15" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
@@ -849,62 +778,6 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.35181236">
-          <caret line="11" column="13" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/ukf_pykalman1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.119403">
-          <caret line="43" column="18" selection-start-line="43" selection-start-column="18" selection-end-line="43" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/UKF.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="29.00853">
-          <caret line="914" column="27" selection-start-line="914" selection-start-column="27" selection-end-line="914" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/kalman2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="4.061834">
-          <caret line="127" column="54" selection-start-line="127" selection-start-column="54" selection-end-line="127" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RR3_KF.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="281" column="0" selection-start-line="281" selection-start-column="0" selection-end-line="281" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.46666667">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.41577825">
-          <caret line="20" column="25" selection-start-line="20" selection-start-column="25" selection-end-line="20" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/ukf_learn3.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.2153518">
-          <caret line="139" column="21" selection-start-line="139" selection-start-column="21" selection-end-line="139" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../Project1/ukf_learn1.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="5.2132196">
@@ -982,6 +855,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/RR2_PF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.35181236">
+          <caret line="17" column="50" selection-start-line="17" selection-start-column="50" selection-end-line="17" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RR2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-2.4307036">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/RR2_UKF.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.6801706">
@@ -1017,10 +904,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/run.py">
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/filterpy/kalman/UKF.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="59" selection-start-line="25" selection-start-column="46" selection-end-line="25" selection-end-column="59" />
+          <caret line="489" column="16" selection-start-line="489" selection-start-column="8" selection-end-line="489" selection-end-column="16" />
         </state>
       </provider>
     </entry>
@@ -1059,11 +946,15 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/circle_png.png">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/robot.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5037037">
           <caret line="17" column="30" selection-start-line="17" selection-start-column="30" selection-end-line="17" selection-end-column="30" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1071,14 +962,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.4722222">
           <caret line="21" column="40" selection-start-line="21" selection-start-column="40" selection-end-line="21" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RR5_UKF.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-22.09434">
-          <caret line="7" column="38" selection-start-line="7" selection-start-column="38" selection-end-line="7" selection-end-column="38" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1096,10 +979,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy_one_variable.py">
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-tk/turtle.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.87857145">
-          <caret line="154" column="0" selection-start-line="154" selection-start-column="0" selection-end-line="154" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.33333334">
+          <caret line="2679" column="0" selection-start-line="2679" selection-start-column="0" selection-end-line="2679" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1107,6 +990,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5037175">
           <caret line="348" column="0" selection-start-line="343" selection-start-column="0" selection-end-line="348" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RR5_Least_squares.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="19.132286">
+          <caret line="594" column="21" selection-start-line="594" selection-start-column="17" selection-end-line="594" selection-end-column="21" />
         </state>
       </provider>
     </entry>
@@ -1128,131 +1018,121 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="6.4035873">
           <caret line="362" column="22" selection-start-line="362" selection-start-column="22" selection-end-line="362" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Continuum/Anaconda2/Lib/site-packages/numpy/core/_methods.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3321859">
-          <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RR5_Least_squares.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.774475">
-          <caret line="94" column="0" selection-start-line="94" selection-start-column="0" selection-end-line="94" selection-end-column="0" />
-          <folding>
-            <element signature="e#790#2619#0" expanded="false" />
-            <element signature="e#2714#4165#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/RR5_Least_squares_2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.22727273">
-          <caret line="510" column="23" selection-start-line="510" selection-start-column="23" selection-end-line="510" selection-end-column="23" />
-          <folding>
-            <element signature="e#1511#1675#0" expanded="false" />
-            <element signature="e#1761#3590#0" expanded="false" />
-            <element signature="e#6633#8412#0" expanded="false" />
-            <element signature="e#8722#8987#0" expanded="false" />
-            <element signature="e#11919#12047#0" expanded="false" />
-            <element signature="e#12104#12378#0" expanded="false" />
-            <element signature="e#12668#16147#0" expanded="false" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="49" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="699" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Continuum/Anaconda2/Lib/site-packages/numpy/core/fromnumeric.py">
+    <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.7929293">
-          <caret line="2784" column="4" selection-start-line="2784" selection-start-column="4" selection-end-line="2784" selection-end-column="4" />
-          <folding />
+        <state vertical-scroll-proportion="-3.7811935">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../Project1/least_squares_circle.py">
+    <entry file="file://$PROJECT_DIR$/run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.64903">
-          <caret line="103" column="0" selection-start-line="103" selection-start-column="0" selection-end-line="103" selection-end-column="31" />
-          <folding />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="23" column="33" selection-start-line="23" selection-start-column="33" selection-end-line="23" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RR5_UKF.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="6.8660192">
+          <caret line="237" column="32" selection-start-line="237" selection-start-column="32" selection-end-line="237" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/ukf_KalmanPy_one_variable.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.815534">
+          <caret line="130" column="0" selection-start-line="130" selection-start-column="0" selection-end-line="130" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/RR5_Least_squares_3.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="150" column="0" selection-start-line="89" selection-start-column="0" selection-end-line="150" selection-end-column="0" />
-          <folding>
-            <element signature="e#2174#2338#0" expanded="false" />
-            <element signature="e#2424#4253#0" expanded="false" />
-            <element signature="e#8013#8278#0" expanded="false" />
-            <element signature="e#11387#11515#0" expanded="false" />
-            <element signature="e#11572#11846#0" expanded="false" />
-            <element signature="e#12136#15293#0" expanded="false" />
-            <element signature="e#15371#17078#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RR5_EKF_digested.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.5488214">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RR2_PF.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.436027">
-          <caret line="17" column="50" selection-start-line="17" selection-start-column="50" selection-end-line="17" selection-end-column="50" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RR2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.34343433">
-          <caret line="166" column="28" selection-start-line="166" selection-start-column="28" selection-end-line="166" selection-end-column="28" />
-          <folding />
+        <state vertical-scroll-proportion="8.479905">
+          <caret line="211" column="5" selection-start-line="211" selection-start-column="5" selection-end-line="211" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/RR5_Least_squares_5.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="264" column="75" selection-start-line="264" selection-start-column="75" selection-end-line="264" selection-end-column="75" />
-          <folding>
-            <element signature="e#2223#2387#0" expanded="false" />
-            <element signature="e#2420#3339#0" expanded="false" />
-            <element signature="e#3416#6170#0" expanded="false" />
-            <element signature="e#6257#6506#0" expanded="false" />
-            <element signature="e#6815#7080#0" expanded="false" />
-            <element signature="e#10267#10395#0" expanded="false" />
-            <element signature="e#10452#10726#0" expanded="false" />
-            <element signature="e#11016#14173#0" expanded="false" />
-            <element signature="e#14251#15958#0" expanded="false" />
-          </folding>
+        <state vertical-scroll-proportion="0.47184467">
+          <caret line="440" column="66" selection-start-line="440" selection-start-column="66" selection-end-line="440" selection-end-column="66" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/RR5_Least_squares_4.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.37931034">
-          <caret line="16" column="21" selection-start-line="16" selection-start-column="21" selection-end-line="16" selection-end-column="21" />
+        <state vertical-scroll-proportion="0.82462686">
+          <caret line="112" column="0" selection-start-line="89" selection-start-column="0" selection-end-line="112" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/numpy/lib/index_tricks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="3.5671642">
+          <caret line="446" column="8" selection-start-line="446" selection-start-column="8" selection-end-line="446" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/scipy/optimize/minpack.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33333334">
+          <caret line="379" column="0" selection-start-line="379" selection-start-column="0" selection-end-line="379" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/least_squares_circle.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.85634327">
+          <caret line="48" column="0" selection-start-line="46" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RR5_Least_squares_7.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6785714">
+          <caret line="84" column="39" selection-start-line="84" selection-start-column="25" selection-end-line="84" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RR5_Least_squares_6.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.47153285">
+          <caret line="117" column="16" selection-start-line="117" selection-start-column="15" selection-end-line="117" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/least_squares_circle_2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/angle_averaging.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="5" column="27" selection-start-line="0" selection-start-column="0" selection-end-line="155" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Project1/angle_averaging_2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6277372">
+          <caret line="95" column="14" selection-start-line="95" selection-start-column="14" selection-end-line="95" selection-end-column="14" />
           <folding>
-            <element signature="e#2172#2336#0" expanded="false" />
-            <element signature="e#3127#4046#0" expanded="false" />
-            <element signature="e#7727#7992#0" expanded="false" />
-            <element signature="e#10941#11069#0" expanded="false" />
-            <element signature="e#11126#11400#0" expanded="false" />
-            <element signature="e#11690#14847#0" expanded="false" />
-            <element signature="e#14925#16632#0" expanded="false" />
+            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#3816#3871#0" expanded="false" />
           </folding>
         </state>
       </provider>
